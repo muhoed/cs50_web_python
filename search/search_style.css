@@ -1,13 +1,14 @@
-body {
-  display: flex;
-  flex: wrap;
+.container {
   height: 100vh;
   margin: 0;
   padding: 0;
+  display: flex;
+  flex-flow: wrap;
 }
 
 .nav {
-  width: 100vw;
+  width: 100%;
+  flex: row;
 }
 
 .navbar {
@@ -20,25 +21,68 @@ body {
 }
 
 .nav-item a {
+	font-size: 0.9em;
+	color: black;
 	padding: 10px 10px;
 	text-decoration: none;
 }
 
+.nav-item a:hover, .nav-item a:focus {
+	text-decoration: underline;
+}
+
 .search-form {
-  display: flex;
-  justify-content: center;
+  flex: column;
+  flex-grow: 1;
   align-items: center;
 }
 
 .search-form form{
   display: flex;
+  flex-flow: wrap;
+}
+
+.form-item {
+  flex: row;
+  width: 100%;
+  display: flex;
   justify-content: center;
+  margin: 10px 0;
 }
 
-input {
-  flex-flow: row;
+.form-item input {
+	margin: 0 10px;
 }
 
-input[text] {
-  border-radius: 10px;
+.form-item input[type=text] {
+	width: 50%;
+	padding: 12px 20px;
+	box-sizing: border-box;
+	border: solid 1px lightgrey;
+	border-radius: 20px;
+	transition-duration: 0.4s;
+}
+
+.form-item input[type=text]:hover {
+	box-shadow: 1px 1px 5px lightgrey, -1px -1px 5px lightgrey;
+}
+
+.form-item input[type=text]:focus {
+	box-shadow: 1px 1px 5px lightgrey, -1px -1px 5px lightgrey;
+	outline: none;
+}
+
+.form-item input[type=submit], .form-item input[type=button] {
+	border: none;
+	border-radius: 5px;
+	padding: 10px 15px;
+	cursor: pointer;
+}
+
+.form-item input[type=submit]:hover, .form-item input[type=button]:hover {
+	box-shadow: 1px 1px 2px lightgrey, -1px -1px 2px lightgrey;
+}
+
+.form-item input[type=submit]:focus, .form-item input[type=button]:focus {
+	outline: 1px solid lightblue;
 }
