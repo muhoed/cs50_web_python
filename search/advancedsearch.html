@@ -10,18 +10,49 @@
 			<div class="nav">
 				<ul class="navbar">
 					<li class="nav-item">
-					   <a href="index.html">Google Search</a>
+					   <a href="index.html">Back to Google Search</a>
 					</li>
 				</ul>
 			</div>
-			<div class="search-form">
+			<div class="advanced-search">
+				<div class="page-header">
+					`<h2 class="advanced-search-header">Advanced search</h2>
+				</div>
 				<form action="https://google.com/search">
-					<div class="form-item">
-						<input type="text" name="q">
+					<div class="advanced-form-header">
+						<h5>Find pages with</h5>
 					</div>
-					<div class="form-item">
-						<input type="submit" value="Google Search">
-						<input type="submit" value="I'm Feeling Lucky" name="btnI">
+					
+					<div class="advanced-form">
+						<label for="all">all these words:</label>
+					</div>
+					<div class="advanced-form-item">
+						<input type="text" id="all" name="q">
+					</div>
+					
+					<div class="advanced-form">
+						<label for="exact">this exact word or phrase:</label>
+					</div>
+					<div class="advanced-form-item">
+						<input type="text" id="exact" name="q">
+					</div>
+					
+					<div class="advanced-form">
+						<label for="any">any of these words:</label>
+					</div>
+					<div class="advanced-form-item">
+						<input type="text" id="any" name="q">
+					</div>
+					
+					<div class="advanced-form">
+						<label for="none">none of these words:</label>
+					</div>
+					<div class="advanced-form-item">
+						<input type="text" id="none" name="q">
+					</div>
+					
+					<div class="advanced-form-item">
+						<input type="submit" value="Advanced search">
 					</div>
 				</form>
 			</div>

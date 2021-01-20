@@ -18,8 +18,8 @@
 .nav > label {
     display: flex;
     flex-flow: wrap;
-    border: 1px solid lightgrey;
-    border-radius: 2px;
+    /*border: 1px solid lightgrey;
+    border-radius: 2px;*/
     height: 36px;
     width: 36px;
     padding: 0;
@@ -44,6 +44,15 @@
 }
 
 .navbar {
+	display: flex;
+	flex-flow: nowrap;
+	justify-content: flex-end;
+	list-style-type: none;
+	margin: 5px;
+	padding: 0;
+}
+
+.navbar-toggle {
 	display: none;
 }
 
@@ -146,7 +155,7 @@
 }
 
 @media only screen and (min-device-width: 400px) {
-	.navbar {
+	.navbar-toggle {
 		display: flex;
 		flex-flow: nowrap;
 		justify-content: flex-end;
