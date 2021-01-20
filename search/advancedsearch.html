@@ -3,7 +3,7 @@
     <head>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="search_style.css" rel="stylesheet">
-        <title>Search</title>
+        <title>Advanced Search</title>
     </head>
     <body>
 		<div class="container">
@@ -16,43 +16,49 @@
 			</div>
 			<div class="advanced-search">
 				<div class="page-header">
-					`<h2 class="advanced-search-header">Advanced search</h2>
+					`<p>Advanced search</p>
 				</div>
 				<form action="https://google.com/search">
 					<div class="advanced-form-header">
-						<h5>Find pages with</h5>
+						<p>Find pages with</p>
 					</div>
-					
-					<div class="advanced-form">
-						<label for="all">all these words:</label>
+					<div class="row">
+						<div class="advanced-form">
+							<label for="all">all these words:</label>
+						</div>
+						<div class="advanced-form-item">
+							<input type="text" id="all" name="q">
+						</div>
 					</div>
-					<div class="advanced-form-item">
-						<input type="text" id="all" name="q">
+					<div class="row">
+						<div class="advanced-form">
+							<label for="exact">this exact word or phrase:</label>
+						</div>
+						<div class="advanced-form-item">
+							<input type="text" id="exact" name="q">
+						</div>
 					</div>
-					
-					<div class="advanced-form">
-						<label for="exact">this exact word or phrase:</label>
+					<div class="row">
+						<div class="advanced-form">
+							<label for="any">any of these words:</label>
+						</div>
+						<div class="advanced-form-item">
+							<input type="text" id="any" name="q">
+						</div>
 					</div>
-					<div class="advanced-form-item">
-						<input type="text" id="exact" name="q">
+					<div class="row">
+						<div class="advanced-form">
+							<label for="none">none of these words:</label>
+						</div>
+						<div class="advanced-form-item">
+							<input type="text" id="none" name="q">
+						</div>
 					</div>
-					
-					<div class="advanced-form">
-						<label for="any">any of these words:</label>
-					</div>
-					<div class="advanced-form-item">
-						<input type="text" id="any" name="q">
-					</div>
-					
-					<div class="advanced-form">
-						<label for="none">none of these words:</label>
-					</div>
-					<div class="advanced-form-item">
-						<input type="text" id="none" name="q">
-					</div>
-					
-					<div class="advanced-form-item">
-						<input type="submit" value="Advanced search">
+					<div class="row">
+						<div class="advanced-form"></div>
+						<div class="advanced-form-item">
+							<input type="submit" value="Advanced search">
+						</div>
 					</div>
 				</form>
 			</div>
