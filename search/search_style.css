@@ -86,6 +86,7 @@ body {
 #toggle-button:checked + .navbar {
 	display: block;
 	position: absolute;
+	top: 36px;
 	text-align: left;
 	list-style-type: none;
 	margin: 10px;
@@ -102,6 +103,19 @@ body {
 	top: 67px;
 	left: 0;
 	width: 100%;
+}
+
+.image-search-logo {
+	display: flex;
+	justify-content: center;
+	font-family: "Poppins", Arial;
+	font-size: 75px;
+	font-weight: bold;
+	position: absolute;
+	top: 160px;
+	left: 0;
+	width: 100%;
+	padding-left: 30px;
 }
 
 .logo-subtext {
@@ -122,6 +136,16 @@ body {
   position: absolute;
   top: 159px;
   left: 0;
+}
+
+.image-search-form {
+	flex: column;
+	flex-grow: 1;
+	align-items: center;
+	width: 100%;
+	position: absolute;
+	top: 250px;
+	left: 0;
 }
 
 .search-form form{
@@ -149,10 +173,10 @@ body {
 	border-radius: 20px;
 	transition-duration: 0.4s;
 	background-color: white;
-	background-image: url("data:image/svg+xml;base64,PHN2ZyBmb2N1c2FibGU9J2ZhbHNlJyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAyNCAyNCcgd2lkdGg9JzI0JyBoZWlnaHQ9JzI0Jz48cGF0aCBkPSdNMTUuNSAxNGgtLjc5bC0uMjgtLjI3QTYuNDcxIDYuNDcxIDAgMCAwIDE2IDkuNSA2LjUgNi41IDAgMSAwIDkuNSAxNmMxLjYxIDAgMy4wOS0uNTkgNC4yMy0xLjU3bC4yNy4yOHYuNzlsNSA0Ljk5TDIwLjQ5IDE5bC00Ljk5LTV6bS02IDBDNy4wMSAxNCA1IDExLjk5IDUgOS41UzcuMDEgNSA5LjUgNSAxNCA3LjAxIDE0IDkuNSAxMS45OSAxNCA5LjUgMTR6JyBzdHJva2U9JyM5YWEwYTY7Jz48L3BhdGg+PC9zdmc+");
+	background-image: url("data:image/svg+xml;base64,PHN2ZyBmb2N1c2FibGU9J2ZhbHNlJyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAyNCAyNCcgd2lkdGg9JzI0JyBoZWlnaHQ9JzI0Jz48cGF0aCBkPSdNMTUuNSAxNGgtLjc5bC0uMjgtLjI3QTYuNDcxIDYuNDcxIDAgMCAwIDE2IDkuNSA2LjUgNi41IDAgMSAwIDkuNSAxNmMxLjYxIDAgMy4wOS0uNTkgNC4yMy0xLjU3bC4yNy4yOHYuNzlsNSA0Ljk5TDIwLjQ5IDE5bC00Ljk5LTV6bS02IDBDNy4wMSAxNCA1IDExLjk5IDUgOS41UzcuMDEgNSA5LjUgNSAxNCA3LjAxIDE0IDkuNSAxMS45OSAxNCA5LjUgMTR6JyBzdHlsZT0nZmlsbDojOWFhMGE2Oyc+PC9wYXRoPjwvc3ZnPg==");
 	background-position: 10px 10px;
 	background-repeat: no-repeat;
-	padding-left: 20px;
+	padding-left: 40px;
 }
 
 .form-item input[type=text]:hover {
@@ -165,7 +189,10 @@ body {
 }
 
 .form-item input[type=submit] {
+	font-family: aerial, sans-serif;
+	font-size: 14px;
 	color: #3c4043;
+	background-color: #f8f9fa;
 	border: none;
 	border-radius: 5px;
 	padding: 10px 15px;
@@ -206,14 +233,19 @@ body {
 
 .nav-advanced {
 	background-color: #f1f1f1;
+	display: flex;
+	align-items: center;
 }
 
 .navbar-logo {
 	display: flex;
-	align-items: center;
 	font-family: "Poppins", Arial;
 	font-size: 25px;
 	font-weight: bold;
+}
+
+.nav-advanced > a {
+	text-decoration: none;
 	padding: 0 20px 0 15px;
 }
 
