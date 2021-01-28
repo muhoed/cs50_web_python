@@ -1,0 +1,181 @@
+@mixin flex-basic($flw: row nowrap, $jstf: start, $algn: stretch;) {
+	display: flex;
+	flex-wrap: $flw;
+	justify-content: $jstf;
+	align-items: $algn;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+	font-family: arial,sans-serif;
+	margin: 0;
+	padding: 0;
+}
+
+.container {
+	height: 60vh;
+	min-width: 400px;
+	margin: 0;
+	padding: 0;
+	@include flex-basic($flw: wrap, $jstf: center, $algn: start);
+}
+
+.nav {
+	@include flex-basic($jstf: center);
+	width: 100%;
+	vertical-align: baseline;
+
+	input {
+		display: none;
+	}
+
+	label {
+		@include flex-basic($flw: wrap);
+		height: 36px;
+		width: 36px;
+		margin: 5px;
+		padding: 5px;
+		cursor: pointer;
+		outline: none;
+
+		span {
+			margin-top: 5px;
+		}
+	}
+
+	label:hover {
+		box-shadow: 1px 1px 1px lightgrey, -1px -1px 1px lightgrey;
+	}
+}
+
+.toggle-line {
+  height: 4px;
+  width: 90%;
+  background-color: lightgrey;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.navbar {
+	@include flex-basic($jstf: flex-end);
+	flex-grow: 1;
+	list-style-type: none;
+	height: 36px;
+	margin: 15px;
+	padding: 0;
+}
+
+.navbar-toggle {
+	display: none;
+}
+
+.nav-item {
+	a {
+		font-size: 0.75em;
+		color: black;
+		padding: 10px 10px;
+		text-decoration: none;
+	}
+	a: hover, a:focus {
+		text-decoration: underline;
+	}
+}
+
+#toggle-button:checked + .navbar {
+	display: block;
+	position: absolute;
+	top: 36px;
+	text-align: left;
+	list-style-type: none;
+	margin: 10px;
+	padding: 5;
+}
+
+.main {
+	@include flex-basic($flw: wrap, $jstf: center, $algn: start);
+	width: 100%;
+}
+
+.google-logo {
+	@include flex-basic($jstf: center);
+	font-family: "Poppins", Arial;
+	font-size: 72px;
+	font-weight: bold;
+	margin-bottom: 10px;
+	position: relative;
+	width: 100%;
+}
+
+.image-search-logo {
+	padding-left: 30px;
+}
+
+.logo-subtext {
+	color: #4285f4;
+    font: 16px/16px roboto-regular, arial, sans-serif;
+    text-align: center;
+    position: relative;
+    top: 80px;
+    left: -60px;
+    white-space: nowrap;
+}
+
+.search-form {
+	width: 100%;
+	form {
+		@include flex-basic($flw: wrap);
+	}
+}
+
+.form-item {
+	width: 100%;
+	@include flex-basic($jstf: center);
+	margin: 10px 0;
+
+	input {
+		margin: 0 10px;
+
+		[type=text] {
+			width: 40%;
+			min-width: 334px;
+			padding: 12px 20px;
+			box-sizing: border-box;
+			border: solid 1px lightgrey;
+			border-radius: 20px;
+			transition-duration: 0.4s;
+			background-color: white;
+			background-image: url("data:image/svg+xml;base64,PHN2ZyBmb2N1c2FibGU9J2ZhbHNlJyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAyNCAyNCcgd2lkdGg9JzI0JyBoZWlnaHQ9JzI0Jz48cGF0aCBkPSdNMTUuNSAxNGgtLjc5bC0uMjgtLjI3QTYuNDcxIDYuNDcxIDAgMCAwIDE2IDkuNSA2LjUgNi41IDAgMSAwIDkuNSAxNmMxLjYxIDAgMy4wOS0uNTkgNC4yMy0xLjU3bC4yNy4yOHYuNzlsNSA0Ljk5TDIwLjQ5IDE5bC00Ljk5LTV6bS02IDBDNy4wMSAxNCA1IDExLjk5IDUgOS41UzcuMDEgNSA5LjUgNSAxNCA3LjAxIDE0IDkuNSAxMS45OSAxNCA5LjUgMTR6JyBzdHlsZT0nZmlsbDojOWFhMGE2Oyc+PC9wYXRoPjwvc3ZnPg==");
+			background-position: 10px 10px;
+			background-repeat: no-repeat;
+			font-size: 16px;
+			padding-left: 40px;
+
+			:hover, :focus {
+				box-shadow: 1px 1px 5px lightgrey, -1px -1px 5px lightgrey;
+				outline: none;
+			}
+		}
+		[type=submit] {
+			font-family: aerial, sans-serif;
+			font-size: 14px;
+			color: #3c4043;
+			background-color: #f8f9fa;
+			border: none;
+			border-radius: 5px;
+			padding: 10px 15px;
+			cursor: pointer;
+
+			:hover {
+				box-shadow: 1px 1px 2px lightgrey, -1px -1px 2px lightgrey;
+			}
+
+			:focus {
+				outline: 1px solid lightblue;
+			}
+		}
+	
+	}
+}
