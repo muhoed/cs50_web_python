@@ -1,0 +1,42 @@
+{% extends "encyclopedia/layout.html" %}
+
+{% block title %}
+    Search results
+{% endblock %}
+
+{% block body %}
+	<div>
+		<h5 class="font-italic">Entries with matches in titles:</h5>
+		{% if in_titles %}
+			<ul>
+				{% for title in in_titles %}
+					<li><a href="{% url 'encyclopedia:show_entry' title %}">
+						{{ title|capfirst }}</a></li>
+				{% endfor %}
+			</ul>
+		{% else %}
+			<p>No titles match search criteria</p>
+		{% endif %}
+	</div>
+	<div style="margin-top:20px;">
+		<h5 class="font-italic">Entries with matches in content (others than entries above):</h5>
+		{% if in_content %}
+			<table class="table table-hover">
+				<tr>
+					<th>Title</th>
+					<th>Match</th>
+				</tr>
+				{% for entry in in_content %}
+					<tr onclick="document.location='{% url 'encyclopedia:show_entry' entry.0 %}'"
+						class="table-link">
+						<td>{{ entry.0 }}</td>
+						<td>{{ entry.1 }}<mark>{{ entry.2 }}</mark>{{ entry.3 }}</td>
+					</tr>
+				{% endfor %}
+			</table>
+		{% else %}
+			<p>No entries with matching content found</p>
+		{% endif %}
+	</div>
+
+{% endblock %}

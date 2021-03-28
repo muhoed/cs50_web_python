@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="search_style.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
+        <title>Search</title>
+    </head>
+    <body>
+		<div class="container">
+			<div class="nav">
+				<label for="toggle-button">
+					<span class="toggle-line"></span>
+					<span class="toggle-line"></span>
+					<span class="toggle-line"></span>
+				</label>
+				<input type="checkbox" id="toggle-button">
+				<ul class="navbar navbar-toggle">
+					<li class="nav-item">
+					   <a href="imagesearch.html">Image Search</a>
+					</li>
+					<li class="nav-item">
+						<a href="advancedsearch.html">Advanced Search</a>
+					</li>
+				</ul>
+			</div>
+			<div class="main">
+				<div class="google-logo" title="Google Search">
+					<span style="color: #4587f4;">G</span>
+					<span style="color: #ea483a;">o</span>
+					<span style="color: #fbbd0f;">o</span>
+					<span style="color: #4587f4;">g</span>
+					<span style="color: #34a853;">l</span>
+					<span style="color: #ea483a;">e</span>
+				</div>
+				<div class="search-form">
+					<form action="https://google.com/search">
+						<div class="form-item">
+							<input type="text" name="q" title="Search">
+						</div>
+						<div class="form-item">
+							<input type="submit" value="Google Search">
+							<input type="submit" value="I'm Feeling Lucky" name="btnI">
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div class="footer">
+			<div>CS50 Web Programming with Python and Javascript:</div>
+			<div> Project 0 - Search</div>
+		</div>
+    </body>
+</html>
