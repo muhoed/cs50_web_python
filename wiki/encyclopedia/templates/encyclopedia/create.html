@@ -1,0 +1,43 @@
+{% extends "encyclopedia/layout.html" %}
+
+{% block title %}
+{{ pageTitle }}
+{% endblock %}
+
+{% block body %}
+
+	<h1>{{ pageTitle }}</h1>
+	
+	<form action="{% url 'encyclopedia:create' %}" method="POST" 
+	name="createForm" id="createForm">
+		{% csrf_token %}
+		
+		{{ createForm.non_field_errors }}
+		
+		{% for field in createForm.hidden_fields %}
+			{{ field }}
+		{% endfor %}
+		
+		{% for field in createForm.visible_fields %}
+			<div class="form-group col-11">
+				{% if field.errors %}
+					<ul>
+						{% for error in field.errors %}
+							<li>{{ error|escape }}</li>
+						{% endfor %}
+					</ul>
+				{% endif %}
+				<label for="{{ field.id_for_label }}">{{ field.label }}</label>
+				{{ field }}
+			</div>
+		{% endfor %}
+		
+	</form>
+	<div class="col-11 d-flex justify-content-end">
+			<input type="submit" form="createForm" name="save" id="save" value="Save" class="m-1 btn btn-success">
+			<button onclick="resetForm('createForm')" name="reset" id="reset" 
+			class="m-1 btn btn-danger">Reset</button>
+			<button onclick="cancelForm();" name="cancel" id="cancel" class="m-1 btn btn-info">Cancel</button>
+		</div>
+
+{% endblock %}

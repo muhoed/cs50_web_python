@@ -1,0 +1,15 @@
+{% extends "encyclopedia/layout.html" %}
+
+{% block title %}
+    {{ title|capfirst }}
+{% endblock %}
+
+{% block body %}
+	<div class="w-80">
+		<button class="btn btn-secondary m-2" 
+		onclick="document.location='{% url 'encyclopedia:index' %}'">Home</button>
+		<button class="btn btn-info m-2" 
+		onclick="document.location='{% url 'encyclopedia:edit' title %}'">Edit</button>
+	</div>
+    {{ article|safe }}
+{% endblock %}
