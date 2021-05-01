@@ -1,0 +1,19 @@
+from django.urls import path
+
+from . import views
+
+app_name = "auctions"
+urlpatterns = [
+    path("", views.index, name="index"),
+    path("login", views.login_view, name="login"),
+    path("logout", views.logout_view, name="logout"),
+    path("register", views.register, name="register"),
+    path("profile", views.profile, name="profile"),
+    path("categories", views.categories, name="categories"),
+    path("categories/<int:cat_id>/", views.categories, name="categories"),
+    path("create", views.create_listing, name="create"),
+    path("messenger", views.messenger, name="messenger"),
+    path("listing/<int:listing_id>/", views.listing, name="listing"),
+    path("watchlist", views.watchlist, name="watchlist"),
+    path("search", views.search, name="search")
+]
