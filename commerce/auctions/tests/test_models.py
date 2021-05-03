@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
+from django.contrib.auth import authenticate, login, logout
 
 from auctions.models import *
 
@@ -24,59 +25,56 @@ class TestModels(TestCase):
                             description="Product for testing purposes",
                             seller = self.testuser
                             )
+        self.testlisting = Listing.objects.create(product=self.product)
+        
+    def test_bad_credentials(self):
+        self.assertFalse(authenticate(username='test_user', password='somepass'))
+        
+    def test_good_credentials(self):
+        self.assertTrue(authenticate(username='test_user', password='Pass&2021'))
 	
-    def test_listing_end_time(self):
-        testlisting = Listing.objects.create(product=self.product)
-        
-        self.assertEqual(testlisting.end_time-testlisting.start_time, 
-                            datetime.timedelta(days=10))
-                            
-    def test_listing_default_status(self):
-        testlisting = Listing.objects.create(product=self.product)
-        
-        self.assertEqual(testlisting.status, "active")
+    def test_new_listing(self):
+        self.assertEqual(self.testlisting.end_time-self.testlisting.start_time, 
+                                                        datetime.timedelta(days=10))
+        self.assertEqual(self.testlisting.status, "active")
+        self.assertEqual(self.testlisting.max_bid, 0)
         
     def test_listing_not_started_status(self):
-        testlisting = Listing.objects.create(
-                        product=self.product,
-                        start_time = timezone.now() + datetime.timedelta(days=1)
-                        )
+        self.testlisting.start_time = timezone.now() + datetime.timedelta(days=1)
+        self.testlisting.save()
         
-        self.assertEqual(testlisting.status, "not started yet")
+        self.assertEqual(self.testlisting.status, "not started yet")
         
     def test_listing_canceled_status(self):
-        testlisting = Listing.objects.create(
-                                product=self.product,
-                                cancelled=True
-                                )
+        self.testlisting.cancelled=True
+        self.testlisting.save()
         
-        self.assertEqual(testlisting.status, "cancelled")
+        self.assertEqual(self.testlisting.status, "cancelled")
         
-    def test_listing_no_bid_max(self):
-        testlisting = Listing.objects.create(product=self.product)
+    def test_listing_added_to_watchlist(self):
+        self.testuser.watchlist.add(self.testlisting)
+        self.testuser.save()
         
-        self.assertEqual(testlisting.max_bid, 0)
+        self.assertEqual(len(self.testuser.watchlist.all()), 1)
         
     def test_listing_max_bid(self):
-        testlisting = Listing.objects.create(product=self.product)
         testbidder = User.objects.create(
                                 username="testbidder",
                                 email="",
                                 password="Pass2%2021")
         bid1 = Bid.objects.create(bidder=testbidder, 
-                                listing=testlisting, 
+                                listing=self.testlisting, 
                                 value=Decimal('1.00'))
         bid2 = Bid.objects.create(bidder=testbidder, 
-                                listing=testlisting, 
+                                listing=self.testlisting, 
                                 value=Decimal('3.15'))
         
-        self.assertEqual(testlisting.max_bid, bid2.value)
+        self.assertEqual(self.testlisting.max_bid, bid2.value)
         
     def test_listing_winner(self):
-        testlisting = Listing.objects.create(
-                                        product=self.product,
-                                        duration = datetime.timedelta(days=0)
-                                        )
+        self.testlisting.duration = datetime.timedelta(days=0)
+        self.testlisting.save()
+        
         bidder1 = User.objects.create(
                                 username="bidder1",
                                 email="",
@@ -86,19 +84,30 @@ class TestModels(TestCase):
                                 email="",
                                 password="Pass3%2021")
         bid1 = Bid.objects.create(bidder=bidder1, 
-                                listing=testlisting, 
+                                listing=self.testlisting, 
                                 value=Decimal('1.00'))
         bid2 = Bid.objects.create(bidder=bidder2, 
-                                listing=testlisting, 
+                                listing=self.testlisting, 
                                 value=Decimal('3.15'))
         bid3 = Bid.objects.create(bidder=bidder1, 
-                                listing=testlisting, 
+                                listing=self.testlisting, 
                                 value=Decimal('4.00'))
         
-        self.assertEqual(testlisting.winner, bidder1)
+        self.assertEqual(self.testlisting.winner, bidder1)
+        
+    def test_add_to_watchlist(self):
+        user = User.objects.create(
+                                    username="interested_user", 
+                                    email="", 
+                                    password="Pass&2021"
+                                    )
+        self.testlisting.followers.add(user)
+        self.testlisting.save()
+        
+        self.assertEqual(len(user.watchlist.all()), 1)
+        self.assertEqual(user.watchlist.get(), self.testlisting)
         
     def test_comment_pending(self):
-        testlisting = Listing.objects.create(product=self.product)
         user = User.objects.create(
                                     username="commenting_user", 
                                     email="", 
@@ -106,14 +115,13 @@ class TestModels(TestCase):
                                     )
         comment = Comment.objects.create(
                                     author = user,
-                                    listing = testlisting,
+                                    listing = self.testlisting,
                                     content = "test comment"
                                     )
                                     
         self.assertEqual(comment.status, "pending")
         
     def test_comment_answered(self):
-        testlisting = Listing.objects.create(product=self.product)
         user = User.objects.create(
                                     username="commenting_user", 
                                     email="", 
@@ -121,7 +129,7 @@ class TestModels(TestCase):
                                     )
         comment = Comment.objects.create(
                                     author = user,
-                                    listing = testlisting,
+                                    listing = self.testlisting,
                                     content = "test comment"
                                     )
         answer = Answer.objects.create(
@@ -131,4 +139,5 @@ class TestModels(TestCase):
                                     )
                                     
         self.assertEqual(comment.status, "answered")
+        self.assertEqual(len(comment.answer_set.all()), 1)
         

@@ -18,11 +18,9 @@ class Address(models.Model):
 class User(AbstractUser):
 	
 	delivery_address = models.ForeignKey(Address, on_delete=models.SET_NULL,
-								null=True, blank=True, 
-								related_name="shipping_address")
+								null=True, blank=True, related_name="sender")
 	billing_address = models.ForeignKey(Address, on_delete=models.SET_NULL,
-								null=True, blank=True,
-								related_name="billing_address")
+								null=True, blank=True, related_name="seller")
     
     
 class Category(models.Model):
@@ -199,7 +197,7 @@ class Comment(models.Model):
 class Answer(models.Model):
 	
 	respondent = models.ForeignKey(User, on_delete=models.CASCADE,
-					verbose_name="user answered a comment to a listing, i.e. seller")
+					verbose_name="seller")
 	comment = models.ForeignKey(Comment, on_delete=models.CASCADE,
 					verbose_name="answered comment")
 	content = models.CharField("answer's text", max_length=1000)
