@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 from django.template.defaultfilters import slugify
+from django.urls import reverse
 from django.db import models
 
 
@@ -138,8 +139,7 @@ class Listing(models.Model):
 		except Bid.DoesNotExist:
 			return Decimal('0.00')
 		return mbid.value
-			
-	
+				
 	@property
 	def winner(self):
 		if self.status == "ended" or \
@@ -148,6 +148,10 @@ class Listing(models.Model):
 			if bids:
 				return bids.order_by('-value')[0].bidder
 		return None
+		
+	@property
+	def get_absolute_url(self):
+		return reverse('auctions:listing', args=[str(self.id)])
 	
 	def __str__(self):
 		return f"Auction listing for {self.product.name}. \

@@ -46,7 +46,7 @@ class TestModels(TestCase):
         self.assertEqual(self.testlisting.status, "not started yet")
         
     def test_listing_canceled_status(self):
-        self.testlisting.cancelled=True
+        self.testlisting.cancelled = True
         self.testlisting.save()
         
         self.assertEqual(self.testlisting.status, "cancelled")

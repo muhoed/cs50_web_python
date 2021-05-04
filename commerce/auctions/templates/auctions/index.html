@@ -5,13 +5,14 @@
 	{% if active_listings_list %}
 		<div>
 			{% for listing in active_listings_list %}
-				<a href="{% url 'auctions:listing' listing.id %}">
+				<a href="{{ listing.get_absolute_url }}">
 					<div class="d-flex nowrap">
 						<div><a href="{{ listing.product.image_url }}"></a></div>
 						<div>{{ listing.product.name|capfirst }}</div>
-						<div>{{ listing.product.seller.name }}</div>
-						<div>{{ listing.start_price }} EUR</div>
-						<div>{{ listing.start_time|add:listing.duration }}</div>
+						<div>{{ listing.max_bid }} EUR</div>
+						<div>{{ listing.end_time|timeuntil }}</div>
+						<div>Add to Watchlist</div>
+						<div>Place bid</div>
 					</div>
 				</a>
 			{% endfor %}
