@@ -14,7 +14,6 @@ class TestModels(TestCase):
     def setUp(self):
         # Create test user to use in testing.
         self.testuser = User.objects.create_user("test_user", "", 'Pass&2021')
-        self.testuser.save()
         # Create test category
         self.category = Category.objects.create(
                             name="testcategory",
@@ -34,10 +33,13 @@ class TestModels(TestCase):
         self.assertTrue(authenticate(username='test_user', password='Pass&2021'))
 	
     def test_new_listing(self):
-        self.assertEqual(self.testlisting.end_time-self.testlisting.start_time, 
+        listing = Listing.objects.get(id=1)
+        self.assertEqual(listing.end_time-listing.start_time, 
                                                         datetime.timedelta(days=10))
-        self.assertEqual(self.testlisting.status, "active")
-        self.assertEqual(self.testlisting.max_bid, 0)
+        self.assertEqual(listing.status, "active")
+        self.assertEqual(listing.get_absolute_url, '/listing/1/')
+        self.assertEqual(listing.max_bid, 0)
+        
         
     def test_listing_not_started_status(self):
         self.testlisting.start_time = timezone.now() + datetime.timedelta(days=1)
@@ -50,12 +52,6 @@ class TestModels(TestCase):
         self.testlisting.save()
         
         self.assertEqual(self.testlisting.status, "cancelled")
-        
-    def test_listing_added_to_watchlist(self):
-        self.testuser.watchlist.add(self.testlisting)
-        self.testuser.save()
-        
-        self.assertEqual(len(self.testuser.watchlist.all()), 1)
         
     def test_listing_max_bid(self):
         testbidder = User.objects.create(
@@ -96,16 +92,11 @@ class TestModels(TestCase):
         self.assertEqual(self.testlisting.winner, bidder1)
         
     def test_add_to_watchlist(self):
-        user = User.objects.create(
-                                    username="interested_user", 
-                                    email="", 
-                                    password="Pass&2021"
-                                    )
-        self.testlisting.followers.add(user)
+        self.testlisting.followers.add(self.testuser)
         self.testlisting.save()
         
-        self.assertEqual(len(user.watchlist.all()), 1)
-        self.assertEqual(user.watchlist.get(), self.testlisting)
+        self.assertEqual(len(self.testuser.watchlist.all()), 1)
+        self.assertEqual(self.testuser.watchlist.get(), self.testlisting)
         
     def test_comment_pending(self):
         user = User.objects.create(
