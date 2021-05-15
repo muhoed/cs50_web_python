@@ -8,7 +8,15 @@ from django.urls import reverse
 from django.db import models
 
 
-class Address(models.Model):
+class Contact(models.Model):
+	
+	
+	
+	user = models.OneToOneField(User, on_delete=models.CASCADE,
+								related_name='contact_details')
+	
+	first_name = models.CharField(max_length=50)
+	last_name = models.CharField(max_length=50)
 	
 	line1 = models.CharField(max_length=100, null=True, blank=True)
 	line2 = models.CharField(max_length=100, null=True, blank=True)
@@ -17,11 +25,7 @@ class Address(models.Model):
 	country = models.CharField(max_length=100, null=True, blank=True)
 
 class User(AbstractUser):
-	
-	delivery_address = models.ForeignKey(Address, on_delete=models.SET_NULL,
-								null=True, blank=True, related_name="sender")
-	billing_address = models.ForeignKey(Address, on_delete=models.SET_NULL,
-								null=True, blank=True, related_name="seller")
+	pass
     
     
 class Category(models.Model):
@@ -29,6 +33,10 @@ class Category(models.Model):
 	name = models.CharField("category's title", max_length=100, unique=True)
 	description = models.CharField("category's description", max_length=255, blank=True)
 	
+	@property
+	def get_absolute_url(self):
+		return reverse('auctions:category', args=[int(self.id)])
+		
 	def __str__(self):
 		return self.name
 
@@ -151,7 +159,7 @@ class Listing(models.Model):
 		
 	@property
 	def get_absolute_url(self):
-		return reverse('auctions:listing', args=[str(self.id)])
+		return reverse('auctions:listing', args=[int(self.id)])
 	
 	def __str__(self):
 		return f"Auction listing for {self.product.name}. \

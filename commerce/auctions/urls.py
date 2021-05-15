@@ -1,12 +1,22 @@
-from django.urls import path
+from django.urls import path, include
+from django.contrib.auth import views as auth_views
 
 from . import views
 
 app_name = "auctions"
 urlpatterns = [
     path("", views.index, name="index"),
-    path("login", views.login_view, name="login"),
-    path("logout", views.logout_view, name="logout"),
+    #path("login", views.login_view, name="login"),
+    path("login", auth_views.LoginView.as_view(
+								template_name='auctions/login.html'), name="login"),
+    #path("logout", views.logout_view, name="logout"),
+    path("logout", auth_views.LogoutView.as_view(
+								extra_context={'message':'You were logged out.'}), 
+								name="logout"),
+    path("password_change", 
+			auth_views.PasswordChangeView.as_view(template_name='password_change.html')),
+	path("password_change_done", auth_views.PasswordChangeDoneView.as_view(
+			template_name='password_change_done.html')),
     path("register", views.register, name="register"),
     path("profile", views.profile, name="profile"),
     path("categories", views.categories, name="categories"),

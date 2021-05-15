@@ -7,18 +7,40 @@
     {% if message %}
         <div>{{ message }}</div>
     {% endif %}
-
+	
+	{% if next %}
+		{% if user.is_authenticated %}
+			<p>You don't have access to this page. To proceed,
+			please login with an account that has access.</p>
+		{% else %}
+			<p>Please login to see this page.</p>
+		{% endif %}
+	{% endif %}
+	<div class="auth-form-block">
     <form action="{% url 'auctions:login' %}" method="post">
         {% csrf_token %}
-        <div class="form-group">
-            <input autofocus class="form-control" type="text" name="username" placeholder="Username">
-        </div>
-        <div class="form-group">
-            <input class="form-control" type="password" name="password" placeholder="Password">
-        </div>
-        <input class="btn btn-primary" type="submit" value="Login">
+        <table>
+        {{ form.as_table }}
+        <!--
+        {% for field in form %}
+            <div class="form-group">
+                {{ field.label_tag }}
+                {{ field }}
+                <span class="form-field-help"> (i) 
+                {% if field.help_text %}
+					<p style="display:none">{{ field.help_text|safe }}</p>
+				{% endif %}
+                </span>
+            </div>
+        {% endfor %}
+        -->
+        <tr><td></td>
+        <td><input class="btn btn-primary" type="submit" value="Login"></td>
+        </tr>
+        <input type="hidden" name="next" value="{{ next }}">
+        </table>
     </form>
 
     Don't have an account? <a href="{% url 'auctions:register' %}">Register here.</a>
-
+	</div>
 {% endblock %}

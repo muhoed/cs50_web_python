@@ -7,24 +7,31 @@
     {% if message %}
         <div>{{ message }}</div>
     {% endif %}
-
+	<!--{{ form.non_field_errors }}-->
+	<div class="auth-form-block">
     <form action="{% url 'auctions:register' %}" method="post">
         {% csrf_token %}
-        <div class="form-group">
-            <input class="form-control" autofocus type="text" name="username" placeholder="Username">
-        </div>
-        <div class="form-group">
-            <input class="form-control" type="email" name="email" placeholder="Email Address">
-        </div>
-        <div class="form-group">
-            <input class="form-control" type="password" name="password" placeholder="Password">
-        </div>
-        <div class="form-group">
-            <input class="form-control" type="password" name="confirmation" placeholder="Confirm Password">
-        </div>
-        <input class="btn btn-primary" type="submit" value="Register">
+        <!--{% for field in form %}
+			<div class="form-group">
+				{{ field.errors }}
+				{{ field.label_tag }} {{ field }}
+				<span class="form-field-help"> (i) 
+                {% if field.help_text %}
+					<p style="display:none">{{ field.help_text|safe }}</p>
+				{% endif %}
+                </span>
+			</div>
+		{% endfor %}-->
+		<table>
+			{{ form.as_table }}
+			<tr>
+				<td></td>
+				<td><input class="btn btn-primary" type="submit" value="Register"></td>	
+			</tr>
+		</table>
     </form>
 
     Already have an account? <a href="{% url 'auctions:login' %}">Log In here.</a>
-
+	</div>
+	
 {% endblock %}

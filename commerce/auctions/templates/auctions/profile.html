@@ -1,0 +1,42 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+    <h2>{{ user.username|capfirst }}</h2>
+    <h4>profile</h4>
+
+    {% if message %}
+        <div>{{ message }}</div>
+    {% endif %}
+    
+    <div>
+		<h3>Contact details</h3>
+		<h4>E-mail address</h4>
+		{{ user.email }}
+		<button>Change</button>
+		<h4>Delivery address</h4>
+		{{ user.delivery_address }}
+		<button>Change</button>
+		<h4>Billing address</h4>
+		{{ user.billing_address }}
+		<button>Change</button>
+	</div>
+	
+	{% if user.listings %}
+	<div>
+		<h3>User's listings</h3>
+		<ul>
+		{% for listing in user.listings %}
+			<li>
+				<div>
+					<div><img src="{{ listing.product.image_url }}"></div>
+					<div>{{ listing.product.name }}</div>
+					<div>{{ listing.status }}</div>
+				</div>
+			</li>
+		{% endfor %}
+		</ul>
+	</div>
+	{% endif %}
+	
+{% endblock %}
