@@ -8,13 +8,21 @@ from django.urls import reverse
 from django.db import models
 
 
-class Contact(models.Model):
+class User(AbstractUser):
+	pass
+
+class Contact(models.Model):0
 	
-	
-	
+    TITLE_CHOICES = [
+        ('MR', 'Mr.'),
+        ('MRS', 'Mrs.'),
+        ('MS', 'Ms.'),
+    ]
+
 	user = models.OneToOneField(User, on_delete=models.CASCADE,
 								related_name='contact_details')
 	
+	title = models.CharField(max_length=3, choices=TITLE_CHOICES)
 	first_name = models.CharField(max_length=50)
 	last_name = models.CharField(max_length=50)
 	
@@ -23,9 +31,13 @@ class Contact(models.Model):
 	zip_code = models.CharField(max_length=6, null=True, blank=True)
 	city = models.CharField(max_length=100, null=True, blank=True)
 	country = models.CharField(max_length=100, null=True, blank=True)
-
-class User(AbstractUser):
-	pass
+	
+	@property
+	def full_name(self):
+	    return f'%s %s' % (self.first_name, last_name)
+	
+	def __str__(self):
+	    return f'%s %s' % (self.title, self.full_name)
     
     
 class Category(models.Model):

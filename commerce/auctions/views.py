@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
-from django.forms import inlineformset_factory
+from django.forms import modelformset_factory
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -46,8 +46,8 @@ def index(request):
 
 
 def register(request):
-    regform_set = inlineformset_factory(
-                    Address, User, fk_name="sender", fields="__all__")
+    regform_set = modelformset_factory(
+                    RegisterForm, ContactForm)
     if request.method == "POST":
         #username = request.POST["username"]
         #email = request.POST["email"]

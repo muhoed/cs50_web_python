@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 
-from .models import User, Bid, Comment, Answer, Listing
+from .models import User, Contact, Bid, Comment, Answer, Listing
 
 
 class RegisterForm(UserCreationForm):
@@ -9,6 +9,10 @@ class RegisterForm(UserCreationForm):
 		model = User
 		fields = UserCreationForm.Meta.fields + \
 					('email',)
+					
+class ContactForm(forms.ModelForm):
+    class Meta():
+        model = Contact
 
 class SearchForm(forms.Form):
 	watched = forms.CharField(label="Search", max_length=100)
