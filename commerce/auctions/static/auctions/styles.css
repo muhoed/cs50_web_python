@@ -1,3 +1,7 @@
 body {
     padding: 10px;
 }
+
+.field-help-icon * {
+	display: none;
+}

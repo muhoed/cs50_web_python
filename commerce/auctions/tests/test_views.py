@@ -19,6 +19,11 @@ class TestViews(TestCase):
         User.objects.create_user("test_user1", "", 'Pass1')
         User.objects.create_user("test_user2", "", 'Pass2')
         User.objects.create_user("test_user3", "", 'Pass3')
+        # Create profile for test_user1
+        Contact.objects.create(user=User.objects.get(username='test_user1'),
+                                title='MR', first_name='Test', last_name='Testoff',
+                                line1='street 1', zip_code='00000',
+                                city='testcity', country='SK')   
         # Create test categories
         Category.objects.create(
                             name="testcategory1",
@@ -160,7 +165,7 @@ class TestLoginView(TestViews):
                                     'password': 'somepassword'})
         
         #Check error message is displayed
-        self.assertContains(response, 'Invalid username and/or password.')
+        self.assertContains(response, 'Please enter a correct username and password.')
         
         #Check user in session is anonymous
         self.assertFalse(response.context['user'].is_authenticated)
@@ -182,7 +187,7 @@ class TestLoginView(TestViews):
         self.assertEqual(str(response.context['user']), u.username)
         
         #Check user was redirected to home page
-        self.assertRedirects(response, reverse('auctions:index'))
+        self.assertRedirects(response, reverse('auctions:profile'))
         
     def test_user_logout(self):
         """
@@ -247,18 +252,35 @@ class TestRegisterView(TestViews):
         """
         #Issue a POST request with empty data
         response = self.client.post(reverse('auctions:register'),
-                                                    {'username':'',
-                                                    'email':'',
-                                                    'password':'',
-                                                    'confirmation':''})
+                                    {'username':'', 'email':'', 'password':'',
+                                        'confirmation':'', 'title':'', 
+                                        'first_name':'', 'last_name':'',
+                                        'line1':'', 'zip_code':'', 'city':'',
+                                        'country':''})
 
         #Check the page is loaded 
         self.assertEqual(response.status_code, 200)
         #Check errors are displayed by the form
-        self.assertFormError(response, 'form', 'username', 'can not be empty')
-        self.assertFormError(response, 'form', 'email', 'can not be empty')
-        self.assertFormError(response, 'form', 'password', 'can not be empty')
-        self.assertFormError(response, 'form', 'confirmation', 'can not be empty')
+        self.assertFormError(response, 'user_form', 
+                                'username', 'Please fill out this field')
+        self.assertFormError(response, 'user_form', 
+                                'password1', 'Please fill out this field')
+        self.assertFormError(response, 'user_form', 
+                                'password2', 'Please fill out this field')
+        self.assertFormError(response, 'contact_form', 
+                                'title', 'Please select an item in the list')
+        self.assertFormError(response, 'contact_form', 
+                                'first_name', 'Please fill out this field')
+        self.assertFormError(response, 'contact_form', 
+                                'last_name', 'Please fill out this field')
+        self.assertFormError(response, 'contact_form', 
+                                'line1', 'Please fill out this field')
+        self.assertFormError(response, 'contact_form', 
+                                'zip_code', 'Please fill out this field')
+        self.assertFormError(response, 'contact_form', 
+                                'city', 'Please fill out this field')
+        self.assertFormError(response, 'contact_form', 
+                                'country', 'Please select an item in the list')
         
     def test_register_user_bad_email(self):
         """
@@ -272,7 +294,8 @@ class TestRegisterView(TestViews):
                                                     'confirmation':'testpass'})
 
         #Check errors are displayed by the form
-        self.assertFormError(response, 'form', 'email', 'not a valid email address')
+        self.assertFormError(response, 'user_form', 
+                                'email', 'Enter a valid email address.')
         
     def test_register_user_weak_password_bad_password_confirmation(self):
         """
@@ -286,8 +309,12 @@ class TestRegisterView(TestViews):
                                                     'confirmation':'111'})
 
         #Check errors are displayed by the form
-        self.assertFormError(response, 'form', 'password', 'please choose a stronger password')
-        self.assertFormError(response, 'form', 'confirmation', 'Passwords must match.')
+        self.assertFormError(response, 'user_form',
+                                'password1', ['This password is too short. It must contain at least 8 characters.',
+                                'This password is too common.',
+                                'This password is entirely numeric.'])
+        self.assertFormError(response, 'user_form',
+                                'password2', 'The two password fields didn’t match.')
         
     def test_register_user_duplicate_name(self):
         """

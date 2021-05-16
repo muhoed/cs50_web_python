@@ -1,9 +1,9 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
-from django.forms import modelformset_factory
+from django.forms import inlineformset_factory
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 
 from .models import *
@@ -19,7 +19,7 @@ def index(request):
     #            'categories_list': categories_list}
     return render(request, "auctions/index.html", context)
 
-#used standard Django authentication views and register form instead
+#built-in Django authentication views and customized UserCreationForm form were used
 #def login_view(request):
 #    if request.method == "POST":
 #
@@ -46,13 +46,10 @@ def index(request):
 
 
 def register(request):
-    regform_set = modelformset_factory(
-                    RegisterForm, ContactForm)
+    
     if request.method == "POST":
         #username = request.POST["username"]
         #email = request.POST["email"]
-        form = regform_set(request.POST)
-
         # Ensure password matches confirmation
         #password = request.POST["password"]
         #confirmation = request.POST["confirmation"]
@@ -60,8 +57,15 @@ def register(request):
         #    return render(request, "auctions/register.html", {
         #        "message": "Passwords must match."
         #    })
-        if form.is_valid():
-            form.save()
+        
+        user_form = RegisterForm(request.POST)
+        contact_form = ContactForm(request.POST)
+        
+        if user_form.is_valid() and contact_form.is_valid():
+            new_user = user_form.save()
+            new_contact = contact_form.save(commit=False)
+            new_contact.user = new_user
+            new_contact.save()
 
         # Attempt to create new user
         #try:
@@ -71,12 +75,17 @@ def register(request):
         #    return render(request, "auctions/register.html", {
         #        "message": "Username already taken."
         #    })
-            login(request, get_object_or_404(User, username=form.username))
+            login(request, get_object_or_404(User, pk=new_user.id))
             return HttpResponseRedirect(reverse("auctions:index"), {
                         "message":"You were successfully registered and logged in"})
-	#else:
-    form = regform_set()
-    return render(request, "auctions/register.html", {"form": form})
+    else:
+        user_form = RegisterForm()
+        contact_form = ContactForm()
+    return render(request, "auctions/register.html", {
+                                            "user_form": user_form,
+                                            "contact_form": contact_form
+                                            }
+                    )
 
 
         

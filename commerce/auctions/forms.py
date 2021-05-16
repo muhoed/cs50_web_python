@@ -13,6 +13,7 @@ class RegisterForm(UserCreationForm):
 class ContactForm(forms.ModelForm):
     class Meta():
         model = Contact
+        exclude = ('user',)
 
 class SearchForm(forms.Form):
 	watched = forms.CharField(label="Search", max_length=100)

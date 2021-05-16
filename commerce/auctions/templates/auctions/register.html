@@ -7,28 +7,45 @@
     {% if message %}
         <div>{{ message }}</div>
     {% endif %}
-	<!--{{ form.non_field_errors }}-->
+	{{ form.non_field_errors }}
 	<div class="auth-form-block">
     <form action="{% url 'auctions:register' %}" method="post">
         {% csrf_token %}
-        <!--{% for field in form %}
-			<div class="form-group">
-				{{ field.errors }}
-				{{ field.label_tag }} {{ field }}
-				<span class="form-field-help"> (i) 
-                {% if field.help_text %}
-					<p style="display:none">{{ field.help_text|safe }}</p>
-				{% endif %}
-                </span>
-			</div>
-		{% endfor %}-->
-		<table>
-			{{ form.as_table }}
+        <table>
+        {% for field in user_form %}
 			<tr>
-				<td></td>
-				<td><input class="btn btn-primary" type="submit" value="Register"></td>	
+				<td colspan="3">{{ field.errors }}</td>
 			</tr>
-		</table>
+			<tr>
+				<td>{{ field.label_tag }}</td>
+				<td>{{ field }}</td>
+				<td><span class="field-help-icon"> (i) 
+                {% if field.help_text %}
+					<p>{{ field.help_text|safe }}</p>
+				{% endif %}
+                </span></td>
+            </tr>
+		{% endfor %}
+		<tr><td colspan="3" style="border-bottom: 1px solid"></td></tr>
+		{% for field in contact_form %}
+			<tr>
+				<td colspan="3">{{ field.errors }}</td>
+			</tr>
+			<tr>
+				<td>{{ field.label_tag }}</td>
+				<td>{{ field }}</td>
+				<td><span class="field-help-icon"> (i) 
+                {% if field.help_text %}
+					<p>{{ field.help_text|safe }}</p>
+				{% endif %}
+                </span></td>
+            </tr>
+		{% endfor %}
+		<tr><td></td>
+		<td>
+		<input class="btn btn-primary" type="submit" value="Register"></td>
+		</td><td></td>
+		</tr>
     </form>
 
     Already have an account? <a href="{% url 'auctions:login' %}">Log In here.</a>
