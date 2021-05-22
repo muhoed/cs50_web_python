@@ -308,14 +308,16 @@ class TestRegisterView(TestViews):
                                                     'password1':'111',
                                                     'password2':'111',
                                                     'title':'MR',
+                                                    'first_name':'test',
+                                                    'last_name':'user',
                                                     'line1':'street 1',
                                                     'zip_code':'00000',
                                                     'city':'town',
                                                     'country':'SK'})
-
+        
         #Check errors are displayed by the form
         self.assertFormError(response, 'user_form',
-                                'password1', ['This password is too short. It must contain at least 8 characters.',
+                                'password2', ['This password is too short. It must contain at least 8 characters.',
                                 'This password is too common.',
                                 'This password is entirely numeric.'])
     
@@ -338,7 +340,7 @@ class TestRegisterView(TestViews):
         """
         Test that register view returns error if provided name is already in use.
         """
-        #Issue a POST request with empty data
+        #Issue a POST request with name that already exists
         response = self.client.post(reverse('auctions:register'),
                                                     {'username':'test_user1',
                                                     'email':'test@test.com',
@@ -361,13 +363,15 @@ class TestRegisterView(TestViews):
         Test that user is logged in and redirected to home page when 
         form is filled correctly.
         """
-        #Issue a POST request with empty data
+        #Issue a POST request with correct and complete data
         response = self.client.post(reverse('auctions:register'),
                                                     {'username':'test_user4',
                                                     'email':'test@test.com',
                                                     'password1':'Pass&2021',
                                                     'password2':'Pass&2021',
                                                     'title':'MR',
+                                                    'first_name':'test',
+                                                    'last_name':'user',
                                                     'line1':'street 1',
                                                     'zip_code':'00000',
                                                     'city':'town',
@@ -375,12 +379,14 @@ class TestRegisterView(TestViews):
                                                     follow=True)
         
         #Check user was redirected to home page
-        self.assertRedirects(response, reverse('auctions:index'), 
-                                status_code=200)
-        self.assertTemplateUsed('/auctions/index.html')                                            
+        self.assertRedirects(response, reverse('auctions:index'))#, 
+                                #status_code=302, target_status_code=200,
+                                #fetch_redirect_response=True)
+        self.assertTemplateUsed('/auctions/index.html')
+        #self.assertEqual(response.context, "You were successfully registered and logged in.")                                            
         #Check user in session is authenticated
         self.assertTrue(response.context['user'].is_authenticated)
         #Check if user data are correct
-        u = User.objects.filter(username='test_user4')
+        u = User.objects.get(username='test_user4')
         self.assertEqual(response.context['user'].username, u.username)
         

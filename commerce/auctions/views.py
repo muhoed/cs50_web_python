@@ -78,10 +78,10 @@ def register(request):
             user = authenticate(request, 
                         username=user_form.cleaned_data['username'], 
                         password=user_form.cleaned_data['password1']) 
-            if new_user is not None:
-                login(request, new_user)
-                return HttpResponseRedirect(reverse("auctions:index"), {
-                            "message":"You were successfully registered and logged in"})
+            if user is not None:
+                login(request, user)
+                return HttpResponseRedirect(reverse("auctions:index"))#, 
+                            #{"message":"You were successfully registered and logged in."})
             else:
                 return render(request, "auctions/index.html",
                                 {'message':'You were registered but login attempt failed.'})
