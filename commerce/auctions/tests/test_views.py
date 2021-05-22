@@ -89,7 +89,7 @@ class TestIndexView(TestViews):
         self.assertEqual(len(response.context['categories_list']), 2)
         
         #Check search form is displayed
-        self.assertContains(response, "<form id='searchForm'")
+        self.assertContains(response, '<input type="text"')
         
         #Check there are no listings and respective message is displayed
         self.assertEqual(len(response.context['active_listings_list']), 0)
@@ -262,25 +262,25 @@ class TestRegisterView(TestViews):
         self.assertEqual(response.status_code, 200)
         #Check errors are displayed by the form
         self.assertFormError(response, 'user_form', 
-                                'username', 'Please fill out this field')
+                                'username', 'This field is required.')
         self.assertFormError(response, 'user_form', 
-                                'password1', 'Please fill out this field')
+                                'password1', 'This field is required.')
         self.assertFormError(response, 'user_form', 
-                                'password2', 'Please fill out this field')
+                                'password2', 'This field is required.')
         self.assertFormError(response, 'contact_form', 
-                                'title', 'Please select an item in the list')
+                                'title', 'This field is required.')
         self.assertFormError(response, 'contact_form', 
-                                'first_name', 'Please fill out this field')
+                                'first_name', 'This field is required.')
         self.assertFormError(response, 'contact_form', 
-                                'last_name', 'Please fill out this field')
+                                'last_name', 'This field is required.')
         self.assertFormError(response, 'contact_form', 
-                                'line1', 'Please fill out this field')
+                                'line1', 'This field is required.')
         self.assertFormError(response, 'contact_form', 
-                                'zip_code', 'Please fill out this field')
+                                'zip_code', 'This field is required.')
         self.assertFormError(response, 'contact_form', 
-                                'city', 'Please fill out this field')
+                                'city', 'This field is required.')
         self.assertFormError(response, 'contact_form', 
-                                'country', 'Please select an item in the list')
+                                'country', 'This field is required.')
         
     def test_register_user_bad_email(self):
         """
@@ -297,24 +297,42 @@ class TestRegisterView(TestViews):
         self.assertFormError(response, 'user_form', 
                                 'email', 'Enter a valid email address.')
         
-    def test_register_user_weak_password_bad_password_confirmation(self):
+    def test_register_user_weak_password(self):
         """
-        Test that register view returns error if provided email is not valid.
+        Test that register view returns error if provided password is too weak.
         """
-        #Issue a POST request with empty data
+        #Issue a POST request with weak password
         response = self.client.post(reverse('auctions:register'),
                                                     {'username':'testname',
                                                     'email':'test@test.com',
-                                                    'password':'1111',
-                                                    'confirmation':'111'})
+                                                    'password1':'111',
+                                                    'password2':'111',
+                                                    'title':'MR',
+                                                    'line1':'street 1',
+                                                    'zip_code':'00000',
+                                                    'city':'town',
+                                                    'country':'SK'})
 
         #Check errors are displayed by the form
         self.assertFormError(response, 'user_form',
                                 'password1', ['This password is too short. It must contain at least 8 characters.',
                                 'This password is too common.',
                                 'This password is entirely numeric.'])
+    
+    def test_bad_password_confirmation(self):
+        """
+        Test that register view returns error if password and password confirmation 
+        are not equal.
+        """
+        #Issue a POST request with incorrect data
+        response = self.client.post(reverse('auctions:register'),
+                                                    {'username':'testname',
+                                                    'email':'test@test.com',
+                                                    'password1':'111',
+                                                    'password2':'11'})
         self.assertFormError(response, 'user_form',
-                                'password2', 'The two password fields didn’t match.')
+                                'password2', 'The two password fields didn’t match.')                                            
+        
         
     def test_register_user_duplicate_name(self):
         """
@@ -324,11 +342,19 @@ class TestRegisterView(TestViews):
         response = self.client.post(reverse('auctions:register'),
                                                     {'username':'test_user1',
                                                     'email':'test@test.com',
-                                                    'password':'Pass&2021',
-                                                    'confirmation':'Pass&2021'})
+                                                    'password1':'Pass&2021',
+                                                    'password2':'Pass&2021',
+                                                    'title':'MR',
+                                                    'line1':'street 1',
+                                                    'zip_code':'00000',
+                                                    'city':'town',
+                                                    'country':'SK'})
 
         #Check errors are displayed by the form
-        self.assertFormError(response, 'form', 'username', 'Username already taken.')
+        self.assertFormError(
+                    response, 'user_form', 'username', 
+                    'A user with that username already exists.'
+                    )
         
     def test_register_user_right_data(self):
         """
@@ -339,15 +365,22 @@ class TestRegisterView(TestViews):
         response = self.client.post(reverse('auctions:register'),
                                                     {'username':'test_user4',
                                                     'email':'test@test.com',
-                                                    'password':'Pass&2021',
-                                                    'confirmation':'Pass&2021'},
+                                                    'password1':'Pass&2021',
+                                                    'password2':'Pass&2021',
+                                                    'title':'MR',
+                                                    'line1':'street 1',
+                                                    'zip_code':'00000',
+                                                    'city':'town',
+                                                    'country':'SK'},
                                                     follow=True)
-                                                    
+        
+        #Check user was redirected to home page
+        self.assertRedirects(response, reverse('auctions:index'), 
+                                status_code=200)
+        self.assertTemplateUsed('/auctions/index.html')                                            
         #Check user in session is authenticated
         self.assertTrue(response.context['user'].is_authenticated)
         #Check if user data are correct
         u = User.objects.filter(username='test_user4')
-        self.assertEqual(str(response.context['user']), u.username)
+        self.assertEqual(response.context['user'].username, u.username)
         
-        #Check user was redirected to home page
-        self.assertRedirects(response, reverse('auctions:index'))

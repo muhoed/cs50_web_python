@@ -8,11 +8,25 @@
 				<a href="{{ listing.get_absolute_url }}">
 					<div class="d-flex nowrap">
 						<div><a href="{{ listing.product.image_url }}"></a></div>
-						<div>{{ listing.product.name|capfirst }}</div>
+						<div>{{ listing.product.name|capfirst }}</div> 
 						<div>{{ listing.max_bid }} EUR</div>
 						<div>{{ listing.end_time|timeuntil }}</div>
-						<div>Add to Watchlist</div>
-						<div>Place bid</div>
+						<div>
+							{% if listing in user.watchlist %}
+								Remove from Watchlist
+							{% else %}
+								Add to Watchlist
+							{% endif %}
+						</div>
+						<div>
+							<form id="listing_{{ listing.id }}" style="display:none" action="{% url 'auctions:bid' %}" method="POST">
+							<input type="number" name="bid" value="{{ listing.max_bid|add:'1' }}">
+							<input type="submit" name="place_bid" id="place_bid_{{ listing_id }}" value="Place bid">
+							</form>
+							<button class="btn btn-primary" name="bid_{{ listing.id }}" id="bid_{{ listing.id }}">
+								BID
+							</button>
+						</div>
 					</div>
 				</a>
 			{% endfor %}

@@ -63,7 +63,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'auctions.context_processors.categories_processor'
+                'auctions.context_processors.categories_processor',
+                'auctions.context_processors.search_form_processor'
             ],
         },
     },

@@ -25,5 +25,6 @@ urlpatterns = [
     path("messenger", views.messenger, name="messenger"),
     path("listing/<int:listing_id>/", views.listing, name="listing"),
     path("watchlist", views.watchlist, name="watchlist"),
+    path("bid", views.bid, name="bid"),
     path("search", views.search, name="search")
 ]

@@ -75,9 +75,16 @@ def register(request):
         #    return render(request, "auctions/register.html", {
         #        "message": "Username already taken."
         #    })
-            login(request, get_object_or_404(User, pk=new_user.id))
-            return HttpResponseRedirect(reverse("auctions:index"), {
-                        "message":"You were successfully registered and logged in"})
+            user = authenticate(request, 
+                        username=user_form.cleaned_data['username'], 
+                        password=user_form.cleaned_data['password1']) 
+            if new_user is not None:
+                login(request, new_user)
+                return HttpResponseRedirect(reverse("auctions:index"), {
+                            "message":"You were successfully registered and logged in"})
+            else:
+                return render(request, "auctions/index.html",
+                                {'message':'You were registered but login attempt failed.'})
     else:
         user_form = RegisterForm()
         contact_form = ContactForm()
@@ -114,6 +121,10 @@ def listing(request, listing_id):
 
 @login_required
 def watchlist(request):
+    pass
+    
+@login_required
+def bid(request):
     pass
     
 

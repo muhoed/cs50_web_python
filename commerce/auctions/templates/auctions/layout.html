@@ -45,6 +45,14 @@
                 </li>
             {% endif %}
         </ul>
+        <div>
+			<form action="{% url 'auctions:search' %}" method="GET">
+				{{ sform.as_p }}
+				<span>
+					<input type="submit" name="search" role="button" value="Search">
+				</span>
+			</form>
+		</div>
         <hr>
 		<ul class="nav">
 			{% for category in categories_list %}
