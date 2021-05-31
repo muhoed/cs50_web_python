@@ -12,7 +12,7 @@ from django.db import models
 class User(AbstractUser):
 	pass
 
-class Contact(models.Model):
+class Profile(models.Model):
 	
 	TITLE_CHOICES = [
 		('MR', 'Mr.'),
@@ -254,7 +254,7 @@ class Contact(models.Model):
 	]
 
 	user = models.OneToOneField(User, on_delete=models.CASCADE,
-								related_name='contact_details')
+								related_name='profile')
 	
 	title = models.CharField(max_length=3, choices=TITLE_CHOICES)
 	first_name = models.CharField(max_length=50)
@@ -264,11 +264,16 @@ class Contact(models.Model):
 	line2 = models.CharField(max_length=100, null=True, blank=True)
 	zip_code = models.CharField(max_length=6)
 	city = models.CharField(max_length=100)
-	country = models.CharField(max_length=2, choices=COUNTRY_CHOICES)
+	country = models.CharField(max_length=2, choices=COUNTRY_CHOICES, 
+									blank=False, default='SK')
 	
 	@property
 	def full_name(self):
 	    return f'%s %s' % (self.first_name, self.last_name)
+	
+	@property
+	def get_absolute_url(self):
+		return reverse('auctions:profile', args=[int(self.id)])
 	
 	def __str__(self):
 	    return f'%s %s' % (self.get_title_display(), self.full_name)

@@ -27,7 +27,7 @@ class TestModels(TestCase):
         self.testlisting = Listing.objects.create(product=self.product)
         
     def test_create_profile(self):
-        profile = Contact.objects.create(user = self.testuser,
+        profile = Profile.objects.create(user = self.testuser,
                                             title = 'MR',
                                             first_name = 'Test',
                                             last_name = 'Testoff',
@@ -38,8 +38,8 @@ class TestModels(TestCase):
                                             )
         self.assertEqual(profile.get_title_display(), 'Mr.')
         self.assertEqual(profile.get_country_display(), 'Slovakia')
-        self.assertEqual(self.testuser.contact_details.full_name, 'Test Testoff')
-        self.assertEqual(str(self.testuser.contact_details), 'Mr. Test Testoff')
+        self.assertEqual(self.testuser.profile.full_name, 'Test Testoff')
+        self.assertEqual(str(self.testuser.profile), 'Mr. Test Testoff')
     
     def test_bad_credentials(self):
         self.assertFalse(authenticate(username='test_user', password='somepass'))

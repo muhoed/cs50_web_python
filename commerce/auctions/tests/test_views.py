@@ -1,3 +1,5 @@
+import random
+
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
@@ -20,7 +22,7 @@ class TestViews(TestCase):
         User.objects.create_user("test_user2", "", 'Pass2')
         User.objects.create_user("test_user3", "", 'Pass3')
         # Create profile for test_user1
-        Contact.objects.create(user=User.objects.get(username='test_user1'),
+        Profile.objects.create(user=User.objects.get(username='test_user1'),
                                 title='MR', first_name='Test', last_name='Testoff',
                                 line1='street 1', zip_code='00000',
                                 city='testcity', country='SK')   
@@ -92,7 +94,7 @@ class TestIndexView(TestViews):
         self.assertContains(response, '<input type="text"')
         
         #Check there are no listings and respective message is displayed
-        self.assertEqual(len(response.context['active_listings_list']), 0)
+        self.assertEqual(len(response.context['listing_list']), 0)
         self.assertContains(response, "There are no active listings at the moment.")
         
     def test_index_view_two_listings(self):
@@ -111,7 +113,7 @@ class TestIndexView(TestViews):
         response = self.client.get(reverse('auctions:index'))
         
         #Check two listings are in context
-        self.assertEqual(len(response.context['active_listings_list']), 2)
+        self.assertEqual(len(response.context['listing_list']), 2)
         
         #Check listing1 and related 'add to watchlist' form,
         #'place bid' button and link are displayed
@@ -124,6 +126,58 @@ class TestIndexView(TestViews):
         self.assertContains(response, '<a href="'+listing2.get_absolute_url)
         self.assertContains(response, "Testproduct2")
         self.assertContains(response, '<form id="listing_'+str(listing2.id))
+        
+    def test_index_view_active_listings(self):
+        """
+        Test checks: 
+        - only active listings are displayed.
+        """
+        #Create two listings, cancel one of them and issue GET request
+        product1 = get_object_or_404(Product, id=1)
+        product2 = get_object_or_404(Product, id=2)
+        listing1 = Listing.objects.create(product=product1)
+        listing2 = Listing.objects.create(product=product2)
+        listing2.cancelled = True
+        listing2.save()
+        response = self.client.get(reverse('auctions:index'))
+        
+        #Check listing1 is displayed
+        self.assertContains(response, "Testproduct1")
+        
+        #Check listing2 is not displayed
+        self.assertNotContains(response, "Testproduct2")
+        
+    def test_index_view_pagination_10(self):
+        """
+        Test checks: 
+        - max 10 listings are displayed on a page
+        - there are respective pagination navigation
+        - only remaining listings are displayed on the second screens.
+        """
+        #Create 13 listings and issue GET request
+        for i in range(13):
+            random_product = Product.objects.get(id=random.choice([1,2]))
+            Listing.objects.create(product=random_product)
+        response = self.client.get(reverse('auctions:index'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue('is_paginated' in response.context)
+        self.assertTrue(response.context['is_paginated'])
+        self.assertEqual(response.context['page_obj'].number, 1)
+        self.assertTrue(response.context['page_obj'].has_next)
+        #self.assertFalse(response.context['page_obj'].has_previous)
+        self.assertEqual(len(response.context['listing_list']), 10)
+
+        # Get second page and confirm it has (exactly) remaining 3 items
+        response = self.client.get(reverse('auctions:index')+'?page=2')
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue('is_paginated' in response.context)
+        self.assertTrue(response.context['is_paginated'])
+        self.assertEqual(response.context['page_obj'].number, 2)
+        self.assertTrue(response.context['page_obj'].has_previous)
+        self.assertFalse(response.context['page_obj'].has_next)
+        self.assertEqual(len(response.context['listing_list']), 3)
+        
         
 class TestLoginView(TestViews):
     """
@@ -186,8 +240,12 @@ class TestLoginView(TestViews):
         u = get_object_or_404(User, id=1)
         self.assertEqual(str(response.context['user']), u.username)
         
-        #Check user was redirected to home page
-        self.assertRedirects(response, reverse('auctions:profile'))
+        #Check user was redirected to profile page
+        self.assertRedirects(response, reverse(
+                                'auctions:profile', 
+                                kwargs={
+                                    'pk':u.profile.id
+                                }))
         
     def test_user_logout(self):
         """
@@ -365,28 +423,32 @@ class TestRegisterView(TestViews):
         """
         #Issue a POST request with correct and complete data
         response = self.client.post(reverse('auctions:register'),
-                                                    {'username':'test_user4',
-                                                    'email':'test@test.com',
-                                                    'password1':'Pass&2021',
-                                                    'password2':'Pass&2021',
-                                                    'title':'MR',
-                                                    'first_name':'test',
-                                                    'last_name':'user',
-                                                    'line1':'street 1',
-                                                    'zip_code':'00000',
-                                                    'city':'town',
-                                                    'country':'SK'},
-                                                    follow=True)
-        
+                                                        {'username':'test_user4',
+                                                        'email':'test@test.com',
+                                                        'password1':'Pass&2021',
+                                                        'password2':'Pass&2021',
+                                                        'title':'MR',
+                                                        'first_name':'test',
+                                                        'last_name':'user',
+                                                        'line1':'street 1',
+                                                        'zip_code':'00000',
+                                                        'city':'town',
+                                                        'country':'SK'},
+                                                        follow=True)
+        u = User.objects.get(username='test_user4')
         #Check user was redirected to home page
-        self.assertRedirects(response, reverse('auctions:index'))#, 
-                                #status_code=302, target_status_code=200,
-                                #fetch_redirect_response=True)
+        self.assertRedirects(response, reverse(
+                                    'auctions:profile', 
+                                    kwargs={'pk':u.profile.id}
+                                ), 
+                                status_code=302, target_status_code=200,
+                                fetch_redirect_response=True)
         self.assertTemplateUsed('/auctions/index.html')
         #self.assertEqual(response.context, "You were successfully registered and logged in.")                                            
         #Check user in session is authenticated
         self.assertTrue(response.context['user'].is_authenticated)
         #Check if user data are correct
-        u = User.objects.get(username='test_user4')
         self.assertEqual(response.context['user'].username, u.username)
         
+class TestProfileView():
+    pass

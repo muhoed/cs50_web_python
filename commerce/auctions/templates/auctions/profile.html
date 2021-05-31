@@ -2,24 +2,57 @@
 
 {% block body %}
 
-    <h2>{{ user.username|capfirst }}</h2>
-    <h4>profile</h4>
-
-    {% if message %}
-        <div>{{ message }}</div>
-    {% endif %}
+    <h2>Profile</h2>
     
     <div>
-		<h3>Contact details</h3>
-		<h4>E-mail address</h4>
-		{{ user.email }}
-		<button>Change</button>
-		<h4>Delivery address</h4>
-		{{ user.delivery_address }}
-		<button>Change</button>
-		<h4>Billing address</h4>
-		{{ user.billing_address }}
-		<button>Change</button>
+		<div>
+			<h4>Credentials:</h4>
+			<div>
+				<p>Username:</p>
+				<p>{{ user.username }}</p>
+			</div>
+			<div>
+				<p>Password:</p>
+				<p>*****</p>
+				<a href="{% url 'auctions:password_change' %}">Change password</a>
+			</div>
+		</div>
+		<div>
+			<h4>Personal information:</h4>
+			<div>
+				<p>Salutation:</p>
+				<p>{{ user.profile.get_title_display }}</p>
+			</div>
+			<div>
+				<p>First name:</p>
+				<p>{{ user.profile.first_name }}</p>
+			</div>
+			<div>
+				<p>Last name:</p>
+				<p>{{ user.profile.last_name }}</p>
+			</div>
+			<div>
+				<p>E-mail address:</p>
+				<p>{{ user.email }}</p>
+			</div>
+			<div>
+				<a href="#">Change email</a>
+			</div>
+		</div>
+		<div>
+			<h4>Delivery address:</h4>
+			<div>
+				<p>{{ user.profile.line1 }}</p>
+				{% if user.profile.line2 %}
+					<p>{{ user.profile.line2 }}</p>
+				{% endif %}
+				<p>{{ user.profile.city }} {{ user.profile.zip_code }}</p>
+				<p>{{ user.profile.get_country_display }}</p>
+			</div>
+			<div>
+				<a href="#">Change address</a>
+			</div>
+		</div>
 	</div>
 	
 	{% if user.listings %}
