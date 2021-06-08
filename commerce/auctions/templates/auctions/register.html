@@ -5,8 +5,7 @@
     <h2>Register</h2>
 
 	<div class="auth-form-block">
-		<h3>Please enter your username, email address and password to be used 
-		at this website</h3>
+		<h3>Username, password and personal information:</h3>
 		{{ user_form.non_field_errors }}
     <form action="{% url 'auctions:register' %}" method="post">
         {% csrf_token %}
@@ -25,15 +24,14 @@
                 </span></td>
             </tr>
 		{% endfor %}
-		<!-- profile.management_form -->
-		<!-- for contact_form in profile -->
+		{% address_formset.management_form %}
+		{% for form in address_formset %}
 		<tr><td colspan="3" style="border-bottom: 1px solid"></td></tr>
 		</table>
-		<h3>Please enter your personal information required to buy and sell items 
-		at this website.</h3>
-		{{ contact_form.non_field_errors }}
+		<h3>Addresses:</h3>
+		{{ form.non_field_errors }}
 		<table>
-			{% for field in contact_form %}
+			{% for field in form %}
 				<tr>
 					<td colspan="3">{{ field.errors }}</td>
 				</tr>
@@ -47,7 +45,7 @@
 					</span></td>
 				</tr>
 			{% endfor %}
-		<!-- endfor -->
+		{% endfor %}
 		<tr><td></td>
 		<td>
 		<input class="btn btn-primary" type="submit" value="Register"></td>

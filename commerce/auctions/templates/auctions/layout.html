@@ -8,59 +8,61 @@
         <link href="{% static 'auctions/styles.css' %}" rel="stylesheet">
     </head>
     <body>
-        <h1>Auctions</h1>
-        <div>
-            {% if user.is_authenticated %}
-                Signed in as <strong>{{ user.username }}</strong>.
-            {% else %}
-                Not signed in.
-            {% endif %}
-        </div>
-        {% if messages %}
-			<ul class="messages">
-				{% for message in messages %}
-				<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
-					{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}Important: {% endif %}
-					{{ message }}
-				</li>
-				{% endfor %}
-			</ul>
-		{% endif %}
-        <ul class="nav">
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'auctions:index' %}">Active Listings</a>
-            </li>
-            {% if user.is_authenticated and user.profile %}
+		<div class="container navbar">
+			<div class="navbar-logo">
+				<h1>Auctions</h1>
+				<div>
+					{% if user.is_authenticated %}
+						Signed in as <strong>{{ user.username }}</strong>.
+					{% else %}
+						Not signed in.
+					{% endif %}
+				</div>
+			</div>
+			{% if messages %}
+				<ul class="messages">
+					{% for message in messages %}
+					<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+						{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}Important: {% endif %}
+						{{ message }}
+					</li>
+					{% endfor %}
+				</ul>
+			{% endif %}
+			<ul class="nav">
 				<li class="nav-item">
-                    <a class="nav-link" href="{% url 'auctions:watchlist' %}">Watchlist</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'auctions:create' %}">Sell</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'auctions:messenger' %}">Messages</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'auctions:profile' user.profile.pk %}">Account</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'auctions:logout' %}">Log Out</a>
-                </li>
-            {% else %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'auctions:login' %}">Log In</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'auctions:register' %}">Register</a>
-                </li>
-            {% endif %}
-        </ul>
-        <div>
-			<form action="{% url 'auctions:search' %}" method="GET">
+					<a class="nav-link" href="{% url 'auctions:index' %}">Active Listings</a>
+				</li>
+				{% if user.is_authenticated %}
+					<li class="nav-item">
+						<a class="nav-link" href="{% url 'auctions:watchlist' %}">Watchlist</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="{% url 'auctions:create_listing' %}">Sell</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="{% url 'auctions:messenger' %}">Messages</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="{% url 'auctions:profile' user.pk %}">Account</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="{% url 'auctions:logout' %}">Log Out</a>
+					</li>
+				{% else %}
+					<li class="nav-item">
+						<a class="nav-link" href="{% url 'auctions:login' %}">Log In</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="{% url 'auctions:register' %}">Register</a>
+					</li>
+				{% endif %}
+			</ul>
+        </div>
+        <div class="container">
+			<form class="form inline-form" action="{% url 'auctions:search' %}" method="GET">
 				{{ sform.as_p }}
-				<span>
-					<input type="submit" name="search" role="button" value="Search">
-				</span>
+				<input type="submit" name="search" role="button" value="Search">
 			</form>
 		</div>
         <hr>

@@ -1,15 +1,17 @@
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import IntegrityError
+from django.db.models import F, Q, Max, Case, When, Value, OuterRef, Subquery, ExpressionWrapper, DateTimeField
 #from django.forms import inlineformset_factory
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.views.generic import ListView, DetailView
 from django.views.generic.edit import CreateView
-from django.contrib import messages
 
 from .models import *
 from .forms import *
@@ -59,7 +61,7 @@ class UserLoginView(LoginView):
     
     def get_success_url(self):
         url = self.get_redirect_url()
-        return url or reverse('auctions:profile', kwargs={'pk':self.request.user.profile.id})
+        return url or reverse('auctions:profile', kwargs={'pk':self.request.user.id})
 
 def register(request):
     """ Registers a new user and creates her/his base profile. """
@@ -132,26 +134,25 @@ class UserRegisterView(CreateView):
     def get_context_data(self, **kwargs):
         data = super(UserRegisterView, self).get_context_data(**kwargs)
         if self.request.POST:
-            data["profile"] = UserProfileFormset(self.request.POST)
+            data["address_formset"] = UserAddressFormset(self.request.POST)
         else:
-            data["profile"] = UserProfileFormset()
+            data["address_formset"] = UserAddressFormset()
         return data
         
     def form_valid(self, form):
         context = self.get_context_data()
-        profile = context["profile"]
-        #self.object = form.save()
-        if profile.is_valid():
+        address_formset = context["address"]
+        if address_formset.is_valid():
             self.object = form.save() #super(UserRegisterView, self).form_valid(form)
-            profile.instance = self.object
-            profile.save()
+            address_formset.instance = self.object
+            address_formset.save()
             user = authenticate(self.request, 
                             username=form.cleaned_data['username'], 
                             password=form.cleaned_data['password1']) 
             if user is not None:
                 login(self.request, user)
                 messages.success(self.request, 'You were successfully registered and logged in.')
-                return redirect(reverse_lazy('auctions:profile', {'pk':self.object.profile.id}))
+                return redirect(reverse_lazy('auctions:profile', {'pk':self.object.id}))
         return self.render_to_response(self.get_context_data(form=form))
         
     def get_success_url(self):
@@ -167,13 +168,43 @@ class UserRegisterView(CreateView):
     
 class ProfileView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     """ Display user profile details. """
-    model = Profile
+    model = User
     template_name='auctions/profile.html'
     permission_denied_message='Access to the requested page was denied.'
     
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(**kwargs)
+        
+        # Add in a QuerySet of all listings created by the user
+        context['user_listings'] = Listing.objects.filter(
+                                            product__seller=self.request.user
+                                        )
+        # Add in a QuerySet of all bids the user placed  
+        context['user_bidded_listings'] = Bid.objects.values(
+                                                'listing'
+                                            ).filter(
+                                                bidder=self.request.user
+                                            ).aggregate(
+                                                latest_bid=Max('value'))
+                                                
+        # Add in a QuerySet of all ended listings that were bidded
+        context['ended_listings'] = Listing.objects.annotate(
+                                            endtime=ExpressionWrapper(
+                                                F('start_time')+F('duration'),
+                                                output_field=DateTimeField()
+                                            )).filter(
+                                                (Q(
+                                                endtime__lt=timezone.now()
+                                                )|Q(
+                                                cancelled=True)),
+                                                bids__isnull=False
+                                                ).order_by('-endtime')
+        return context
+    
     def test_func(self):
         """ Check user accesses her/his own profile. """
-        return (get_object_or_404(Profile, pk=self.kwargs['pk']).user == self.request.user)
+        return (get_object_or_404(User, pk=self.kwargs['pk']) == self.request.user)
         
     def handle_no_permission(self):
         """ If user attempts to get access to other user's profile redirect her/him

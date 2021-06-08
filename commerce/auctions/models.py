@@ -10,15 +10,35 @@ from django.db import models
 
 
 class User(AbstractUser):
-	pass
-
-class Profile(models.Model):
 	
 	TITLE_CHOICES = [
 		('MR', 'Mr.'),
 		('MRS', 'Mrs.'),
 		('MS', 'Ms.'),
 	]
+	
+	title = models.CharField(max_length=3, choices=TITLE_CHOICES)
+	first_name = models.CharField(max_length=50)
+	last_name = models.CharField(max_length=50)
+	
+	@property
+	def full_name(self):
+	    return f'%s %s' % (self.first_name, self.last_name)
+	
+	@property
+	def get_absolute_url(self):
+		return reverse('auctions:profile', args=[int(self.id)])
+	
+	def __str__(self):
+	    return f'%s %s' % (self.get_title_display(), self.full_name)
+	    
+
+class EmailAddress(models.Model):
+	
+	user = models.ForeignKey(User, on_delete=models.CASCADE)
+	email_address = models.EmailField()
+	
+class Address(models.Model):
 	
 	COUNTRY_CHOICES = [
 		('AD', _('Andorra')), ('AE', _('United Arab Emirates')), ('AF', _('Afghanistan')),
@@ -253,12 +273,7 @@ class Profile(models.Model):
 		('ZW', _('Zimbabwe')),
 	]
 
-	user = models.OneToOneField(User, on_delete=models.CASCADE,
-								related_name='profile')
-	
-	title = models.CharField(max_length=3, choices=TITLE_CHOICES)
-	first_name = models.CharField(max_length=50)
-	last_name = models.CharField(max_length=50)
+	user = models.ForeignKey(User, on_delete=models.CASCADE)
 	
 	line1 = models.CharField(max_length=100)
 	line2 = models.CharField(max_length=100, null=True, blank=True)
@@ -267,16 +282,6 @@ class Profile(models.Model):
 	country = models.CharField(max_length=2, choices=COUNTRY_CHOICES, 
 									blank=False, default='SK')
 	
-	@property
-	def full_name(self):
-	    return f'%s %s' % (self.first_name, self.last_name)
-	
-	@property
-	def get_absolute_url(self):
-		return reverse('auctions:profile', args=[int(self.id)])
-	
-	def __str__(self):
-	    return f'%s %s' % (self.get_title_display(), self.full_name)
     
     
 class Category(models.Model):
@@ -317,9 +322,9 @@ def get_product_image_filename(instance, filename):
 	
 class Image(models.Model):
 	product = models.ForeignKey(Product, on_delete=models.CASCADE)
-	image = models.ImageField("Product's image", 
-				upload_to=get_product_image_filename,
-				null=True, blank=True)
+	#image = models.ImageField("Product's image", 
+	#			upload_to=get_product_image_filename,
+	#			null=True, blank=True)
 	image_url = models.URLField("URL of product's image", null=True, blank=True)	
 	
 class Listing(models.Model):
@@ -416,7 +421,8 @@ class Listing(models.Model):
 		return f"Auction listing for {self.product.name}. \
 				start time: {self.start_time}, \
 				start price: {self.start_price}, \
-				duration: {self.duration} days, \
+				highest bid: {self.max_bid}, \
+				duration: {self.duration}, \
 				status: {self.status}." 
 	
 	
@@ -424,7 +430,7 @@ class Bid(models.Model):
 	
 	bidder = models.ForeignKey(User, on_delete=models.CASCADE,
 				verbose_name="user placed the bid",
-				related_name="bids")
+				related_name="user_bids")
 	listing = models.ForeignKey(Listing, on_delete=models.CASCADE,
 				verbose_name="listing to which the bid was placed",
 				related_name="bids")
@@ -433,8 +439,8 @@ class Bid(models.Model):
 	time = models.DateTimeField(auto_now_add=True)
 	
 	def __str__(self):
-		return f"User {self.bidder.name} \
-				bids {self.value} at {self.time}."
+		return f"User {self.bidder.username} \
+				bidded {self.value} at {self.time}."
 		
 		
 class Comment(models.Model):
