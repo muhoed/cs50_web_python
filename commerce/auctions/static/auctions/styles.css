@@ -5,3 +5,8 @@ body {
 .field-help-icon * {
 	display: none;
 }
+
+.navbar-toggler {
+	color: lightblue;
+	font-size: 5vw;
+}
