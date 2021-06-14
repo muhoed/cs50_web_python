@@ -8,17 +8,17 @@ class RequiredInlineFormSet(forms.BaseInlineFormSet):
 	"""
 	Creates inline formset that is required.
 	"""		
-	#def _construct_form(self, i, **kwargs):
-	#	form = super(RequiredInlineFormSet, self)._construct_form(i, **kwargs)
-	#	form.empty_permitted = False
-	#	return form
+	def _construct_form(self, i, **kwargs):
+		form = super(RequiredInlineFormSet, self)._construct_form(i, **kwargs)
+		form.empty_permitted = False
+		return form
 		
 	def clean(self):
 		super().clean()
 		if any(self.errors):
 			return
 		if not self.forms[0].has_changed():
-			raise forms.ValidationError('Please fill in your profile information.')
+			raise forms.ValidationError('Please fill in your address information.')
 
 class RegisterForm(UserCreationForm):
 	class Meta(UserCreationForm.Meta):

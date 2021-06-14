@@ -18,12 +18,20 @@ class TestViews(TestCase):
         Prepare a set of data to be used in all tests without modification.
         """
         # Create test users to use in testing.
-        User.objects.create_user("test_user1", "", 'Pass1')
-        User.objects.create_user("test_user2", "", 'Pass2')
-        User.objects.create_user("test_user3", "", 'Pass3')
-        # Create profile for test_user1
-        Profile.objects.create(user=User.objects.get(username='test_user1'),
-                                title='MR', first_name='Test', last_name='Testoff',
+        User.objects.create_user("test_user1", "", 'Pass1',
+                                    title="MR", first_name="User1",
+                                    last_name="User_1")
+        User.objects.create_user("test_user2", "", 'Pass2',
+                                    title="MS", first_name="User2",
+                                    last_name="User_2")
+        User.objects.create_user("test_user3", "", 'Pass3',
+                                    title="MRS", first_name="User3",
+                                    last_name="User_3")
+        # Create additional email for test_user1
+        user1 = User.objects.get(username='test_user1')
+        EmailAddress.objects.create(user=user1, email_address="user1@test.com")
+        # Create address for test_user1
+        Address.objects.create(user=user1,
                                 line1='street 1', zip_code='00000',
                                 city='testcity', country='SK')   
         # Create test categories
@@ -238,13 +246,13 @@ class TestLoginView(TestViews):
         self.assertTrue(response.context['user'].is_authenticated)
         #Check if user data are correct
         u = get_object_or_404(User, id=1)
-        self.assertEqual(str(response.context['user']), u.username)
+        self.assertEqual(str(response.context['user']), str(u))
         
         #Check user was redirected to profile page
         self.assertRedirects(response, reverse(
                                 'auctions:profile', 
                                 kwargs={
-                                    'pk':u.profile.id
+                                    'pk':u.pk
                                 }))
         
     def test_user_logout(self):
@@ -313,31 +321,35 @@ class TestRegisterView(TestViews):
                                     {'username':'', 'email':'', 'password':'',
                                         'confirmation':'', 'title':'', 
                                         'first_name':'', 'last_name':'',
-                                        'line1':'', 'zip_code':'', 'city':'',
-                                        'country':''})
+                                        'address_set-TOTAL_FORMS': u'1',
+                                        'address_set-INITIAL_FORMS': u'0',
+                                        'address_set-0-line1':'',
+                                        'address_set-0-zip_code':'',
+                                        'address_set-0-city':'',
+                                        'address_set-0-country':''})
 
         #Check the page is loaded 
         self.assertEqual(response.status_code, 200)
         #Check errors are displayed by the form
-        self.assertFormError(response, 'user_form', 
+        self.assertFormError(response, 'form', 
                                 'username', 'This field is required.')
-        self.assertFormError(response, 'user_form', 
+        self.assertFormError(response, 'form', 
                                 'password1', 'This field is required.')
-        self.assertFormError(response, 'user_form', 
+        self.assertFormError(response, 'form', 
                                 'password2', 'This field is required.')
-        self.assertFormError(response, 'contact_form', 
+        self.assertFormError(response, 'form', 
                                 'title', 'This field is required.')
-        self.assertFormError(response, 'contact_form', 
+        self.assertFormError(response, 'form', 
                                 'first_name', 'This field is required.')
-        self.assertFormError(response, 'contact_form', 
+        self.assertFormError(response, 'form', 
                                 'last_name', 'This field is required.')
-        self.assertFormError(response, 'contact_form', 
+        self.assertFormsetError(response, 'address_formset', 0, 
                                 'line1', 'This field is required.')
-        self.assertFormError(response, 'contact_form', 
+        self.assertFormsetError(response, 'address_formset', 0, 
                                 'zip_code', 'This field is required.')
-        self.assertFormError(response, 'contact_form', 
+        self.assertFormsetError(response, 'address_formset', 0, 
                                 'city', 'This field is required.')
-        self.assertFormError(response, 'contact_form', 
+        self.assertFormsetError(response, 'address_formset', 0, 
                                 'country', 'This field is required.')
         
     def test_register_user_bad_email(self):
@@ -349,10 +361,16 @@ class TestRegisterView(TestViews):
                                                     {'username':'testname',
                                                     'email':'email.com',
                                                     'password':'testpass',
-                                                    'confirmation':'testpass'})
+                                                    'confirmation':'testpass',
+                                                    'address_set-TOTAL_FORMS': u'1',
+                                                    'address_set-INITIAL_FORMS': u'0',
+                                                    'address_set-0-line1':'street 1',
+                                                    'address_set-0-zip_code':'00000',
+                                                    'address_set-0-city':'town',
+                                                    'address_set-0-country':'SK'})
 
         #Check errors are displayed by the form
-        self.assertFormError(response, 'user_form', 
+        self.assertFormError(response, 'form', 
                                 'email', 'Enter a valid email address.')
         
     def test_register_user_weak_password(self):
@@ -368,13 +386,15 @@ class TestRegisterView(TestViews):
                                                     'title':'MR',
                                                     'first_name':'test',
                                                     'last_name':'user',
-                                                    'line1':'street 1',
-                                                    'zip_code':'00000',
-                                                    'city':'town',
-                                                    'country':'SK'})
+                                                    'address_set-TOTAL_FORMS': u'1',
+                                                    'address_set-INITIAL_FORMS': u'0',
+                                                    'address_set-0-line1':'street 1',
+                                                    'address_set-0-zip_code':'00000',
+                                                    'address_set-0-city':'town',
+                                                    'address_set-0-country':'SK'})
         
         #Check errors are displayed by the form
-        self.assertFormError(response, 'user_form',
+        self.assertFormError(response, 'form',
                                 'password2', ['This password is too short. It must contain at least 8 characters.',
                                 'This password is too common.',
                                 'This password is entirely numeric.'])
@@ -389,8 +409,17 @@ class TestRegisterView(TestViews):
                                                     {'username':'testname',
                                                     'email':'test@test.com',
                                                     'password1':'111',
-                                                    'password2':'11'})
-        self.assertFormError(response, 'user_form',
+                                                    'password2':'11',
+                                                    'title':'MR',
+                                                    'first_name':'test',
+                                                    'last_name':'user',
+                                                    'address_set-TOTAL_FORMS': u'1',
+                                                    'address_set-INITIAL_FORMS': u'0',
+                                                    'address_set-0-line1':'street 1',
+                                                    'address_set-0-zip_code':'00000',
+                                                    'address_set-0-city':'town',
+                                                    'address_set-0-country':'SK'})
+        self.assertFormError(response, 'form',
                                 'password2', 'The two password fields didn’t match.')                                            
         
         
@@ -405,14 +434,18 @@ class TestRegisterView(TestViews):
                                                     'password1':'Pass&2021',
                                                     'password2':'Pass&2021',
                                                     'title':'MR',
-                                                    'line1':'street 1',
-                                                    'zip_code':'00000',
-                                                    'city':'town',
-                                                    'country':'SK'})
+                                                    'first_name':'test',
+                                                    'last_name':'user',
+                                                    'address_set-TOTAL_FORMS': u'1',
+                                                    'address_set-INITIAL_FORMS': u'0',
+                                                    'address_set-0-line1':'street 1',
+                                                    'address_set-0-zip_code':'00000',
+                                                    'address_set-0-city':'town',
+                                                    'address_set-0-country':'SK'})
 
         #Check errors are displayed by the form
         self.assertFormError(
-                    response, 'user_form', 'username', 
+                    response, 'form', 'username', 
                     'A user with that username already exists.'
                     )
         
@@ -430,16 +463,18 @@ class TestRegisterView(TestViews):
                                                         'title':'MR',
                                                         'first_name':'test',
                                                         'last_name':'user',
-                                                        'line1':'street 1',
-                                                        'zip_code':'00000',
-                                                        'city':'town',
-                                                        'country':'SK'},
+                                                        'address_set-TOTAL_FORMS': u'1',
+                                                        'address_set-INITIAL_FORMS': u'0',
+                                                        'address_set-0-line1':'street 1',
+                                                        'address_set-0-zip_code':'00000',
+                                                        'address_set-0-city':'town',
+                                                        'address_set-0-country':'SK'},
                                                         follow=True)
         u = User.objects.get(username='test_user4')
         #Check user was redirected to home page
         self.assertRedirects(response, reverse(
                                     'auctions:profile', 
-                                    kwargs={'pk':u.profile.id}
+                                    kwargs={'pk':u.id}
                                 ), 
                                 status_code=302, target_status_code=200,
                                 fetch_redirect_response=True)

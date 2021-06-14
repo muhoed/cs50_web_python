@@ -282,6 +282,16 @@ class Address(models.Model):
 	country = models.CharField(max_length=2, choices=COUNTRY_CHOICES, 
 									blank=False, default='SK')
 	
+	def __str__(self):
+		if self.line2:
+			line2 = ", "+self.line2
+		else:
+			line2 = ''
+		return f'%s%s, %s %s, %s' % (self.line1, line2,
+										self.zip_code, self.city,
+										self.get_country_display()
+										)
+	   
     
     
 class Category(models.Model):

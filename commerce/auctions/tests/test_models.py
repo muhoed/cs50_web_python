@@ -13,7 +13,13 @@ class TestModels(TestCase):
 	
     def setUp(self):
         # Create test user to use in testing.
-        self.testuser = User.objects.create_user("test_user", "", 'Pass&2021')
+        self.testuser = User.objects.create_user(
+                                        username="test_user",
+                                        email="test_email@test.com",
+                                        password='Pass&2021',
+                                        title="MR",
+                                        first_name="John",
+                                        last_name="Smith")
         # Create test category
         self.category = Category.objects.create(
                             name="testcategory",
@@ -26,20 +32,28 @@ class TestModels(TestCase):
                             )
         self.testlisting = Listing.objects.create(product=self.product)
         
-    def test_create_profile(self):
-        profile = Profile.objects.create(user = self.testuser,
-                                            title = 'MR',
-                                            first_name = 'Test',
-                                            last_name = 'Testoff',
+    def test_user_atributes(self):
+        self.assertEqual(self.testuser.full_name, 'John Smith')
+        self.assertEqual(str(self.testuser), 'Mr. John Smith')
+        
+    def test_create_email(self):
+        additional_email = EmailAddress.objects.create(
+                                                user=self.testuser,
+                                                email_address='new_email@test.com'
+                                            )
+        self.assertEqual(self.testuser.emailaddress_set.get(pk='1').email_address, 'new_email@test.com')
+        self.assertEqual(self.testuser.email, 'test_email@test.com')
+
+    def test_create_address(self):
+        address = Address.objects.create(user = self.testuser,
                                             line1 = 'street 1',
                                             zip_code = '00000',
                                             city = 'testcity',
                                             country = 'SK'
                                             )
-        self.assertEqual(profile.get_title_display(), 'Mr.')
-        self.assertEqual(profile.get_country_display(), 'Slovakia')
-        self.assertEqual(self.testuser.profile.full_name, 'Test Testoff')
-        self.assertEqual(str(self.testuser.profile), 'Mr. Test Testoff')
+        self.assertEqual(address.get_country_display(), 'Slovakia')
+        self.assertEqual(str(address), 'street 1, 00000 testcity, Slovakia')
+        
     
     def test_bad_credentials(self):
         self.assertFalse(authenticate(username='test_user', password='somepass'))

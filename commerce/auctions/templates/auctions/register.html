@@ -6,11 +6,11 @@
 
 	<div class="auth-form-block">
 		<h3>Username, password and personal information:</h3>
-		{{ user_form.non_field_errors }}
+		{{ form.non_field_errors }}
     <form action="{% url 'auctions:register' %}" method="post">
         {% csrf_token %}
         <table>
-        {% for field in user_form %}
+        {% for field in form %}
 			<tr>
 				<td colspan="3">{{ field.errors }}</td>
 			</tr>
@@ -24,11 +24,11 @@
                 </span></td>
             </tr>
 		{% endfor %}
-		{% address_formset.management_form %}
-		{% for form in address_formset %}
 		<tr><td colspan="3" style="border-bottom: 1px solid"></td></tr>
 		</table>
 		<h3>Addresses:</h3>
+		{{ address_formset.management_form }}
+		{% for form in address_formset %}
 		{{ form.non_field_errors }}
 		<table>
 			{% for field in form %}
@@ -48,14 +48,10 @@
 		{% endfor %}
 		<tr><td></td>
 		<td>
-		<input class="btn btn-primary" type="submit" value="Register"></td>
-		</td><td></td>
+			<input class="btn btn-primary" type="submit" value="Register">
+		</td>
 		</tr>
 		</table>
-		<!--<table>
-		{{ profile }}
-		</table>
-		<input class="btn btn-primary" type="submit" value="Register">-->
     </form>
 
     Already have an account? <a href="{% url 'auctions:login' %}">Log In here.</a>

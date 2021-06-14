@@ -127,37 +127,44 @@ def register(request):
 #User registration view.
 #
 class UserRegisterView(CreateView):
-    """ Registers a new user and creates its base profile. """
+    """
+    Registers a new user and creates a record of its main address for delivery
+    and billing.
+    """
     model = User
     form_class = RegisterForm
    
     def get_context_data(self, **kwargs):
-        data = super(UserRegisterView, self).get_context_data(**kwargs)
-        if self.request.POST:
-            data["address_formset"] = UserAddressFormset(self.request.POST)
-        else:
-            data["address_formset"] = UserAddressFormset()
-        return data
-        
-    def form_valid(self, form):
-        context = self.get_context_data()
-        address_formset = context["address"]
-        if address_formset.is_valid():
-            self.object = form.save() #super(UserRegisterView, self).form_valid(form)
-            address_formset.instance = self.object
-            address_formset.save()
+        context = super(UserRegisterView, self).get_context_data(**kwargs)
+        if "address_formset" not in kwargs:
+            context["address_formset"] = UserAddressFormset()
+        return context
+           
+    def post(self, request, *args, **kwargs):
+        self.object = None
+        form = self.get_form()
+        address_formset = UserAddressFormset(self.request.POST)
+        if form.is_valid() and address_formset.is_valid():
+            self.object = form.save()
+            addresses = address_formset.save(commit=False)
+            for address in addresses:
+                address.user = self.object #new_user
+                address.save()
             user = authenticate(self.request, 
-                            username=form.cleaned_data['username'], 
-                            password=form.cleaned_data['password1']) 
+                                username=form.cleaned_data['username'], 
+                                password=form.cleaned_data['password1']) 
             if user is not None:
                 login(self.request, user)
                 messages.success(self.request, 'You were successfully registered and logged in.')
-                return redirect(reverse_lazy('auctions:profile', {'pk':self.object.id}))
-        return self.render_to_response(self.get_context_data(form=form))
-        
+                return redirect(self.get_success_url())
+        else:
+            return self.render_to_response(self.get_context_data(
+                                                        form=form,
+                                                        address_formset=address_formset
+                                                        ))
+
     def get_success_url(self):
-        profile = Profile.objects.get(user__id=self.object.id)
-        return reverse_lazy("auctions:profile", {'pk':profile.id})
+        return reverse_lazy("auctions:profile", kwargs={'pk':self.object.id})
     
 
         
