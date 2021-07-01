@@ -5,11 +5,8 @@ from . import views
 
 app_name = "auctions"
 urlpatterns = [
-    #path("", views.index, name="index"),
-    path("", views.ActiveListingsView.as_view(), name="index"),	
-    #path("login", views.login_view, name="login"),
+    path("", views.ActiveListingsView.as_view(), name="index"),
     path("login", views.UserLoginView.as_view(), name="login"),
-    #path("logout", views.logout_view, name="logout"),
     path("logout", auth_views.LogoutView.as_view(
 								extra_context={'message':'You were logged out.'}), 
 								name="logout"),
@@ -22,11 +19,12 @@ urlpatterns = [
 	path("password_reset_done", auth_views.PasswordResetDoneView.as_view()),
 	path("password_reset_confirm", auth_views.PasswordResetConfirmView.as_view()),
 	path("password_reset_complete", auth_views.PasswordResetCompleteView.as_view()),
-    #path("register", views.register, name="register"),
     path("register", views.UserRegisterView.as_view(
 										template_name='auctions/register.html'),
 										name="register"),
-    #path("profile", views.profile, name="profile"),
+    path("registration_confirm", views.RegistrationConfirmView.as_view(
+										template_name='auctions/registration_confirm.html'),
+										name="registration_confirm"),
     path("profile/<int:pk>/", views.ProfileView.as_view(), name="profile"),
     path("categories", views.categories, name="categories"),
     path("categories/<int:cat_id>/", views.categories, name="categories"),

@@ -10,7 +10,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
-from django.views.generic import ListView, DetailView
+from django.views.generic import TemplateView, ListView, DetailView
 from django.views.generic.edit import CreateView
 
 from .models import *
@@ -128,38 +128,59 @@ def register(request):
 #
 class UserRegisterView(CreateView):
     """
-    Registers a new user and creates a record of its main address for delivery
-    and billing.
+    Registers a new user.
     """
     model = User
     form_class = RegisterForm
-   
+    success_url = reverse_lazy("auctions:registration_confirm")
+
+class RegistrationConfirmView(TemplateView):
+    pass
+
+class UserProfileCreateView(CreateView):
+    """
+    Create profile for newly registered user.
+    """
+    model = User
+    form_class = UserFullNameForm
+       
     def get_context_data(self, **kwargs):
-        context = super(UserRegisterView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
+        if "email_formset" not in kwargs:
+            data = {'email_set-TOTAL_FORMS': '1', 'email_set-INITIAL_FORMS': '0'}
+            context["email_formset"] = UserEmailFormset(user=context["user"])
         if "address_formset" not in kwargs:
-            context["address_formset"] = UserAddressFormset()
+            data = {'address_set-TOTAL_FORMS': '1', 'address_set-INITIAL_FORMS': '0'}
+            context["address_formset"] = UserAddressFormset(user=context["user"])
         return context
            
     def post(self, request, *args, **kwargs):
-        self.object = None
-        form = self.get_form()
+        self.object = self.request.user
+        form = form_class
+        email_formset = UserEmailFormset(self.request.POST)
         address_formset = UserAddressFormset(self.request.POST)
-        if form.is_valid() and address_formset.is_valid():
-            self.object = form.save()
+        if form.is_valid() and email_formset.is_valid() and address_formset.is_valid():
+            self.object.title = form.cleaned_data.title
+            self.object.first_name = form.cleaned_data.first_name
+            self.object.last_name = form.cleaned_data.last_name
+            self.object.registration_completed = True
+            self.object.save()
+            emails = email_formset.save(commit=False)
+            for email in emails:
+                email.user = self.object
+                email.save()
             addresses = address_formset.save(commit=False)
             for address in addresses:
-                address.user = self.object #new_user
+                address.user = self.object
                 address.save()
-            user = authenticate(self.request, 
-                                username=form.cleaned_data['username'], 
-                                password=form.cleaned_data['password1']) 
-            if user is not None:
-                login(self.request, user)
-                messages.success(self.request, 'You were successfully registered and logged in.')
-                return redirect(self.get_success_url())
+                                
+            messages.success(self.request, 'You profile was successfully created! \
+                                            Let\'s go, Sell of buy somethong on Auction$!')
+            return redirect(self.get_success_url())
+            
         else:
             return self.render_to_response(self.get_context_data(
-                                                        form=form,
+                                                        email_formset=email_formset,
                                                         address_formset=address_formset
                                                         ))
 
@@ -183,11 +204,11 @@ class ProfileView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
         
-        # Add in a QuerySet of all listings created by the user
+        # Add all listings created by the user in a QuerySet
         context['user_listings'] = Listing.objects.filter(
                                             product__seller=self.request.user
                                         )
-        # Add in a QuerySet of all bids the user placed  
+        # Add all bids placed by the user in a QuerySet  
         context['user_bidded_listings'] = Bid.objects.values(
                                                 'listing'
                                             ).filter(
@@ -195,7 +216,7 @@ class ProfileView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
                                             ).aggregate(
                                                 latest_bid=Max('value'))
                                                 
-        # Add in a QuerySet of all ended listings that were bidded
+        # Add all ended listings with placed bids in a QuerySet
         context['ended_listings'] = Listing.objects.annotate(
                                             endtime=ExpressionWrapper(
                                                 F('start_time')+F('duration'),

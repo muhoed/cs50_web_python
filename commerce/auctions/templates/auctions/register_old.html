@@ -4,27 +4,57 @@
 
     <h2>Register</h2>
 
-    {% if message %}
-        <div>{{ message }}</div>
-    {% endif %}
-
+	<div class="auth-form-block">
+		<h3>Username, password and personal information:</h3>
+		{{ form.non_field_errors }}
     <form action="{% url 'auctions:register' %}" method="post">
         {% csrf_token %}
-        <div class="form-group">
-            <input class="form-control" autofocus type="text" name="username" placeholder="Username">
-        </div>
-        <div class="form-group">
-            <input class="form-control" type="email" name="email" placeholder="Email Address">
-        </div>
-        <div class="form-group">
-            <input class="form-control" type="password" name="password" placeholder="Password">
-        </div>
-        <div class="form-group">
-            <input class="form-control" type="password" name="confirmation" placeholder="Confirm Password">
-        </div>
-        <input class="btn btn-primary" type="submit" value="Register">
+        <table>
+        {% for field in form %}
+			<tr>
+				<td colspan="3">{{ field.errors }}</td>
+			</tr>
+			<tr>
+				<td>{{ field.label_tag }}</td>
+				<td>{{ field }}</td>
+				<td><span class="field-help-icon">(i) 
+                {% if field.help_text %}
+					<p>{{ field.help_text|safe }}</p>
+				{% endif %}
+                </span></td>
+            </tr>
+		{% endfor %}
+		<tr><td colspan="3" style="border-bottom: 1px solid"></td></tr>
+		</table>
+		<h3>Addresses:</h3>
+		{{ address_formset.management_form }}
+		{% for form in address_formset %}
+		{{ form.non_field_errors }}
+		<table>
+			{% for field in form %}
+				<tr>
+					<td colspan="3">{{ field.errors }}</td>
+				</tr>
+				<tr>
+					<td>{{ field.label_tag }}</td>
+					<td>{{ field }}</td>
+					<td><span class="field-help-icon">(i) 
+					{% if field.help_text %}
+						<p>{{ field.help_text|safe }}</p>
+					{% endif %}
+					</span></td>
+				</tr>
+			{% endfor %}
+		{% endfor %}
+		<tr><td></td>
+		<td>
+			<input class="btn btn-primary" type="submit" value="Register">
+		</td>
+		</tr>
+		</table>
     </form>
 
     Already have an account? <a href="{% url 'auctions:login' %}">Log In here.</a>
-
+	</div>
+	
 {% endblock %}

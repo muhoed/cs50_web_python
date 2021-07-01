@@ -17,28 +17,43 @@ class User(AbstractUser):
 		('MS', 'Ms.'),
 	]
 	
-	title = models.CharField(max_length=3, choices=TITLE_CHOICES)
-	first_name = models.CharField(max_length=50)
-	last_name = models.CharField(max_length=50)
+	title = models.CharField(max_length=3, choices=TITLE_CHOICES, null=True, blank=False)
+	first_name = models.CharField(max_length=50, null=True, blank=False)
+	last_name = models.CharField(max_length=50, null=True, blank=False)
+	registration_completed = models.BooleanField(default=False)
 	
 	@property
 	def full_name(self):
-	    return f'%s %s' % (self.first_name, self.last_name)
+		if self.title and self.first_name and self.last_name:
+			return f'%s %s %s' % (self.get_title_display(), self.first_name, self.last_name)
+		return f'%s' % {self.username}
 	
 	@property
 	def get_absolute_url(self):
 		return reverse('auctions:profile', args=[int(self.id)])
 	
 	def __str__(self):
-	    return f'%s %s' % (self.get_title_display(), self.full_name)
+	    return f'%s %s' % (self.full_name)
 	    
 
 class EmailAddress(models.Model):
 	
+	TYPE_CHOICES = [
+		('CT', 'Contact'),
+		('PT', 'Payment'),
+	]
+	
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
 	email_address = models.EmailField()
+	email_type = models.CharField(max_length=2, choices=TYPE_CHOICES, 
+									blank=False, default='CT')
 	
 class Address(models.Model):
+	
+	TYPE_CHOICES = [
+		('DL', 'Delivery address'),
+		('BL', 'Billing address'),
+	]
 	
 	COUNTRY_CHOICES = [
 		('AD', _('Andorra')), ('AE', _('United Arab Emirates')), ('AF', _('Afghanistan')),
@@ -281,6 +296,8 @@ class Address(models.Model):
 	city = models.CharField(max_length=100)
 	country = models.CharField(max_length=2, choices=COUNTRY_CHOICES, 
 									blank=False, default='SK')
+	address_type = models.CharField(max_length=2, choices=TYPE_CHOICES,
+										blank=False, default='DL')
 	
 	def __str__(self):
 		if self.line2:

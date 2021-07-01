@@ -24,32 +24,35 @@ class RegisterForm(UserCreationForm):
 	class Meta(UserCreationForm.Meta):
 		model = User
 		fields = UserCreationForm.Meta.fields + \
-					('email', 'title', 'first_name', 'last_name')
+					("email",)
+					
+class UserFullNameForm(forms.ModelForm):
+	class Meta():
+		model = User
+		exclude = ("id", "username", "email", "password",)
 					
 class EmailAddressForm(forms.ModelForm):
 	class Meta():
 		model = EmailAddress
-		exclude = ('user', ) 
+		exclude = ("id", "user",) 
 					
 class AddressForm(forms.ModelForm):
     class Meta():
         model = Address
-        exclude = ('user',)
+        exclude = ('id', 'user',)
 
 UserEmailFormset = forms.models.inlineformset_factory(User, EmailAddress,
 											form=EmailAddressForm,
-											extra = 1, max_num=2,
-											validate_max=True,
-											can_delete=True,
-											can_order=True)
+											extra=1, max_num=2,
+											validate_max=True)
 
 UserAddressFormset = forms.models.inlineformset_factory(User, Address,
 											form=AddressForm,
-											formset = RequiredInlineFormSet, 
-											can_delete=True, min_num=1,
-											validate_min=True, max_num=2,
-											validate_max=True,
-											can_order=True)
+											formset=RequiredInlineFormSet,
+											exclude=('id', 'user'),
+											min_num=1, validate_min=True, 
+											max_num=2, validate_max=True,
+											can_delete=False)
 
 class SearchForm(forms.Form):
 	watched = forms.CharField(label="Search", max_length=100)
@@ -57,21 +60,21 @@ class SearchForm(forms.Form):
 class PlaceBidForm(forms.ModelForm):
 	class Meta():
 		model = Bid
-		fields = ['value']
+		fields = ["value"]
 	
 class CommentForm(forms.ModelForm):
 	class Meta():
 		model = Comment
-		fields = ['content']
+		fields = ["content"]
 	
 class AnswerForm(forms.ModelForm):
 	class Meta():
 		model = Answer
-		fields = ['content']
+		fields = ["content"]
 	
 class CreateListingForm(forms.ModelForm):
 	class Meta():
 		model = Listing
-		fields = ['product', 'start_time', 'duration', 'start_price',
-					'state', 'payment_policy', 'shipment_policy', 'return_policy']
+		fields = ["product", "start_time", "duration", "start_price",
+					"state", "payment_policy", "shipment_policy", "return_policy"]
 	
