@@ -20,7 +20,7 @@ class User(AbstractUser):
 	title = models.CharField(max_length=3, choices=TITLE_CHOICES, null=True, blank=False)
 	first_name = models.CharField(max_length=50, null=True, blank=False)
 	last_name = models.CharField(max_length=50, null=True, blank=False)
-	registration_completed = models.BooleanField(default=False)
+	profile_completed = models.BooleanField(default=False)
 	
 	@property
 	def full_name(self):
@@ -28,12 +28,11 @@ class User(AbstractUser):
 			return f'%s %s %s' % (self.get_title_display(), self.first_name, self.last_name)
 		return f'%s' % {self.username}
 	
-	@property
 	def get_absolute_url(self):
-		return reverse('auctions:profile', args=[int(self.id)])
+		return reverse('auctions:profile', kwargs={'pk': self.pk})
 	
 	def __str__(self):
-	    return f'%s %s' % (self.full_name)
+	    return f'%s' % (self.full_name)
 	    
 
 class EmailAddress(models.Model):
@@ -47,6 +46,12 @@ class EmailAddress(models.Model):
 	email_address = models.EmailField()
 	email_type = models.CharField(max_length=2, choices=TYPE_CHOICES, 
 									blank=False, default='CT')
+									
+	def __str__(self):
+		return f'Email address for %s: %s' % (self.get_email_type_display().lower(),
+															self.email_address
+															)
+	
 	
 class Address(models.Model):
 	
@@ -301,13 +306,14 @@ class Address(models.Model):
 	
 	def __str__(self):
 		if self.line2:
-			line2 = ", "+self.line2
+			line2 = ", " + self.line2
 		else:
 			line2 = ''
-		return f'%s%s, %s %s, %s' % (self.line1, line2,
-										self.zip_code, self.city,
-										self.get_country_display()
-										)
+		return f'%s: %s%s, %s %s, %s' % (self.get_address_type_display(),
+														self.line1, line2,
+														self.zip_code, self.city,
+														self.get_country_display()
+														)
 	   
     
     

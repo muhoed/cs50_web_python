@@ -3,141 +3,173 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.sites.shortcuts import get_current_site
 from django.db import IntegrityError
-from django.db.models import F, Q, Max, Case, When, Value, OuterRef, Subquery, ExpressionWrapper, DateTimeField
-#from django.forms import inlineformset_factory
+from django.db.models import (F, Q, Max, Case, When, Value, OuterRef, 
+                                Subquery, ExpressionWrapper, DateTimeField)
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.decorators import method_decorator
+from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic import TemplateView, ListView, DetailView
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, UpdateView
+from django.views.decorators.cache import never_cache
+from django.core.exceptions import ImproperlyConfigured, ValidationError
 
 from .models import *
 from .forms import *
 
-#use class-based view instead
-#def index(request):
-#    all_listings_list = \
-#            Listing.objects.order_by('-start_time').all()
-#    active_listings_list = [l for l in all_listings_list if l.status == "active"]
-#    context = {'active_listings_list': active_listings_list}
-#    return render(request, "auctions/index.html", context)
-    
-class ActiveListingsView(ListView):
-    queryset = Listing.objects.order_by('-start_time').all()
-    template_name = 'auctions/index.html'
-    paginate_by = 10
-
-#built-in Django authentication views and customized UserCreationForm form were used
-#def login_view(request):
-#    if request.method == "POST":
-#
-        # Attempt to sign user in
-#        username = request.POST["username"]
-#        password = request.POST["password"]
-#        user = authenticate(request, username=username, password=password)
-
-        # Check if authentication successful
-#        if user is not None:
-#            login(request, user)
-#            return HttpResponseRedirect(reverse("auctions:index"))
-#        else:
-#            return render(request, "auctions/login.html", {
-#                "message": "Invalid username and/or password."
-#            })
-#    else:
-#        return render(request, "auctions/login.html")
 
 
-#def logout_view(request):
-#    logout(request)
-#    return HttpResponseRedirect(reverse("auctions:index"))
+#Django class-based views are used instead of default authorisation 
+#function-based views included in the project templates.
+
+
+class CorrectUserTestMixin(UserPassesTestMixin):
+    """
+    Checks if the logged-in user tries to access her/his own account
+    information. Can be used only in CBVs receiving User model instance
+    'pk' as a parameter.
+    """
+    def test_func(self):
+        """ Check user accesses her/his own profile. """
+        return (get_object_or_404(User, pk=self.kwargs['pk']) == self.request.user)
+        
+    def handle_no_permission(self):
+        """ If user attempts to get access to other user's profile redirect her/him
+        to home page and show her/him an access denied message. """
+        if self.raise_exception or self.request.user.is_authenticated:
+            messages.error(self.request, self.permission_denied_message)
+            return render(self.request, 'auctions/index.html')
+        return redirect(reverse('auctions:login'))
+
 
 class UserLoginView(LoginView):
-    """ User log in interface. Redirect to the 'next' page if defined or to 
-    the user's account page. """
-    template_name='auctions/login.html'
+    """
+    User log in interface. Redirects to the 'next' page if defined or to 
+    the user's account page.
+    """
     
     def get_success_url(self):
         url = self.get_redirect_url()
         return url or reverse('auctions:profile', kwargs={'pk':self.request.user.id})
 
-def register(request):
-    """ Registers a new user and creates her/his base profile. """
-    if request.method == "POST":
-        #username = request.POST["username"]
-        #email = request.POST["email"]
-        # Ensure password matches confirmation
-        #password = request.POST["password"]
-        #confirmation = request.POST["confirmation"]
-        #if password != confirmation:
-        #    return render(request, "auctions/register.html", {
-        #        "message": "Passwords must match."
-        #    })
-        
-        user_form = RegisterForm(request.POST)
-        contact_form = ProfileForm(request.POST)
-        
-        if user_form.is_valid() and contact_form.is_valid():
-            new_user = user_form.save()
-            new_contact = contact_form.save(commit=False)
-            new_contact.user = new_user
-            new_contact.save()
-            new_contact.refresh_from_db()
 
-        # Attempt to create new user
-        #try:
-        #    user = User.objects.create_user(username, email, password)
-            #user.save()
-        #except IntegrityError:
-        #    return render(request, "auctions/register.html", {
-        #        "message": "Username already taken."
-        #    })
-            user = authenticate(request, 
-                        username=user_form.cleaned_data['username'], 
-                        password=user_form.cleaned_data['password1']) 
-            if user is not None:
-                login(request, user)
-                messages.success(request, 'You were successfully registered and logged in.')
-                return redirect(reverse(
-                                    "auctions:profile", 
-                                    kwargs={'pk':new_contact.id}
-                                    )
-                                )
-            else:
-                messages.warning(request, 'You were registered but login attempt failed.')
-                return render(request, "auctions/login.html")
-    else:
-        user_form = RegisterForm()
-        contact_form = ProfileForm()
-    return render(request, "auctions/register.html", {
-                                            "user_form": user_form,
-                                            "contact_form": contact_form
-                                            }
-
-                    )
-
-#
-#Attempt to create class-based register view with both User and Profile creation
-#forms. Unsuccessful yet. Tried two separate form as well as inline formset.
-#Can't solve a problem of second form validation yet. Didn't try custom User 
-#creation form with a set of fields for both models since suppose to use 
-#separate forms in further update functionality. Revert back to function based
-#User registration view.
-#
 class UserRegisterView(CreateView):
     """
     Registers a new user.
     """
     model = User
     form_class = RegisterForm
-    success_url = reverse_lazy("auctions:registration_confirm")
+    
+    def post(self, request, *args, **kwargs):
+        self.object = None
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            self.object = form.save(commit=False)
+            self.object.is_active = False
+            self.object.save()
+            request.session["newuser"]=self.object.pk
+            return redirect("auctions:registration_confirm")
+        else:
+            return self.render_to_response(self.get_context_data(form=form))
+        
 
 class RegistrationConfirmView(TemplateView):
-    pass
+    """
+    In production version an email with registration confirmation link 
+    to be sent to an user using the same underlying logic as Django password 
+    reset workflow has.
+    In this student's project version the view shows respective notification 
+    with the activation link on the screen upon registration.
+    """
+    success_url = reverse_lazy('auctions:registration_complete')
+    token_generator = default_token_generator
+        
+    def get(self, request, *args, **kwargs):
+        if request.session["newuser"]:
+            protocol = 'http'
+            current_site = get_current_site(request)
+            site_name = current_site.name
+            domain = current_site.domain
+            uid = urlsafe_base64_encode(force_bytes(request.session["newuser"]))
+            token = self.token_generator.make_token(User.objects.get(pk=request.session["newuser"]))
+            return render(request, self.template_name, {
+                                                'protocol':protocol, 
+                                                'domain':domain, 
+                                                'uid':uid, 'token':token})
+        return redirect(reverse('auctions:register'))
+        
+INTERNAL_RESET_SESSION_TOKEN = '_activate_user_token'
+        
+class RegistrationCompleteView(TemplateView):
+    """
+    Activates newly registered user.
+    """
+    token_generator = default_token_generator
+    reset_url_token = 'activate-user'
+    
+    @method_decorator(sensitive_post_parameters())
+    @method_decorator(never_cache)
+    def dispatch(self, *args, **kwargs):
+        if 'uidb64' not in kwargs or 'token' not in kwargs:
+            raise ImproperlyConfigured(
+                "The URL path must contain 'uidb64' and 'token' parameters."
+            )
+        
+        self.validlink = False
+        self.user = self.get_user(kwargs['uidb64'])
 
-class UserProfileCreateView(CreateView):
+        if self.user is not None:
+            token = kwargs['token']
+            if token == self.reset_url_token:
+                session_token = self.request.session.get(INTERNAL_RESET_SESSION_TOKEN)
+                if self.token_generator.check_token(self.user, session_token):
+                    # If the token is valid, activate the user and show confirmation.
+                    self.user.is_active=True
+                    self.user.save()
+                    self.validlink = True
+                    return render(self.request, self.template_name, self.get_context_data()) #super().dispatch(*args, **kwargs)
+            else:
+                if self.token_generator.check_token(self.user, token):
+                    # Store the token in the session and redirect to the
+                    # account activation page at a URL without the token. That
+                    # avoids the possibility of leaking the token in the
+                    # HTTP Referer header.
+                    self.request.session[INTERNAL_RESET_SESSION_TOKEN] = token
+                    redirect_url = self.request.path.replace(token, self.reset_url_token)
+                    return HttpResponseRedirect(redirect_url)
+
+        # Display the "Unsuccessful account activation" page.
+        return self.render_to_response(self.get_context_data())
+        
+    def get_user(self, uidb64):
+        try:
+            # urlsafe_base64_decode() decodes to bytestring
+            uid = urlsafe_base64_decode(uidb64).decode()
+            user = User._default_manager.get(pk=uid)
+        except:
+            user = None
+        return user
+        
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.validlink:
+            context['validlink'] = True
+        else:
+            context.update({
+                'validlink': False,
+            })
+        return context
+
+
+class UserProfileCreateView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
     """
     Create profile for newly registered user.
     """
@@ -147,57 +179,47 @@ class UserProfileCreateView(CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if "email_formset" not in kwargs:
-            data = {'email_set-TOTAL_FORMS': '1', 'email_set-INITIAL_FORMS': '0'}
-            context["email_formset"] = UserEmailFormset(user=context["user"])
+            #data = {'emailaddress_set-TOTAL_FORMS': '2', 'emailaddress_set-INITIAL_FORMS': '0'}
+            context["email_formset"] = UserEmailFormset(instance=self.object)
         if "address_formset" not in kwargs:
-            data = {'address_set-TOTAL_FORMS': '1', 'address_set-INITIAL_FORMS': '0'}
-            context["address_formset"] = UserAddressFormset(user=context["user"])
+            #data = {'address_set-TOTAL_FORMS': '2', 'address_set-INITIAL_FORMS': '0'}
+            context["address_formset"] = UserAddressFormset(instance=self.object)
         return context
+        
+    def dispatch(self, *args, **kwargs):
+        self.object = self.get_object()
+        if self.object.profile_completed:
+            return redirect(self.get_success_url())
+        return super().dispatch(*args, **kwargs)
            
+    @method_decorator(never_cache)
     def post(self, request, *args, **kwargs):
-        self.object = self.request.user
-        form = form_class
-        email_formset = UserEmailFormset(self.request.POST)
-        address_formset = UserAddressFormset(self.request.POST)
+        form = self.get_form()
+        email_formset = UserEmailFormset(self.request.POST, instance=self.object)
+        address_formset = UserAddressFormset(self.request.POST, instance=self.object)
         if form.is_valid() and email_formset.is_valid() and address_formset.is_valid():
-            self.object.title = form.cleaned_data.title
-            self.object.first_name = form.cleaned_data.first_name
-            self.object.last_name = form.cleaned_data.last_name
-            self.object.registration_completed = True
-            self.object.save()
-            emails = email_formset.save(commit=False)
-            for email in emails:
-                email.user = self.object
-                email.save()
-            addresses = address_formset.save(commit=False)
-            for address in addresses:
-                address.user = self.object
-                address.save()
+            emails = email_formset.save()
+            addresses = address_formset.save()
                                 
             messages.success(self.request, 'You profile was successfully created! \
-                                            Let\'s go, Sell of buy somethong on Auction$!')
-            return redirect(self.get_success_url())
+                                            Let\'s go, Sell of buy something on Auction$!')
+            return self.form_valid(form)
             
         else:
             return self.render_to_response(self.get_context_data(
+                                                        form=form,
                                                         email_formset=email_formset,
                                                         address_formset=address_formset
                                                         ))
 
-    def get_success_url(self):
-        return reverse_lazy("auctions:profile", kwargs={'pk':self.object.id})
-    
-
-        
-#@login_required        
-#def profile(request):
-#    return render(request, "auctions/profile.html")
+    def form_valid(self, form):
+        form.instance.profile_completed = True
+        return super().form_valid(form)
 
     
-class ProfileView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+class ProfileView(LoginRequiredMixin, CorrectUserTestMixin, DetailView):
     """ Display user profile details. """
     model = User
-    template_name='auctions/profile.html'
     permission_denied_message='Access to the requested page was denied.'
     
     def get_context_data(self, **kwargs):
@@ -230,19 +252,13 @@ class ProfileView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
                                                 ).order_by('-endtime')
         return context
     
-    def test_func(self):
-        """ Check user accesses her/his own profile. """
-        return (get_object_or_404(User, pk=self.kwargs['pk']) == self.request.user)
-        
-    def handle_no_permission(self):
-        """ If user attempts to get access to other user's profile redirect her/him
-        to home page and show her/him an access denied message. """
-        if self.raise_exception or self.request.user.is_authenticated:
-            messages.error(self.request, self.permission_denied_message)
-            return render(self.request, 'auctions/index.html')
-        return redirect(reverse('auctions:login'))
     
-
+class ActiveListingsView(ListView):
+    queryset = Listing.objects.order_by('-start_time').all()
+    template_name = 'auctions/index.html'
+    paginate_by = 10
+    
+    
 @login_required    
 def messenger(request):
     pass

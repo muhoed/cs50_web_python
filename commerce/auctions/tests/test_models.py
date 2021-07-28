@@ -33,26 +33,32 @@ class TestModels(TestCase):
         self.testlisting = Listing.objects.create(product=self.product)
         
     def test_user_atributes(self):
-        self.assertEqual(self.testuser.full_name, 'John Smith')
+        self.assertEqual(self.testuser.full_name, 'Mr. John Smith')
         self.assertEqual(str(self.testuser), 'Mr. John Smith')
         
     def test_create_email(self):
         additional_email = EmailAddress.objects.create(
                                                 user=self.testuser,
-                                                email_address='new_email@test.com'
+                                                email_address='new_email@test.com',
+                                                email_type='PT'
                                             )
         self.assertEqual(self.testuser.emailaddress_set.get(pk='1').email_address, 'new_email@test.com')
-        self.assertEqual(self.testuser.email, 'test_email@test.com')
+        self.assertEqual(additional_email.get_email_type_display(), 'Payment')
+        self.assertEqual(str(additional_email), 'Email address for payment: new_email@test.com')
+        self.assertEqual(str(self.testuser.emailaddress_set.first()), 'Email address for payment: new_email@test.com')
 
     def test_create_address(self):
-        address = Address.objects.create(user = self.testuser,
-                                            line1 = 'street 1',
-                                            zip_code = '00000',
-                                            city = 'testcity',
-                                            country = 'SK'
+        address = Address.objects.create(user=self.testuser,
+                                            line1='street 1',
+                                            zip_code='00000',
+                                            city='testcity',
+                                            country='SK',
+                                            address_type='BL' 
                                             )
         self.assertEqual(address.get_country_display(), 'Slovakia')
-        self.assertEqual(str(address), 'street 1, 00000 testcity, Slovakia')
+        self.assertEqual(address.get_address_type_display(), 'Billing address')
+        self.assertEqual(str(address), 'Billing address: street 1, 00000 testcity, Slovakia')
+        self.assertEqual(str(self.testuser.address_set.first()), 'Billing address: street 1, 00000 testcity, Slovakia')
         
     
     def test_bad_credentials(self):

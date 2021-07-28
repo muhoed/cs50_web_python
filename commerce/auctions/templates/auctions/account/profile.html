@@ -1,23 +1,18 @@
-{% extends "auctions/layout.html" %}
+{% extends "auctions/account/profile_layout.html" %}
 
-{% block body %}
-
-    <div class="container d-flex flex-column">
-		<div class="beardbread d-inline-flex flex-row w-100 mt-1 mb-2 border border-top-0 border-right-0 border-left-0">
-			<ul class="nav"><li class="nav-item">Links beard</li></ul>
-		</div>
-		<div class="main flex-row d-flex w-100">
-			<ul class="nav flex-column w-25 border border-top-0 border-bottom-0 border-left-0">
-				<li class="nav-item">Credentials</li>
-				<li class="nav-item">Personal info</li>
-				<li class="nav-item">Contact info</li>
-				<li class="nav-item">Sell activity</li>
-				<li class="nav-item">Purchase activity</li>
-				<li class="nav-item">Watchlist</li>
-				<li class="nav-item">Comments center</li>
-				<li  class="nav-item">Message center</li>
-			</ul>
-			<div class="flex-column w-75">
+{% block content %}
+				
+				{% if not user.profile_completed %}
+				<div class="container m-2 bg-warning">
+					<p>Your profile information is incomplete!</p>
+					<p>You will not be able to buy or sell products on Auction$ till 
+					all required information is not provided.</p>
+					<a href="{% url 'auctions:create_profile' user.pk %}">
+						Complete profile now.
+					</a>
+				</div>
+				{% endif %}
+				
 				<div class="container">
 					<h3>Your active listings:</h3>
 						{% for listing in user_listings|slice:":3"|dictsort:"end_time" %}
@@ -40,7 +35,7 @@
 							</div>
 							{% endif %}
 						{% empty %}
-							<p>You do not have active listings at the moment. <a href="{% url 'auctions:create_listing' %}">Click here</a> to create one</p>
+							<p>You do not have active listings at the moment. <a href="{% url 'auctions:create_listing' %}">Click here</a> to create one.</p>
 						{% endfor %}
 						{% if user_listings.3 %}
 							<button class="btn btn-info" data-toggle="collapse" data-target="#more-listings">VIEW MORE</button>
@@ -238,10 +233,7 @@
 									{% endfor %}
 								</div>
 							{% endif %}
-					</div>
+					</div>					
 				</div>
-			</div>
-		</div>
-    </div>
 	
 {% endblock %}

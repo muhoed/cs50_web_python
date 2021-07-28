@@ -1,8 +1,16 @@
 import random
 
-from django.test import TestCase, Client
+from django.test import TestCase, LiveServerTestCase, Client
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.sites.shortcuts import get_current_site
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+
+from selenium import webdriver
+from selenium.webdriver.firefox.webdriver import WebDriver
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 
 from auctions.models import *
 
@@ -29,11 +37,17 @@ class TestViews(TestCase):
                                     last_name="User_3")
         # Create additional email for test_user1
         user1 = User.objects.get(username='test_user1')
-        EmailAddress.objects.create(user=user1, email_address="user1@test.com")
+        EmailAddress.objects.create(user=user1, 
+										email_address="user1@test.com",
+										email_type="CT")
         # Create address for test_user1
         Address.objects.create(user=user1,
                                 line1='street 1', zip_code='00000',
-                                city='testcity', country='SK')   
+                                city='testcity', country='SK',
+                                address_type="DL")
+        # Mark user1 profile as completed
+        user1.profile_completed = True
+        user1.save()
         # Create test categories
         Category.objects.create(
                             name="testcategory1",
@@ -214,7 +228,7 @@ class TestLoginView(TestViews):
         self.assertEqual(response.status_code, 200)
 
         #Check correct template is used
-        self.assertTemplateUsed('/auctions/login.html')
+        self.assertTemplateUsed('/auctions/auth/login.html')
     
     def test_user_login_bad_credentials(self):
         """
@@ -300,7 +314,7 @@ class TestRegisterView(TestViews):
         self.assertEqual(response.status_code, 200)
 
         #Check correct template is used
-        self.assertTemplateUsed('/auctions/register.html')
+        self.assertTemplateUsed('/auctions/auth/register.html')
         
     def test_register_form_displayed(self):
         """
@@ -310,7 +324,7 @@ class TestRegisterView(TestViews):
         response = self.client.get(reverse('auctions:register'))
 
         #Check register form is in content 
-        self.assertContains(response, '<form')
+        self.assertContains(response, '<form action="/register" method="post">')
         
     def test_register_user_empty_data(self):
         """
@@ -319,14 +333,7 @@ class TestRegisterView(TestViews):
         #Issue a POST request with empty data
         response = self.client.post(reverse('auctions:register'),
                                     {'username':'', 'email':'', 'password':'',
-                                        'confirmation':'', 'title':'', 
-                                        'first_name':'', 'last_name':'',
-                                        'address_set-TOTAL_FORMS': u'1',
-                                        'address_set-INITIAL_FORMS': u'0',
-                                        'address_set-0-line1':'',
-                                        'address_set-0-zip_code':'',
-                                        'address_set-0-city':'',
-                                        'address_set-0-country':''})
+                                        'confirmation':''})
 
         #Check the page is loaded 
         self.assertEqual(response.status_code, 200)
@@ -337,20 +344,6 @@ class TestRegisterView(TestViews):
                                 'password1', 'This field is required.')
         self.assertFormError(response, 'form', 
                                 'password2', 'This field is required.')
-        self.assertFormError(response, 'form', 
-                                'title', 'This field is required.')
-        self.assertFormError(response, 'form', 
-                                'first_name', 'This field is required.')
-        self.assertFormError(response, 'form', 
-                                'last_name', 'This field is required.')
-        self.assertFormsetError(response, 'address_formset', 0, 
-                                'line1', 'This field is required.')
-        self.assertFormsetError(response, 'address_formset', 0, 
-                                'zip_code', 'This field is required.')
-        self.assertFormsetError(response, 'address_formset', 0, 
-                                'city', 'This field is required.')
-        self.assertFormsetError(response, 'address_formset', 0, 
-                                'country', 'This field is required.')
         
     def test_register_user_bad_email(self):
         """
@@ -361,13 +354,7 @@ class TestRegisterView(TestViews):
                                                     {'username':'testname',
                                                     'email':'email.com',
                                                     'password':'testpass',
-                                                    'confirmation':'testpass',
-                                                    'address_set-TOTAL_FORMS': u'1',
-                                                    'address_set-INITIAL_FORMS': u'0',
-                                                    'address_set-0-line1':'street 1',
-                                                    'address_set-0-zip_code':'00000',
-                                                    'address_set-0-city':'town',
-                                                    'address_set-0-country':'SK'})
+                                                    'confirmation':'testpass'})
 
         #Check errors are displayed by the form
         self.assertFormError(response, 'form', 
@@ -382,16 +369,7 @@ class TestRegisterView(TestViews):
                                                     {'username':'testname',
                                                     'email':'test@test.com',
                                                     'password1':'111',
-                                                    'password2':'111',
-                                                    'title':'MR',
-                                                    'first_name':'test',
-                                                    'last_name':'user',
-                                                    'address_set-TOTAL_FORMS': u'1',
-                                                    'address_set-INITIAL_FORMS': u'0',
-                                                    'address_set-0-line1':'street 1',
-                                                    'address_set-0-zip_code':'00000',
-                                                    'address_set-0-city':'town',
-                                                    'address_set-0-country':'SK'})
+                                                    'password2':'111'})
         
         #Check errors are displayed by the form
         self.assertFormError(response, 'form',
@@ -409,16 +387,7 @@ class TestRegisterView(TestViews):
                                                     {'username':'testname',
                                                     'email':'test@test.com',
                                                     'password1':'111',
-                                                    'password2':'11',
-                                                    'title':'MR',
-                                                    'first_name':'test',
-                                                    'last_name':'user',
-                                                    'address_set-TOTAL_FORMS': u'1',
-                                                    'address_set-INITIAL_FORMS': u'0',
-                                                    'address_set-0-line1':'street 1',
-                                                    'address_set-0-zip_code':'00000',
-                                                    'address_set-0-city':'town',
-                                                    'address_set-0-country':'SK'})
+                                                    'password2':'11'})
         self.assertFormError(response, 'form',
                                 'password2', 'The two password fields didn’t match.')                                            
         
@@ -432,16 +401,7 @@ class TestRegisterView(TestViews):
                                                     {'username':'test_user1',
                                                     'email':'test@test.com',
                                                     'password1':'Pass&2021',
-                                                    'password2':'Pass&2021',
-                                                    'title':'MR',
-                                                    'first_name':'test',
-                                                    'last_name':'user',
-                                                    'address_set-TOTAL_FORMS': u'1',
-                                                    'address_set-INITIAL_FORMS': u'0',
-                                                    'address_set-0-line1':'street 1',
-                                                    'address_set-0-zip_code':'00000',
-                                                    'address_set-0-city':'town',
-                                                    'address_set-0-country':'SK'})
+                                                    'password2':'Pass&2021'})
 
         #Check errors are displayed by the form
         self.assertFormError(
@@ -451,39 +411,423 @@ class TestRegisterView(TestViews):
         
     def test_register_user_right_data(self):
         """
-        Test that user is logged in and redirected to home page when 
+        Test that user is redirected to account activation page when 
         form is filled correctly.
+        Test user becomes active and is redirected to activation confirmation
+        page once activation link was used.
         """
         #Issue a POST request with correct and complete data
         response = self.client.post(reverse('auctions:register'),
                                                         {'username':'test_user4',
                                                         'email':'test@test.com',
                                                         'password1':'Pass&2021',
-                                                        'password2':'Pass&2021',
-                                                        'title':'MR',
-                                                        'first_name':'test',
-                                                        'last_name':'user',
-                                                        'address_set-TOTAL_FORMS': u'1',
-                                                        'address_set-INITIAL_FORMS': u'0',
-                                                        'address_set-0-line1':'street 1',
-                                                        'address_set-0-zip_code':'00000',
-                                                        'address_set-0-city':'town',
-                                                        'address_set-0-country':'SK'},
+                                                        'password2':'Pass&2021'},
                                                         follow=True)
         u = User.objects.get(username='test_user4')
-        #Check user was redirected to home page
-        self.assertRedirects(response, reverse(
-                                    'auctions:profile', 
-                                    kwargs={'pk':u.id}
-                                ), 
+        #Check user is not active yet
+        self.assertFalse(u.is_active)
+        #Check user was redirected to account activation page
+        self.assertRedirects(response, reverse('auctions:registration_confirm'), 
                                 status_code=302, target_status_code=200,
                                 fetch_redirect_response=True)
-        self.assertTemplateUsed('/auctions/index.html')
-        #self.assertEqual(response.context, "You were successfully registered and logged in.")                                            
-        #Check user in session is authenticated
-        self.assertTrue(response.context['user'].is_authenticated)
-        #Check if user data are correct
-        self.assertEqual(response.context['user'].username, u.username)
         
-class TestProfileView():
-    pass
+
+class TestRegistrationConfirmView(TestViews):
+    """
+    Tests user account activation process.
+    """
+    token_generator = default_token_generator
+    
+    def setUp(self):
+        """
+        Prepare data common for all tests in this class.
+        """
+        
+        self.u = User.objects.get(username='test_user3')
+        #current_site = get_current_site(response.request)
+        #site_name = current_site.name
+        self.domain = 'testserver' #current_site.domain
+        self.uid_test = urlsafe_base64_encode(force_bytes(self.u.pk))
+        self.token_test = self.token_generator.make_token(self.u)
+        #Set session variable 'newuser'
+        session = self.client.session
+        session["newuser"] = self.u.pk
+        session.save()
+        
+    def test_registration_confirm_view_url(self):
+        """
+        Tests url is reachable, url naming works and correct template is used.
+        """
+        #Issue a GET request
+        response = self.client.get('/registration_confirm')
+        
+        #Check if response code is 200 OK
+        self.assertEqual(response.status_code, 200)
+        
+    def test_registration_confirm_view_url_name(self):
+        """
+        Test checks url naming works and correct template
+        is used.
+        """
+        #Issue a GET request
+        response = self.client.get(reverse('auctions:registration_confirm'))
+
+        #Check if response code is 200 OK
+        self.assertEqual(response.status_code, 200)
+
+        #Check correct template is used
+        self.assertTemplateUsed('/auctions/auth/registration_confirm.html')
+                
+    def test_registration_confirm_message(self):
+        """
+        Test that registration confirmation screen is correct.
+        """
+        
+        #Issue a get request to confirm view
+        response = self.client.get(reverse('auctions:registration_confirm'))
+        
+        #Check is message about successfull registration is displayed
+        self.assertContains(response, '<div id="activation_message">')
+        #Check response contains URL parts of activation link and they are correct
+        self.assertEqual(response.context["uid"], self.uid_test)
+        self.assertEqual(response.context["token"], self.token_test)
+        self.assertContains(response, 
+            "http://" + self.domain + "/registration_complete/" + self.uid_test + "/" + self.token_test)
+
+
+class TestRegistrationCompleteView(TestViews):
+    """
+    Tests user account activation process.
+    """
+    token_generator = default_token_generator
+    
+    def setUp(self):
+        """
+        Prepare data common for all tests in this class.
+        """
+        self.u = User.objects.get(username='test_user3')
+        self.domain = 'testserver'
+        self.uid_test = urlsafe_base64_encode(force_bytes(self.u.pk))
+        self.token_test = self.token_generator.make_token(self.u)
+                    					
+    def test_wrong_complete_registration_data(self):
+        """
+        Test user account is not activated and an error message is displayed
+        if data sent with request are invalid.
+        """
+        u1 = User.objects.get(username="test_user2")
+        uid1 = urlsafe_base64_encode(force_bytes(u1.pk))
+        token1 = self.token_generator.make_token(u1)
+		
+        #Send request with wrong uid
+        response = self.client.get(reverse('auctions:registration_complete',
+                                                        args=[uid1, self.token_test,]),
+                                                        follow=True)
+        #Check link is not validated
+        self.assertFalse(response.context["validlink"])
+        #Check error message is displayed
+        self.assertContains(response, "Activation link you used seems to be wrong or not valid any more.")
+        #Check current user is active
+        self.assertFalse(response.context["user"].is_active)
+        
+        #Send request with wrong token
+        response = self.client.get(reverse('auctions:registration_complete',
+                                                        args=[self.uid_test, token1,]),
+                                                        follow=True)
+        #Check link is not validated
+        self.assertFalse(response.context["validlink"])
+        #Check error message is displayed
+        self.assertContains(response, "Activation link you used seems to be wrong or not valid any more.")
+        #Check current user is active
+        self.assertFalse(response.context["user"].is_active)
+					
+						
+    def test_complete_registration_right_data(self):
+        """
+        Test that user is redirected to account activation page when 
+        form is filled correctly.
+        Test user becomes active and is redirected to activation confirmation
+        page once activation link was used.
+        """
+        
+        #Check link redirects user to activation complete view and
+        #user is activated then
+        response = self.client.get(reverse('auctions:registration_complete',
+														args=[self.uid_test, self.token_test,]),
+														follow=True)
+		
+		#Check user was redirected to activation confirmation page
+        self.assertRedirects(response, reverse('auctions:registration_complete',
+                                args=[self.uid_test, 'activate-user',]), 
+                                status_code=302, target_status_code=200,
+                                fetch_redirect_response=True)
+        #Check if correct template is used
+        self.assertTemplateUsed('auctions/auth/registration_complete.html')
+        #Check link is validated successfully
+        self.assertTrue(response.context["validlink"])
+        #Check successfull activation message is displayed
+        self.assertContains(response, "Activation of your account was successfull.")
+        #Check current user is active
+        self.assertTrue(self.u.is_active)
+
+            
+class TestProfileView(TestViews):
+    """
+    Tests user profile view.
+    """
+    def setUp(self):
+        """
+        Prepare data common for all tests in this class.
+        """
+        
+        self.user = User.objects.get(username="test_user2")
+        if self.user is not None:
+            self.client.force_login(self.user)
+        
+    def test_profile_view_url(self):
+        """
+        Tests url is reachable, url naming works and correct template is used.
+        """
+        #Issue a GET request
+        response = self.client.get('/profile/' + str(self.user.pk) + '/')
+        
+        #Check if response code is 200 OK
+        self.assertEqual(response.status_code, 200)
+        
+    def test_profile_view_url_name(self):
+        """
+        Test checks url naming works and correct template
+        is used.
+        """
+        #Issue a GET request
+        response = self.client.get(reverse(
+                                        'auctions:profile', args=[self.user.pk,]
+                                        ))
+
+        #Check if response code is 200 OK
+        self.assertEqual(response.status_code, 200)
+
+        #Check correct template is used
+        self.assertTemplateUsed('/auctions/account/profile.html')
+        
+    def test_non_completed_profile(self):
+        """
+        Tests whether respective message is displayed to a new user
+        who did not filled in her/his profile information yet.  
+        """
+            
+        #request profile page
+        response = self.client.get(reverse('auctions:profile', args=[self.user.pk,]))
+
+        #check if a message about incomplete profile is displayed
+        self.assertContains(response, "Your profile information is incomplete!")
+        #check if a link to create profile page is displayed
+        self.assertContains(response, '<a href="' + reverse(
+                                                        'auctions:create_profile', 
+                                                        args=[self.user.pk,]
+                                                        ))
+		
+
+class TestCreateProfileView(LiveServerTestCase):
+    """
+    Tests profile completion process including check of JS powered UI
+    elements works as expected.
+    """
+    #@classmethod
+    #def setUpClass(cls):
+    #    super().setUpClass()
+
+    #    binary = FirefoxBinary('/usr/lib/firefox/firefox')
+    #    cls.selenium = webdriver.Firefox(firefox_binary=binary)
+    #    cls.selenium.implicitly_wait(10)
+
+    #@classmethod
+    #def tearDownClass(cls):
+    #    cls.selenium.close()
+    #    super().tearDownClass()    
+    
+    def setUp(self):
+        """
+        Prepare data common for all tests in this class.
+        """
+        User.objects.create_user("test_user1", "", 'Pass1')
+        self.user = User.objects.get(username='test_user1')
+        if self.user is not None:
+            self.client.force_login(self.user)
+            
+        self.data = {
+                    "emailaddress_set-TOTAL_FORMS": 2,
+                    "emailaddress_set-INITIAL_FORMS": 0,
+                    "emailaddress_set-MIN_NUM_FORMS": 0,
+                    "emailaddress_set-MAX_NUM_FORMS": 2,
+                    "emailaddress_set-0-email_address": "",
+                    "emailaddress_set-0-email_type": "CT",
+                    "emailaddress_set-0-DELETE": False,
+                    "emailaddress_set-1-email_address": "",
+                    "emailaddress_set-1-email_type": "PT",
+                    "emailaddress_set-1-DELETE": False,
+                    "address_set-TOTAL_FORMS": 2,
+                    "address_set-INITIAL_FORMS": 0,
+                    "address_set-MIN_NUM_FORMS": 1,
+                    "address_set-MAX_NUM_FORMS": 2,
+                    "address_set-0-address_type": "DL",
+                    "address_set-1-address_type": "BL",
+                    "address_set-0-line1": "",
+                    "address_set-1-line1": "",
+                    "address_set-0-line2": "",
+                    "address_set-1-line2": "",
+                    "address_set-0-zip_code": "",
+                    "address_set-1-zip_code": "",
+                    "address_set-0-city": "",
+                    "address_set-1-city": "",
+                    "address_set-0-country": "SK",
+                    "address_set-1-country": "SK",
+                    "address_set-0-DELETE": False,
+                    "address_set-1-DELETE": False,
+                }
+        
+    def test_create_profile_view_url(self):
+        """
+        Tests url is reachable, url naming works and correct template is used.
+        """
+        #Issue a GET request
+        response = self.client.get('/create_profile/' + str(self.user.pk) + '/')
+        
+        #Check if response code is 200 OK
+        self.assertEqual(response.status_code, 200)
+        
+    def test_create_profile_view_url_name(self):
+        """
+        Test checks url naming works and correct template
+        is used.
+        """
+        #Issue a GET request
+        response = self.client.get(reverse(
+                                        'auctions:create_profile', 
+                                        args=[self.user.pk,]
+                                        ))
+
+        #Check if response code is 200 OK
+        self.assertEqual(response.status_code, 200)
+
+        #Check correct template is used
+        self.assertTemplateUsed('/auctions/account/create_profile.html')
+        
+    def test_create_profile_form_formsets_displayed(self):
+        """
+        Test that form and formsets required to complete profile
+        are displayed.
+        """
+        #Issue a GET request
+        response = self.client.get(reverse(
+                                        'auctions:create_profile', 
+                                        args=[self.user.pk,]
+                                        ))
+
+        #Check form is in content 
+        self.assertContains(response, 
+                '<form action="/create_profile/' + str(self.user.pk) + '/" method="post">'
+                )
+        #Check user full name form is in content 
+        self.assertContains(response, 'id_first_name')
+        #Check the first form of email formset is in content 
+        self.assertContains(response, 'emailaddress_set-0')
+        #Check the second form of email formset is in content 
+        self.assertContains(response, 'emailaddress_set-1')
+        #Check the first form of address formset is in content 
+        self.assertContains(response, 'address_set-0')
+        #Check the second form of address formset is in content 
+        self.assertContains(response, 'address_set-1')
+        
+        
+    def test_create_profile_post_empty_data(self):
+        """
+        Test that create profile view returns error if no data are provided 
+        for required fields.
+        """
+        #Issue a POST request with empty data
+        response = self.client.post(reverse(
+                                        'auctions:create_profile', 
+                                        args=[self.user.pk,]
+                                        ), self.data)
+
+        #Check the page is loaded 
+        self.assertEqual(response.status_code, 200)
+        #Check errors are displayed by the form
+        self.assertFormError(response, 'form', 
+                                'title', 'This field is required.')
+        self.assertFormError(response, 'form', 
+                                'first_name', 'This field is required.')
+        self.assertFormError(response, 'form', 
+                                'last_name', 'This field is required.')
+        #check email_formset does not generate errors since no input there
+        self.assertFormsetError(response, 'email_formset', 0, 
+                                'email_address', None)
+        self.assertFormsetError(response, 'email_formset', 1, 
+                                'email_address', None)
+        #check address_formset generates errors since at least one form
+        #is required
+        self.assertFormsetError(response, 'address_formset', 0,
+                                'line1', 'This field is required.')
+        self.assertFormsetError(response, 'address_formset', 0,
+                                'zip_code', 'This field is required.')
+        self.assertFormsetError(response, 'address_formset', 0,
+                                'city', 'This field is required.')
+        self.assertFormsetError(response, 'address_formset', 1,
+                                'line1', 'This field is required.')
+        self.assertFormsetError(response, 'address_formset', 1,
+                                'zip_code', 'This field is required.')
+        self.assertFormsetError(response, 'address_formset', 1,
+                                'city', 'This field is required.')        
+        
+    def test_create_profile_invalid_email(self):
+        """
+        Test that create profile view returns error if provided email is not valid.
+        """
+        self.data["title"] = "MR"
+        self.data["first_name"] = "User"
+        self.data["last_name"] = "Useroff"
+        self.data["emailaddress_set-0-email_address"] = "wrong_email"
+        
+        #Issue a POST request with filled in 
+        response = self.client.post(reverse('auctions:create_profile', 
+                                                args=[self.user.pk,]),
+                                                self.data)
+
+        #Check errors are displayed by the formsets
+        self.assertFormsetError(response, 'email_formset', 0, 
+                                'email_address', 'Enter a valid email address.')
+                                 
+			
+    def test_create_profile_deleted_forms(self):
+        """
+        Test that create profile view returns error if provided email is not valid.
+        """
+        self.data["title"] = "MR"
+        self.data["first_name"] = "User"
+        self.data["last_name"] = "Useroff"
+        self.data["emailaddress_set-0-email_address"] = "user@user.com"
+        self.data["emailaddress_set-1-DELETE"] = True
+        self.data["address_set-0-line1"] = "Street 1"
+        self.data["address_set-0-zip_code"] = "82100"
+        self.data["address_set-0-city"] = "Bratislava"
+        self.data["address_set-1-DELETE"] = True
+        
+        #Issue a POST request with filled in 
+        response = self.client.post(reverse('auctions:create_profile', 
+                                                args=[self.user.pk,]),
+                                                self.data,
+                                                follow=True)
+
+        #Check user was redirected to profile page and success message id displayed
+        self.assertRedirects(response, reverse('auctions:profile',
+                                args=[self.user.pk,]), 
+                                status_code=302, target_status_code=200,
+                                fetch_redirect_response=True)
+        #Check if correct template is used
+        self.assertTemplateUsed('auctions/account/profile.html')
+        #Check if success message is in response
+        self.assertContains(response, 'You profile was successfully created!')
+        
+    def test_create_profile_form_delete_JS(self):
+        pass

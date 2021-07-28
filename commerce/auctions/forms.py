@@ -18,41 +18,54 @@ class RequiredInlineFormSet(forms.BaseInlineFormSet):
 		if any(self.errors):
 			return
 		if not self.forms[0].has_changed():
-			raise forms.ValidationError('Please fill in your address information.')
+			raise forms.ValidationError('Please complete required information.')
+
 
 class RegisterForm(UserCreationForm):
+	email = forms.EmailField(label="Email address")
+	
 	class Meta(UserCreationForm.Meta):
 		model = User
 		fields = UserCreationForm.Meta.fields + \
 					("email",)
+					  
 					
 class UserFullNameForm(forms.ModelForm):
 	class Meta():
 		model = User
-		exclude = ("id", "username", "email", "password",)
+		fields = ("title", "first_name", "last_name",)
 					
 class EmailAddressForm(forms.ModelForm):
 	class Meta():
 		model = EmailAddress
-		exclude = ("id", "user",) 
-					
+		fields = ("email_address", "email_type",) 
+		
+	#def full_clean(self, *args, **kwargs):
+	#	super().full_clean(*args, **kwargs)
+	#	if hasattr(self, 'cleaned_data') and self.cleaned_data.get('DELETE', False):
+	#		self._errors = ErrorDict()
+			
+								
 class AddressForm(forms.ModelForm):
-    class Meta():
-        model = Address
-        exclude = ('id', 'user',)
+	class Meta():
+		model = Address
+		fields = ('address_type', 'line1', 'line2', 'zip_code', 'city', 'country',)
+		
+	#def full_clean(self, *args, **kwargs):
+	#	super().full_clean(*args, **kwargs)
+	#	if hasattr(self, 'cleaned_data') and self.cleaned_data.get('DELETE', False):
+	#		self._errors = ErrorDict()
 
 UserEmailFormset = forms.models.inlineformset_factory(User, EmailAddress,
-											form=EmailAddressForm,
-											extra=1, max_num=2,
-											validate_max=True)
+											form=EmailAddressForm, min_num=0,
+											max_num=2, validate_max=True,
+											can_delete=True)
 
 UserAddressFormset = forms.models.inlineformset_factory(User, Address,
 											form=AddressForm,
-											formset=RequiredInlineFormSet,
-											exclude=('id', 'user'),
 											min_num=1, validate_min=True, 
-											max_num=2, validate_max=True,
-											can_delete=False)
+											max_num=2, validate_max=True, 
+											can_delete=True)
 
 class SearchForm(forms.Form):
 	watched = forms.CharField(label="Search", max_length=100)

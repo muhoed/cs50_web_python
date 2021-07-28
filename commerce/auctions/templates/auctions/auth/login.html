@@ -3,10 +3,6 @@
 {% block body %}
 
     <h2>Login</h2>
-
-    {% if message %}
-        <div>{{ message }}</div>
-    {% endif %}
 	
 	{% if next %}
 		{% if user.is_authenticated %}
