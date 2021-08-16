@@ -60,7 +60,6 @@ class UserLoginView(LoginView):
         url = self.get_redirect_url()
         return url or reverse('auctions:profile', kwargs={'pk':self.request.user.id})
 
-
 class UserRegisterView(CreateView):
     """
     Registers a new user.
@@ -135,7 +134,7 @@ class RegistrationCompleteView(TemplateView):
                     self.user.is_active=True
                     self.user.save()
                     self.validlink = True
-                    return render(self.request, self.template_name, self.get_context_data()) #super().dispatch(*args, **kwargs)
+                    return render(self.request, self.template_name, self.get_context_data())
             else:
                 if self.token_generator.check_token(self.user, token):
                     # Store the token in the session and redirect to the

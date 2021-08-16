@@ -1,16 +1,27 @@
 import random
+import re
 
-from django.test import TestCase, LiveServerTestCase, Client
+from django.test import TestCase, Client
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
+#import subprocess
+#import shlex
+import psutil
 from selenium import webdriver
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.select import Select
+from selenium.webdriver.support import expected_conditions as EC
 
 from auctions.models import *
 
@@ -32,9 +43,7 @@ class TestViews(TestCase):
         User.objects.create_user("test_user2", "", 'Pass2',
                                     title="MS", first_name="User2",
                                     last_name="User_2")
-        User.objects.create_user("test_user3", "", 'Pass3',
-                                    title="MRS", first_name="User3",
-                                    last_name="User_3")
+        User.objects.create_user("test_user3", "", 'Pass3')
         # Create additional email for test_user1
         user1 = User.objects.get(username='test_user1')
         EmailAddress.objects.create(user=user1, 
@@ -444,9 +453,7 @@ class TestRegistrationConfirmView(TestViews):
         """
         
         self.u = User.objects.get(username='test_user3')
-        #current_site = get_current_site(response.request)
-        #site_name = current_site.name
-        self.domain = 'testserver' #current_site.domain
+        self.domain = 'testserver'
         self.uid_test = urlsafe_base64_encode(force_bytes(self.u.pk))
         self.token_test = self.token_generator.make_token(self.u)
         #Set session variable 'newuser'
@@ -506,6 +513,7 @@ class TestRegistrationCompleteView(TestViews):
         Prepare data common for all tests in this class.
         """
         self.u = User.objects.get(username='test_user3')
+        self.u.is_active = False
         self.domain = 'testserver'
         self.uid_test = urlsafe_base64_encode(force_bytes(self.u.pk))
         self.token_test = self.token_generator.make_token(self.u)
@@ -528,7 +536,7 @@ class TestRegistrationCompleteView(TestViews):
         #Check error message is displayed
         self.assertContains(response, "Activation link you used seems to be wrong or not valid any more.")
         #Check current user is active
-        self.assertFalse(response.context["user"].is_active)
+        self.assertFalse(self.u.is_active)
         
         #Send request with wrong token
         response = self.client.get(reverse('auctions:registration_complete',
@@ -539,7 +547,7 @@ class TestRegistrationCompleteView(TestViews):
         #Check error message is displayed
         self.assertContains(response, "Activation link you used seems to be wrong or not valid any more.")
         #Check current user is active
-        self.assertFalse(response.context["user"].is_active)
+        self.assertFalse(self.u.is_active)
 					
 						
     def test_complete_registration_right_data(self):
@@ -567,7 +575,8 @@ class TestRegistrationCompleteView(TestViews):
         self.assertTrue(response.context["validlink"])
         #Check successfull activation message is displayed
         self.assertContains(response, "Activation of your account was successfull.")
-        #Check current user is active
+        #Check if the user account was activated
+        self.u.refresh_from_db()
         self.assertTrue(self.u.is_active)
 
             
@@ -618,7 +627,9 @@ class TestProfileView(TestViews):
             
         #request profile page
         response = self.client.get(reverse('auctions:profile', args=[self.user.pk,]))
-
+        
+        #check if user profile is incomplete
+        self.assertFalse(self.user.profile_completed)
         #check if a message about incomplete profile is displayed
         self.assertContains(response, "Your profile information is incomplete!")
         #check if a link to create profile page is displayed
@@ -628,63 +639,18 @@ class TestProfileView(TestViews):
                                                         ))
 		
 
-class TestCreateProfileView(LiveServerTestCase):
+class TestCreateProfileView(TestViews):
     """
-    Tests profile completion process including check of JS powered UI
-    elements works as expected.
+    Tests profile creation view for a new user.
     """
-    #@classmethod
-    #def setUpClass(cls):
-    #    super().setUpClass()
-
-    #    binary = FirefoxBinary('/usr/lib/firefox/firefox')
-    #    cls.selenium = webdriver.Firefox(firefox_binary=binary)
-    #    cls.selenium.implicitly_wait(10)
-
-    #@classmethod
-    #def tearDownClass(cls):
-    #    cls.selenium.close()
-    #    super().tearDownClass()    
     
     def setUp(self):
         """
         Prepare data common for all tests in this class.
         """
-        User.objects.create_user("test_user1", "", 'Pass1')
-        self.user = User.objects.get(username='test_user1')
+        self.user = User.objects.get(username='test_user3')
         if self.user is not None:
             self.client.force_login(self.user)
-            
-        self.data = {
-                    "emailaddress_set-TOTAL_FORMS": 2,
-                    "emailaddress_set-INITIAL_FORMS": 0,
-                    "emailaddress_set-MIN_NUM_FORMS": 0,
-                    "emailaddress_set-MAX_NUM_FORMS": 2,
-                    "emailaddress_set-0-email_address": "",
-                    "emailaddress_set-0-email_type": "CT",
-                    "emailaddress_set-0-DELETE": False,
-                    "emailaddress_set-1-email_address": "",
-                    "emailaddress_set-1-email_type": "PT",
-                    "emailaddress_set-1-DELETE": False,
-                    "address_set-TOTAL_FORMS": 2,
-                    "address_set-INITIAL_FORMS": 0,
-                    "address_set-MIN_NUM_FORMS": 1,
-                    "address_set-MAX_NUM_FORMS": 2,
-                    "address_set-0-address_type": "DL",
-                    "address_set-1-address_type": "BL",
-                    "address_set-0-line1": "",
-                    "address_set-1-line1": "",
-                    "address_set-0-line2": "",
-                    "address_set-1-line2": "",
-                    "address_set-0-zip_code": "",
-                    "address_set-1-zip_code": "",
-                    "address_set-0-city": "",
-                    "address_set-1-city": "",
-                    "address_set-0-country": "SK",
-                    "address_set-1-country": "SK",
-                    "address_set-0-DELETE": False,
-                    "address_set-1-DELETE": False,
-                }
         
     def test_create_profile_view_url(self):
         """
@@ -740,94 +706,324 @@ class TestCreateProfileView(LiveServerTestCase):
         self.assertContains(response, 'address_set-1')
         
         
+class TestSeleniumCreateProfileView(StaticLiveServerTestCase):
+    """
+    Tests profile completion process including check of JS powered UI
+    elements works as expected.
+    """
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        
+        #workaround to avoid 'connection refused' error if there is non-finished webdriver instance
+        for c in range(5):
+            try:
+                binary = FirefoxBinary('/usr/lib/firefox/firefox')
+                cls.selenium = webdriver.Firefox(firefox_binary=binary)
+                cls.selenium.implicitly_wait(10)
+                break
+            except WebDriverException:
+                PROCNAME = "geckodriver"
+                for proc in psutil.process_iter():
+                    if proc.name() == PROCNAME:
+                        proc.kill()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.selenium.quit()
+        super().tearDownClass()    
+    
+    def setUp(self):
+        """
+        Prepare data common for all tests in this class.
+        """
+        User.objects.create_user("test_user1", "", 'Pass1')
+        self.user = User.objects.get(username='test_user1')
+        if self.user is not None:
+            self.client.force_login(self.user)
+        self.cookie = self.client.cookies['sessionid']
+        
+        #selenium initialization
+        self.selenium.get(self.live_server_url + '/')
+        self.selenium.add_cookie({'name': 'sessionid', 'value': self.cookie.value, 'secure': False, 'path': '/'})
+        self.selenium.refresh()
+        #open create profile page in browser
+        self.selenium.get("%s%s%d" % (
+                                    self.live_server_url, 
+                                    "/create_profile/", 
+                                    self.user.pk
+                                    ))
+                                    
+                
+    def sel_test_fill_name_form(self):
+        title = self.selenium.find_element_by_id("id_title")
+        Select(title).select_by_value("MR")
+        first_name = self.selenium.find_element_by_id("id_first_name")
+        first_name.clear()
+        first_name.send_keys("User")
+        last_name = self.selenium.find_element_by_id("id_last_name")
+        last_name.clear()
+        last_name.send_keys("Useroff")
+        
+    def sel_test_fill_address_form(self, form_id="id_address_set-0-"):
+        fields = {}
+        fields["line1"] = self.selenium.find_element_by_id(form_id + "line1")
+        fields["zip_code"] = self.selenium.find_element_by_id(form_id + "zip_code")
+        fields["city"] = self.selenium.find_element_by_id(form_id + "city")
+        for field in fields.values():
+            field.clear()
+            field.send_keys("11111")
+            
+    def check_wrong_submission(self):
+        #try to save profile
+        save_profile = self.selenium.find_element_by_xpath("//input[@value='Save']")
+        save_profile.click()
+        #check that the user was returned to create profile page
+        self.assertIn("Create profile", self.selenium.title)
+        self.assertTemplateUsed(reverse('auctions:create_profile', args=[self.user.pk,]))
+        #check if a field error is displayed on the page
+        #assert "This field is required." in self.selenium.page_source
+        
+    def check_valid_submission(self):
+        #try to save profile
+        save_profile = self.selenium.find_element_by_xpath("//input[@value='Save']")
+        save_profile.click()
+        #check if profile page was loaded and profile_created attribute was set 
+        self.assertTemplateUsed(reverse('auctions:create_profile', args=[self.user.pk,]))
+        assert "You profile was successfully created!" in self.selenium.page_source
+        #self.updated_user = User.objects.get(str(self.user.pk))
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.profile_completed)
+        
     def test_create_profile_post_empty_data(self):
         """
-        Test that create profile view returns error if no data are provided 
-        for required fields.
+        Test that all but one forms in formsets are marked 'deleted' by JS on 
+        page load and user is returned to create profile view page while trying 
+        to submit the form with empty data.
         """
-        #Issue a POST request with empty data
-        response = self.client.post(reverse(
-                                        'auctions:create_profile', 
-                                        args=[self.user.pk,]
-                                        ), self.data)
+        #check if all forms in formset except the first form of the address formset are marked 'deleted'
+        form_delete_checkboxes = self.selenium.find_elements_by_xpath("//input[@type='checkbox']")
+        for checkbox in form_delete_checkboxes:
+            if checkbox.get_attribute("id") == "id_address_set-0-DELETE":
+                self.assertFalse(checkbox.is_selected())
+            else:
+                self.assertTrue(checkbox.is_selected())
+        #try to save profile
+        save_profile = self.selenium.find_element_by_xpath("//input[@value='Save']")
+        save_profile.click()
+        #check that the user was returned to create profile page
+        self.assertIn("Create profile", self.selenium.title)
+        self.assertTemplateUsed(reverse('auctions:create_profile', args=[self.user.pk,]))
+        #check if a number of field errors is equal to 10 (2 fields of full name 
+        #form, 1x2 field of email address forms and 3x2 fields of address form).
+        #even if a form in a formset is marked as deleted, a field error arised
+        print(len(re.findall("This field is required.", self.selenium.page_source)))
+        self.assertTrue(len(re.findall("This field is required.", self.selenium.page_source)) == 10)
 
-        #Check the page is loaded 
-        self.assertEqual(response.status_code, 200)
-        #Check errors are displayed by the form
-        self.assertFormError(response, 'form', 
-                                'title', 'This field is required.')
-        self.assertFormError(response, 'form', 
-                                'first_name', 'This field is required.')
-        self.assertFormError(response, 'form', 
-                                'last_name', 'This field is required.')
-        #check email_formset does not generate errors since no input there
-        self.assertFormsetError(response, 'email_formset', 0, 
-                                'email_address', None)
-        self.assertFormsetError(response, 'email_formset', 1, 
-                                'email_address', None)
-        #check address_formset generates errors since at least one form
-        #is required
-        self.assertFormsetError(response, 'address_formset', 0,
-                                'line1', 'This field is required.')
-        self.assertFormsetError(response, 'address_formset', 0,
-                                'zip_code', 'This field is required.')
-        self.assertFormsetError(response, 'address_formset', 0,
-                                'city', 'This field is required.')
-        self.assertFormsetError(response, 'address_formset', 1,
-                                'line1', 'This field is required.')
-        self.assertFormsetError(response, 'address_formset', 1,
-                                'zip_code', 'This field is required.')
-        self.assertFormsetError(response, 'address_formset', 1,
-                                'city', 'This field is required.')        
-        
+    
+    def test_create_profile_add_empty_email_form(self):
+        """
+        Test that create profile view returns error if added email form is not filled.
+        """
+        #fill user full name form and address_formset form 0
+        self.sel_test_fill_name_form()
+        self.sel_test_fill_address_form()
+        #add an additional email form and left it empty                         
+        add_email_button = self.selenium.find_element_by_id("addEmail")
+        add_email_button.click()
+        #check if subbmission was not accepted
+        self.check_wrong_submission()
+
+    
+    def test_create_profile_add_empty_second_email_form(self):
+        """
+        Test that create profile view returns error if the second added 
+        email form is not filled.
+        """
+        #fill user full name form and address_formset form 0
+        self.sel_test_fill_name_form()
+        self.sel_test_fill_address_form()
+        #add an additional email form and input email address there                         
+        add_email_button = self.selenium.find_element_by_id("addEmail")
+        add_email_button.click()
+        email_address = self.selenium.find_element_by_id("id_emailaddress_set-0-email_address")
+        email_address.clear()
+        email_address.send_keys("some@email.com")
+        #add the second email form and left it empty                         
+        #add_email_button = self.selenium.find_element_by_id("addEmail")
+        add_email_button.click()
+        #check if subbmission was not accepted
+        self.check_wrong_submission()
+
+                
     def test_create_profile_invalid_email(self):
         """
         Test that create profile view returns error if provided email is not valid.
         """
-        self.data["title"] = "MR"
-        self.data["first_name"] = "User"
-        self.data["last_name"] = "Useroff"
-        self.data["emailaddress_set-0-email_address"] = "wrong_email"
-        
-        #Issue a POST request with filled in 
-        response = self.client.post(reverse('auctions:create_profile', 
-                                                args=[self.user.pk,]),
-                                                self.data)
+        #fill user full name form and address_formset form 0
+        self.sel_test_fill_name_form()
+        self.sel_test_fill_address_form()
+        #add an additional email form and input invalid email address there                         
+        add_email_button = self.selenium.find_element_by_id("addEmail")
+        add_email_button.click()
+        email_address = self.selenium.find_element_by_id("id_emailaddress_set-0-email_address")
+        email_address.clear()
+        email_address.send_keys("completely_invalid_email_address")
+        #add another email address form so that the following check does not fail
+        #on required field check
+        add_email_button.click()
+        #check if subbmission was not accepted
+        self.check_wrong_submission()
+        #check if email address validation error is displayed
+        self.assertIn('Enter a valid email address.', self.selenium.page_source)
 
-        #Check errors are displayed by the formsets
-        self.assertFormsetError(response, 'email_formset', 0, 
-                                'email_address', 'Enter a valid email address.')
+        
+    def test_create_profile_add_empty_second_address_form(self):
+        """
+        Test that create profile view returns error if added address form is not filled.
+        """
+        #fill user full name form and address_formset form 0
+        self.sel_test_fill_name_form()
+        self.sel_test_fill_address_form()
+        #add an additional address form and left it empty                         
+        add_address_button = self.selenium.find_element_by_id("addAddress")
+        add_address_button.click()
+        #check if subbmission was not accepted
+        self.check_wrong_submission()
+
                                  
-			
-    def test_create_profile_deleted_forms(self):
+    def test_create_profile_add_remove_forms(self):
         """
-        Test that create profile view returns error if provided email is not valid.
+        Test JS functionality to add and delete forms in formsets.
         """
-        self.data["title"] = "MR"
-        self.data["first_name"] = "User"
-        self.data["last_name"] = "Useroff"
-        self.data["emailaddress_set-0-email_address"] = "user@user.com"
-        self.data["emailaddress_set-1-DELETE"] = True
-        self.data["address_set-0-line1"] = "Street 1"
-        self.data["address_set-0-zip_code"] = "82100"
-        self.data["address_set-0-city"] = "Bratislava"
-        self.data["address_set-1-DELETE"] = True
+        #fill user full name form and address_formset form 0
+        self.sel_test_fill_name_form()
+        self.sel_test_fill_address_form()
         
-        #Issue a POST request with filled in 
-        response = self.client.post(reverse('auctions:create_profile', 
-                                                args=[self.user.pk,]),
-                                                self.data,
-                                                follow=True)
+        #add email form - the form should be unmarked from deletion on button click                           
+        add_email_button = self.selenium.find_element_by_id("addEmail")
+        add_email_button.click()
+        #check that email_form-0 is not marked as deleted and 'input[type=checkbox]' is hidden'
+        delete_email_checkbox = self.selenium.find_element_by_id("id_emailaddress_set-0-DELETE")
+        self.assertFalse(delete_email_checkbox.is_displayed())
+        self.assertFalse(delete_email_checkbox.is_selected())
+        
+        #add second email form - the form should be unmarked from deletion on button click                           
+        add_email_button.click()
+        #check that email_form-1 is not marked as deleted and 'input[type=checkbox]' is hidden
+        delete_email_checkbox1 = self.selenium.find_element_by_id("id_emailaddress_set-0-DELETE")
+        self.assertFalse(delete_email_checkbox1.is_displayed())        
+        self.assertFalse(delete_email_checkbox1.is_selected())
+        
+        #add an additional address form                         
+        add_address_button = self.selenium.find_element_by_id("addAddress")
+        add_address_button.click()
+        #check that address_form-1 is not marked as deleted
+        delete_address_checkbox = self.selenium.find_element_by_id("id_address_set-1-DELETE")
+        self.assertFalse(delete_address_checkbox.is_selected())
+        self.assertFalse(delete_address_checkbox.is_displayed())
+        #check if both checkbox and its label are hidden in address form 0
+        delete_address_0 = self.selenium.find_element_by_xpath("//tr[td[input[@id='id_emailaddress_set-0-DELETE']]]")
+        self.assertFalse(delete_address_0.is_displayed()) 
+        
+        #remove the second address form
+        remove_buttons[2].click()
+        #check that address_form-1 is marked as deleted
+        self.assertTrue(delete_address_checkbox.is_selected())
+        
+        #remove the second email form
+        remove_buttons[1].click()
+        #check that email_form-1 is marked as deleted
+        self.assertTrue(delete_email_checkbox2.is_selected())
+        
+        #remove the first email form
+        remove_buttons[0].click()
+        #check that email_form-0 is marked as deleted
+        self.assertTrue(delete_email_checkbox2.is_selected())
+        
+        #check profile created
+        self.check_valid_submission()
 
-        #Check user was redirected to profile page and success message id displayed
-        self.assertRedirects(response, reverse('auctions:profile',
-                                args=[self.user.pk,]), 
-                                status_code=302, target_status_code=200,
-                                fetch_redirect_response=True)
-        #Check if correct template is used
-        self.assertTemplateUsed('auctions/account/profile.html')
-        #Check if success message is in response
-        self.assertContains(response, 'You profile was successfully created!')
+                                 
+    def test_create_profile_types_switch(self):
+        """
+        Test JS functionality to switch types of email and addresses.
+        """
+        #fill user full name form and address_formset form 0
+        self.sel_test_fill_name_form()
+        self.sel_test_fill_address_form()
         
-    def test_create_profile_form_delete_JS(self):
-        pass
+        #add two email forms                           
+        add_email_button = self.selenium.find_element_by_id("addEmail")
+        add_email_button.click()
+        add_email_button.click()
+        #check initial types of email forms
+        email_form_0_type_selector = self.selenium.find_element_by_id("id_emailaddress_set-0-email_type")
+        email_form_1_type_selector = self.selenium.find_element_by_id("id_emailaddress_set-1-email_type")
+        self.assertEqual(email_form_0_type_selector.get_attribute("value"), "CT")
+        self.assertEqual(email_form_1_type_selector.get_attribute("value"), "PT")
+        #change type of the first email form and check if a type of the second form changed as well
+        self.selenium.execute_script("$('#id_emailaddress_set-0-email_type').prop('value', 'PT')")
+        self.assertEqual(email_form_1_type_selector.get_attribute("value"), "CT")
+        #change type of the second email form and check if a type of the first form changed as well
+        self.selenium.execute_script("$('#id_emailaddress_set-1-email_type').prop('value', 'PT')")
+        self.assertEqual(email_form_0_type_selector.get_attribute("value"), "CT")
+        
+        
+        #add an additional address form                         
+        add_address_button = self.selenium.find_element_by_id("addAddress")
+        add_address_button.click()
+        #check initial types of address forms
+        address_form_0_type_selector = self.selenium.find_element_by_id("id_address_set-0-email_type")
+        address_form_1_type_selector = self.selenium.find_element_by_id("id_address_set-1-email_type")
+        self.assertEqual(address_form_0_type_selector.get_attribute("value"), "DL")
+        self.assertEqual(address_form_1_type_selector.get_attribute("value"), "BL")
+        #change type of the first address form and check if a type of the second form changed as well
+        self.selenium.execute_script("$('#id_address_set-0-email_type').prop('value', 'BL')")
+        self.assertEqual(address_form_1_type_selector.get_attribute("value"), "DL")
+        #change type of the second address form and check if a type of the first form changed as well
+        self.selenium.execute_script("$('#id_address_set-1-email_type').prop('value', 'BL')")
+        self.assertEqual(address_form_0_type_selector.get_attribute("value"), "DL")
+        
+        
+    def test_create_profile_submit_all_forms_filled(self):
+        """
+        Test that checks JS functionality of formsets forms deletion and adding.
+        """
+        #fill user full name form and address_formset form 0
+        self.sel_test_fill_name_form()
+        self.sel_test_fill_address_form()
+        
+        #add and fill the first email form                         
+        add_email_button = self.selenium.find_element_by_id("addEmail")
+        add_email_button.click()
+        email_address = self.selenium.find_element_by_id("id_emailaddress_set-0-email_address")
+        email_address.clear()
+        email_address.send_keys("some@email.test")
+        
+        #add and fill the second email form
+        add_email_button.click()
+        email_address = self.selenium.find_element_by_id("id_emailaddress_set-1-email_address")
+        email_address.clear()
+        email_address.send_keys("some1@email.test")
+        
+        #add and fill the second address form                         
+        add_address_button = self.selenium.find_element_by_id("addAddress")
+        add_address_button.click()
+        self.sel_test_fill_address_form(form_id="id_address_set-1-")        
+        
+        #check submission is valid
+        self.check_valid_submission()
+        
+        #check if all profile records are created
+        self.assertEqual(str(self.user), "Mr. User Useroff")
+        user_emails = self.user.emailaddress_set.all()
+        user_addresses = self.user.address_set.all()
+        self.assertEqual(len(user_emails), 2)
+        self.assertEqual(len(user_addresses), 2)
+        self.assertEqual(str(user_emails[0]), "Email address for contact: some@email.test")
+        self.assertEqual(str(user_emails[1]), "Email address for payment: some1@email.test")
+        self.assertEqual(str(user_addresses[0]),
+                            "Delivery address: 11111, 11111 11111, Slovakia")
+        self.assertEqual(str(user_addresses[1]),
+                            "Billing address: 11111, 11111 11111, Slovakia")
