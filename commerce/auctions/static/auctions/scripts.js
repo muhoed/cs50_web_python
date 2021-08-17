@@ -24,7 +24,7 @@ var createProfilePage = {
 			.click(createProfilePage.removeForm);
 		//delete row should not be displayed for the first address form
 		createProfilePage.config.deleteForms
-			.filter("#id_address_set-0-DELETE")
+			.filter(":contains('#id_address_set-0-DELETE')")
 			.hide();
 		//configure add email function
 		createProfilePage.config.addEmail
@@ -34,24 +34,28 @@ var createProfilePage = {
 			.click(createProfilePage.addForm(createProfilePage.config.addressForms));
 		//set initial types
 		$(createProfilePage.config.emailForms[0])
-			.change(createProfilePage.changeSelection(
+			.on("change", function(event){
+				createProfilePage.changeSelection(
 									event.delegateTarget,
-									createProfilePage.config.emailForms[0].find("select"),
-									createProfilePage.config.emailForms[1].find("select"),
-									createProfilePage.getTypes(createProfilePage.config.emailForms[0].find("select"))
-									));
+									$(createProfilePage.config.emailForms[0]).find("select"),
+									$(createProfilePage.config.emailForms[1]).find("select"),
+									createProfilePage.getTypes($(createProfilePage.config.emailForms[0]).find("select"))
+									);
+								});
 		$(createProfilePage.config.addressForms[0])
-			.change(createProfilePage.changeSelection(
+			.on("change", function(event){
+				createProfilePage.changeSelection(
 									event.delegateTarget,
-									createProfilePage.config.addressForms[0].find("select"),
-									createProfilePage.config.addressForms[1].find("select"),
-									createProfilePage.getTypes(createProfilePage.config.addressForms[0].find("select"))
-									));
+									$(createProfilePage.config.addressForms[0]).find("select"),
+									$(createProfilePage.config.addressForms[1]).find("select"),
+									createProfilePage.getTypes($(createProfilePage.config.addressForms[0]).find("select"))
+									);
+								});
 		//change types when needed
 		createProfilePage.config.emailTypeSelectors
-			.each(createProfilePage.changeType(elem));
+			.each(createProfilePage.changeType);
 		createProfilePage.config.addressTypeSelectors
-			.each(createProfilePage.changeType(elem));
+			.each(createProfilePage.changeType);
 	},
 	
 	setRemove: function() {
