@@ -22,6 +22,8 @@ var createProfilePage = {
 		createProfilePage.config.deleteForms
 			.each(createProfilePage.setRemove)
 			.click(createProfilePage.removeForm);
+		createProfilePage.config.deleteForms
+			.each(createProfilePage.removeForm);
 		//delete row should not be displayed for the first address form
 		createProfilePage.config.deleteForms
 			.filter(":contains('#id_address_set-0-DELETE')")
@@ -66,12 +68,16 @@ var createProfilePage = {
 			.not("#id_address_set-0-DELETE")
 			.prop("checked", true)
 			.css("visibility", "hidden");
+		item.has("#id_address_set-0-DELETE").hide();
 	},
 	
 	removeForm: function() {
-		let parentTable = $(this).parents("table");
-		parentTable.hide();
-		parentTable.siblings("h4").show();	
+		$(this).not("tr:has('#id_address_set-0-DELETE')")
+				.each(function(){
+					let parentTable = $(this).parent();
+					parentTable.hide();
+					parentTable.siblings("h4").show();
+				});
 	},
 	
 	addForm: function(forms) {
@@ -125,7 +131,8 @@ var createProfilePage = {
 		let selectorForm1 = $(this).find("select:first");
 		let selectorForm2 = $(this).parent().siblings("table").find("select:first");
 		selectorForm1 //"#id_emailaddress_set-0-email_type, #id_emailaddress_set-1-email_type").
-			.on("change", function(event){changeSelection(
+			.on("change", function(event){
+				createProfilePage.changeSelection(
 							event.delegateTarget,
 							selectorForm1,
 							selectorForm2,
