@@ -20,8 +20,10 @@ var createProfilePage = {
 		$("input").attr("size", "50");
 		//set remove form functionality and display
 		createProfilePage.config.deleteForms
-			.each(createProfilePage.setRemove)
-			.click(createProfilePage.removeForm);
+			.each(createProfilePage.setRemove);
+			//.on("click", function () {
+			//				createProfilePage.removeForm
+			//				});
 		createProfilePage.config.deleteForms
 			.each(createProfilePage.removeForm);
 		//delete row should not be displayed for the first address form
@@ -30,10 +32,20 @@ var createProfilePage = {
 			.hide();
 		//configure add email function
 		createProfilePage.config.addEmail
-			.click(createProfilePage.addForm(createProfilePage.config.emailForms));
+			.on("click", function (event) {
+								createProfilePage.addForm(
+										event.delegateTarget,
+										createProfilePage.config.emailForms
+										)
+						});
 		//configure add address function
 		createProfilePage.config.addAddress
-			.click(createProfilePage.addForm(createProfilePage.config.addressForms));
+			.on("click", function (event) {
+								createProfilePage.addForm(
+										event.delegateTarget,
+										createProfilePage.config.addressForms
+										)
+						});
 		//set initial types
 		$(createProfilePage.config.emailForms[0])
 			.on("change", function(event){
@@ -63,7 +75,8 @@ var createProfilePage = {
 	setRemove: function() {
 		var item = $(this);
 		item.find("label")
-			.html("<h4 class='btn btn-primary text-left remove' title='Click to remove form.'>Remove</h4>");
+			.html("<h4 class='btn btn-primary text-left remove' title='Click to remove form.'>Remove</h4>")
+			.click(createProfilePage.removeForm);
 		item.find("input[type='checkbox']")
 			.not("#id_address_set-0-DELETE")
 			.prop("checked", true)
@@ -74,31 +87,34 @@ var createProfilePage = {
 	removeForm: function() {
 		$(this).not("tr:has('#id_address_set-0-DELETE')")
 				.each(function(){
-					let parentTable = $(this).parent();
+					let parentTable = $(this).parents("table");
 					parentTable.hide();
 					parentTable.siblings("h4").show();
 				});
 	},
 	
-	addForm: function(forms) {
-		var deleteForm1 = $(forms[0]).find("input[type='checkbox']");
-		var deleteForm2 = $(forms[1]).find("input[type='checkbox']");
-		var selectTypeForm1 = $(forms[0]).find("select:first");
-		var selectTypeForm2 = $(forms[1]).find("select:first");
+	addForm: function(trigger, forms) {
+		var deleteForm1 = forms.eq(0).find("input[type='checkbox']");
+		var deleteForm2 = forms.eq(1).find("input[type='checkbox']");
+		var selectTypeForm1 = forms.eq(0).find("select:first");
+		var selectTypeForm2 = forms.eq(1).find("select:first");
 		var types = createProfilePage.getTypes(selectTypeForm1);
-		if ($(forms[0]).is(":hidden")) {
-			$(forms[0]).show();
+		if (forms.eq(0).is(":hidden")) {
+			forms.eq(0).show();
 			deleteForm1.prop("checked", false); //input[type='checkbox']
 		} else {
-			$(forms[1]).show();
+			forms.eq(1).show();
 			deleteForm2.prop("checked", false); //input[type='checkbox']
-			$(this).hide();
+			//$(trigger).hide();
 			createProfilePage.changeSelection(
 				selectTypeForm1.attr("id"),
 				selectTypeForm1,
 				selectTypeForm2,
 				types
 				);
+		}
+		if (!forms.eq(0).is(":hidden") && !forms.eq(1).is(":hidden")) {
+			$(trigger).hide();
 		}
 	},
 	
