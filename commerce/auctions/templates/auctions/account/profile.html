@@ -1,0 +1,239 @@
+{% extends "auctions/account/profile_layout.html" %}
+
+{% block content %}
+				
+				{% if not user.profile_completed %}
+				<div class="container m-2 bg-warning">
+					<p>Your profile information is incomplete!</p>
+					<p>You will not be able to buy or sell products on Auction$ till 
+					all required information is not provided.</p>
+					<a href="{% url 'auctions:create_profile' user.pk %}">
+						Complete profile now.
+					</a>
+				</div>
+				{% endif %}
+				
+				<div class="container">
+					<h3>Your active listings:</h3>
+						{% for listing in user_listings|slice:":3"|dictsort:"end_time" %}
+							{% if listing.status == "active" %}
+							<div class="listing d-flex nowrap w-100">
+								<div class="w-25">
+									<img src="{{ listing.product.image_set.0.img_url }}">
+								</div>
+								<div class="w-25">
+									{{ listing.product.name|capfirst }}
+								</div>
+								<div class="w-25">
+									<p>Highest bid: {{ listing.max_bid }}</p>
+									<p>Num.of bids: {{ listing.bids.count }}</p>
+								</div>
+								<div class="w-25">
+									<p>End time: {{ listing.end_time }}</p>
+									<p>{{ listing.end_time|timeuntil:now }}</p>
+								</div>
+							</div>
+							{% endif %}
+						{% empty %}
+							<p>You do not have active listings at the moment. <a href="{% url 'auctions:create_listing' %}">Click here</a> to create one.</p>
+						{% endfor %}
+						{% if user_listings.3 %}
+							<button class="btn btn-info" data-toggle="collapse" data-target="#more-listings">VIEW MORE</button>
+							<div class="collapse" id="more-listings">
+								{% for listing in user_listings|slice:"3:" %}
+									{% if listing.status == "active" %}
+									<div class="listing d-flex nowrap w-100">
+										<div class="w-25">
+											<img src="{{ listing.product.image_set.0.img_url }}">
+										</div>
+										<div class="w-25">
+											{{ listing.product.name|capfirst }}
+										</div>
+										<div class="w-25">
+											<p>Highest bid: {{ listing.max_bid }}</p>
+											<p>Num.of bids: {{ listing.bids.count }}</p>
+										</div>
+										<div class="w-25">
+											<p>End time: {{ listing.end_time }}</p>
+											<p>{{ listing.end_time|timeuntil:now }}</p>
+										</div>
+									</div>
+									{% endif %}
+								{% endfor %}
+							</div>
+						{% endif %}
+				</div>
+				<div class="container">
+					<h3>Your bids on active listings:</h3>
+						{% for listing in user_bidded_listings|slice:":3"|dictsort:"end_time" %}
+							{% if listing.status == "active" %}
+								<div class="listing d-flex nowrap w-100">
+									<div class="w-25">
+										<img src="{{ listing.product.image_set.0.img_url }}">
+									</div>
+									<div class="w-25">
+										{{ listing.product.name|capfirst }}
+									</div>
+									<div class="w-25">
+										<p>Your latest bid: {{ listing.latest_bid }}</p>
+										<p>The highest bid: {{ listing.max_bid }}</p>
+									</div>
+									<div class="w-25">
+										<p>End time: {{ listing.end_time }}</p>
+										<p>{{ listing.end_time|timeuntil:now }}</p>
+									</div>
+								</div>
+							{% endif %}
+						{% empty %}
+							<p>You did not place any bids yet.</p>
+						{% endfor %}
+						{% if user_bidded_listings.3 %}
+							<button class="btn btn-info" data-toggle="collapse" data-target="#more-latest-bids">VIEW MORE</button>
+							<div class="collapse" id="more-latest-bids">
+								{% for listing in user_bidded_listings|slice:":3"|dictsort:"end_time" %}
+									{% if listing.status == "active" %}
+										<div class="listing d-flex nowrap w-100">
+											<div class="w-25">
+												<img src="{{ listing.product.image_set.0.img_url }}">
+											</div>
+											<div class="w-25">
+												{{ listing.product.name|capfirst }}
+											</div>
+											<div class="w-25">
+												<p>Your latest bid: {{ listing.latest_bid }}</p>
+												<p>The highest bid: {{ listing.max_bid }}</p>
+											</div>
+											<div class="w-25">
+												<p>End time: {{ listing.end_time }}</p>
+												<p>{{ listing.end_time|timeuntil:now }}</p>
+											</div>
+										</div>
+									{% endif %}
+								{% endfor %}
+							</div>
+						{% endif %}
+				</div>
+				<div class="container">
+					<h3>Your watchlist:</h3>
+					{% with user.watchlist.all as user_watchlist %}
+						{% for listing in user_watchlist|slice:":3" %}
+							{% if listing.status == "active" %}
+								<div class="listing d-flex nowrap w-100">
+									<div class="w-25">
+										<img src="{{ listing.product.image_set.0.img_url }}">
+									</div>
+									<div class="w-25">
+										{{ listing.product.name|capfirst }}
+									</div>
+									<div class="w-25">
+										<p>Highest bid: {{ listing.max_bid }}</p>
+										<p>Num.of bids: {{ listing.bids.count }}</p>
+									</div>
+									<div class="w-25">
+										<p>End time: {{ listing.end_time }}</p>
+										<p>{{ listing.end_time|timeuntil:now }}</p>
+									</div>
+								</div>
+							{% endif %}
+						{% empty %}
+							<p>There are no listings added to your watchlist yet.</p>
+						{% endfor %}
+						{% if user_watchlist.3 %}
+							<button class="btn btn-info" data-toggle="collapse" data-target="#more-watchlist">VIEW MORE</button>
+							<div class="collapse" id="more-watchlist">
+								{% for listing in user.watchlist.all|slice:"3:" %}
+									{% if listing.status == "active" %}
+										<div class="listing d-flex nowrap w-100">
+											<div class="w-25">
+												<img src="{{ listing.product.image_set.0.img_url }}">
+											</div>
+											<div class="w-25">
+												{{ listing.product.name|capfirst }}
+											</div>
+											<div class="w-25">
+												<p>Highest bid: {{ listing.max_bid }}</p>
+												<p>Num.of bids: {{ listing.bids.count }}</p>
+											</div>
+											<div class="w-25">
+												<p>End time: {{ listing.end_time }}</p>
+												<p>{{ listing.end_time|timeuntil:now }}</p>
+											</div>
+										</div>
+									{% endif %}
+								{% endfor %}
+							</div>
+						{% endif %}
+					{% endwith %}
+				</div>
+				<div class="container d-flex flex-row">
+					<div class="w-50">
+						<h3>Recent sales:</h3>
+							{% for listing in ended_listings|slice:":3" %}
+								{% if listing.winner != user %}
+									<div class="listing d-flex nowrap w-100">
+										<div class="w-25">
+											<img src="{{ listing.product.image_set.0.img_url }}">
+										</div>
+										<div class="w-25">
+											{{ listing.product.name|capfirst }}
+										</div>
+									</div>
+								{% endif %}
+							{% empty %}
+								<p>You did not sell any product on Auctions yet.</p>
+							{% endfor %}
+							{% if ended_listings.3 %}
+								<button class="btn btn-info" data-toggle="collapse" data-target="#more-recent-sales">VIEW MORE</button>
+								<div class="collapse" id="more-recent-sales">
+									{% for listing in ended_listings|slice:"3:" %}
+										{% if listing.winner != user %}
+											<div class="listing d-flex nowrap w-100">
+												<div class="w-25">
+													<img src="{{ listing.product.image_set.0.img_url }}">
+												</div>
+												<div class="w-25">
+													{{ listing.product.name|capfirst }}
+												</div>
+											</div>
+										{% endif %}
+									{% endfor %}
+								</div>
+							{% endif %}
+					</div>
+					<div class="w-50">
+						<h3>Recent purchases:</h3>
+							{% for listing in ended_listings|slice:":3" %}
+								{% if listing.winner == user %}
+									<div class="listing d-flex nowrap w-100">
+										<div class="w-25">
+											<img src="{{ listing.product.image_set.0.img_url }}">
+										</div>
+										<div class="w-25">
+											{{ listing.product.name|capfirst }}
+										</div>
+									</div>
+								{% endif %}
+							{% empty %}
+								<p>You did not buy any product on Auctions yet.</p>
+							{% endfor %}
+							{% if ended_listings.3 %}
+								<button class="btn btn-info" data-toggle="collapse" data-target="#more-recent-purchases">VIEW MORE</button>
+								<div class="collapse" id="more-recent-purchases">
+									{% for listing in recent_sales|slice:"3:" %}
+										{% if listing.status == "ended" and listing.winner %}
+											<div class="listing d-flex nowrap w-100">
+												<div class="w-25">
+													<img src="{{ listing.product.image_set.0.img_url }}">
+												</div>
+												<div class="w-25">
+													{{ listing.product.name|capfirst }}
+												</div>
+											</div>
+										{% endif %}
+									{% endfor %}
+								</div>
+							{% endif %}
+					</div>					
+				</div>
+	
+{% endblock %}

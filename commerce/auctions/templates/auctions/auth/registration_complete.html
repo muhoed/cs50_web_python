@@ -1,0 +1,19 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2>Activation of user account</h2>
+	{% if validlink %}
+		<div>
+			<h4>Congratulations!</h4>
+			<p>Activation of your account was successfull. Now you can login using your username and password.
+			<a href="{% url 'auctions:login' %}"> Log in.</a></p>
+		</div>
+
+	{% else %}
+		<div>
+			<p>Oops...</p>
+			<p>Activation link you used seems to be wrong or not valid any more. We were not able to activate your account.</p>
+			<p>Please use the link that was sent to you during the signup process or start the resitration again.</p>
+		</div>
+	{% endif %}
+{% endblock %}

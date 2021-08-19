@@ -1,0 +1,23 @@
+body {
+    padding: 10px;
+}
+
+.field-help-icon * {
+	display: none;
+}
+
+.navbar-toggler {
+	color: lightblue;
+	font-size: 5vw;
+}
+
+.email-address-form,
+#address-form-1 {
+	display: none;
+}
+
+#addEmail:hover,
+#addAddress:hover {
+	opacity: 0.8;
+	cursor: pointer;
+}

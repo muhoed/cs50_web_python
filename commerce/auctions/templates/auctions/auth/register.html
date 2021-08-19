@@ -1,0 +1,37 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+    <h2>Register form</h2>
+
+	<div class="auth-form-block">
+		{{ form.non_field_errors }}
+    <form action="{% url 'auctions:register' %}" method="post">
+        {% csrf_token %}
+        <table>
+        {% for field in form %}
+			<tr>
+				<td colspan="3">{{ field.errors }}</td>
+			</tr>
+			<tr>
+				<td>{{ field.label_tag }}</td>
+				<td>{{ field }}</td>
+				<td><span class="field-help-icon">(i) 
+                {% if field.help_text %}
+					<p>{{ field.help_text|safe }}</p>
+				{% endif %}
+                </span></td>
+            </tr>
+		{% endfor %}
+		<tr><td></td>
+		<td>
+			<input class="btn btn-primary" type="submit" value="Register">
+		</td>
+		</tr>
+		</table>
+    </form>
+
+    Already have an account? <a href="{% url 'auctions:login' %}">Log In here.</a>
+	</div>
+	
+{% endblock %}

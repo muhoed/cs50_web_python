@@ -1,0 +1,83 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2>Active Listings</h2>
+	{% if listing_list %}
+		<div>
+			{% for listing in listing_list %}
+			{% if listing.status == 'active' %}
+				<a href="{{ listing.get_absolute_url }}">
+					<div class="d-flex nowrap">
+						<div><a href="{{ listing.product.image_url }}"></a></div>
+						<div>{{ listing.product.name|capfirst }}</div> 
+						<div>{{ listing.max_bid }} EUR</div>
+						<div>{{ listing.end_time|timeuntil }}</div>
+						<div>
+							{% if listing in user.watchlist %}
+								Remove from Watchlist
+							{% else %}
+								Add to Watchlist
+							{% endif %}
+						</div>
+						<div>
+							<form id="listing_{{ listing.id }}" style="display:none" action="{% url 'auctions:bid' %}" method="POST">
+							<input type="number" name="bid" value="{{ listing.max_bid|add:'1' }}">
+							<input type="submit" name="place_bid" id="place_bid_{{ listing_id }}" value="Place bid">
+							</form>
+							<button class="btn btn-primary" name="bid_{{ listing.id }}" id="bid_{{ listing.id }}">
+								BID
+							</button>
+						</div>
+					</div>
+				</a>
+			{% endif %}
+			{% endfor %}
+		</div>
+		<div">
+		  <nav aria-label="...">
+			<ul class="pagination">
+
+			  {% if page_obj.has_previous %}
+				<li class="page-item">
+				  <a href="?page={{ page_obj.previous_page_number }}" class="page-link">Previous</a>
+				</li>
+				<li>
+				  <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+					{{ page_obj.previous_page_number }}
+				  </a>
+				</li>
+			  {% else %}
+				<li class="page-item disabled">
+				  <span class="page-link">Previous</span>
+				</li>
+			  {% endif %}
+
+			  <li class="page-item active">
+				<span class="page-link">{{ page_obj.number }}</span>
+			  </li>
+
+			  {% if page_obj.has_next %}
+				<li class="page-item">
+				  <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+					{{ page_obj.next_page_number }}
+				  </a>
+				</li>
+				<li class="page-item ">
+				  <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+				</li>
+			  {% else %}
+				<li class="page-item disabled">
+				  <span class="page-link">Next</span>
+				</li>
+			  {% endif %}
+
+			</ul>
+		  </nav>
+		</div>
+
+	{% else %}
+		<div>
+			<p>There are no active listings at the moment.</p>
+		</div>
+	{% endif %}
+{% endblock %}
