@@ -7,8 +7,8 @@ var createProfilePage = {
 			addressForms: $(".address-form"),
 			addEmail: $("#addEmail"),
 			addAddress: $("#addAddress"),
-			emailTypeSelectors: $("tr:contains('Email type:')"),
-			addressTypeSelectors: $("tr:contains('Address type:')")
+			emailTypeSelectors: $("tr:contains('Email type:')").find("select"),
+			addressTypeSelectors: $("tr:contains('Address type:')").find("select")
 		};
 		$.extend(createProfilePage.config, settings);
 		createProfilePage.setup();
@@ -47,29 +47,35 @@ var createProfilePage = {
 										)
 						});
 		//set initial types
-		$(createProfilePage.config.emailForms[0])
+		createProfilePage.config.emailForms//[0])
 			.on("change", function(event){
 				createProfilePage.changeSelection(
 									event.delegateTarget,
-									$(createProfilePage.config.emailForms[0]).find("select"),
-									$(createProfilePage.config.emailForms[1]).find("select"),
-									createProfilePage.getTypes($(createProfilePage.config.emailForms[0]).find("select"))
+									//$(createProfilePage.config.emailForms[0]).find("select"),
+									//$(createProfilePage.config.emailForms[1]).find("select"),
+									createProfilePage.config.emailTypeSelectors.eq(0),
+									createProfilePage.config.emailTypeSelectors.eq(1),
+									createProfilePage.getTypes(createProfilePage.config.emailTypeSelectors.eq(0))
 									);
 								});
-		$(createProfilePage.config.addressForms[0])
+		createProfilePage.config.addressForms//[0])
 			.on("change", function(event){
 				createProfilePage.changeSelection(
 									event.delegateTarget,
-									$(createProfilePage.config.addressForms[0]).find("select"),
-									$(createProfilePage.config.addressForms[1]).find("select"),
-									createProfilePage.getTypes($(createProfilePage.config.addressForms[0]).find("select"))
+									//$(createProfilePage.config.addressForms[0]).find("select"),
+									//$(createProfilePage.config.addressForms[1]).find("select"),
+									createProfilePage.config.addressTypeSelectors.eq(0),
+									createProfilePage.config.addressTypeSelectors.eq(1),
+									createProfilePage.getTypes(createProfilePage.config.addressTypeSelectors.eq(0))
 									);
 								});
 		//change types when needed
-		createProfilePage.config.emailTypeSelectors
-			.each(createProfilePage.changeType);
-		createProfilePage.config.addressTypeSelectors
-			.each(createProfilePage.changeType);
+		//createProfilePage.config.emailTypeSelectors
+		//    .on("change", createProfilePage.changeType(emailTypeSelectors));
+		//	.each(createProfilePage.changeType);
+		//createProfilePage.config.addressTypeSelectors
+		//    .on("change", createProfilePage.changeType(addressTypeSelectors));
+			//.each(createProfilePage.changeType);
 	},
 	
 	setRemove: function() {
@@ -143,7 +149,7 @@ var createProfilePage = {
 			};
 	},
 	
-	changeType: function() {
+	changeType: function(selectors) {
 		let selectorForm1 = $(this).find("select:first");
 		let selectorForm2 = $(this).parent().siblings("table").find("select:first");
 		selectorForm1 //"#id_emailaddress_set-0-email_type, #id_emailaddress_set-1-email_type").
