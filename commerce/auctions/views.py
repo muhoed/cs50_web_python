@@ -250,6 +250,12 @@ class ProfileView(LoginRequiredMixin, CorrectUserTestMixin, DetailView):
                                                 bids__isnull=False
                                                 ).order_by('-endtime')
         return context
+        
+        
+class CredentialsView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
+    """ See and update username, main email address and password."""
+    model = User
+    pass
     
     
 class ActiveListingsView(ListView):
