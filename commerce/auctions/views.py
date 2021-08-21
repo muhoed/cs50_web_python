@@ -252,10 +252,11 @@ class ProfileView(LoginRequiredMixin, CorrectUserTestMixin, DetailView):
         return context
         
         
-class CredentialsView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
+class CredentialsUpdateView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
     """ See and update username, main email address and password."""
     model = User
-    pass
+    fields = ["username", "email"]
+    template_name_suffix = "_credentials_update_form"
     
     
 class ActiveListingsView(ListView):
