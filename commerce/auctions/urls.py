@@ -57,7 +57,7 @@ urlpatterns = [
 	path("create_profile/<int:pk>/",
 			views.UserProfileCreateView.as_view(
 								extra_context={'title': 'create profile'},
-								template_name = "auctions/account/create_profile.html"),
+								template_name="auctions/account/create_profile.html"),
 			name="create_profile"),
     path("profile/<int:pk>/",
 			views.ProfileView.as_view(
@@ -65,7 +65,9 @@ urlpatterns = [
 								template_name='auctions/account/profile.html'), 
 			name="profile"),
 	path("credentials/<int:pk>/",
-			views.CredentialsUpdateView.as_view(),
+			views.CredentialsUpdateView.as_view(
+								extra_context={'title': 'credentials'},
+								template_name="auctions/account/credentials.html"),
 			name="credentials"),
     path("categories", views.categories, name="categories"),
     path("categories/<int:cat_id>/", views.categories, name="categories"),

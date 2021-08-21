@@ -729,3 +729,70 @@ console.warn: SearchSettings: "get: No settings file exists, new profile?" (new 
 1629504059622	Marionette	INFO	Listening on port 38705
 1629504059830	Marionette	WARN	TLS certificate errors will be ignored for this session
 1629504156827	Marionette	INFO	Stopped listening on port 38705
+1629580099704	geckodriver	INFO	Listening on 127.0.0.1:57047
+1629580100779	mozrunner::runner	INFO	Running command: "/usr/lib/firefox/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileg30sLA"
+[GFX1-]: More than 1 GPU from same vendor detected via PCI, cannot deduce device
+1629580116653	Marionette	INFO	Marionette enabled
+Exiting due to channel error.
+Exiting due to channel error.
+1629580162951	geckodriver	INFO	Listening on 127.0.0.1:53691
+1629580164055	mozrunner::runner	INFO	Running command: "/usr/lib/firefox/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileQJQliv"
+[GFX1-]: More than 1 GPU from same vendor detected via PCI, cannot deduce device
+1629580173068	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /tmp/rust_mozprofileQJQliv/search.json.mozlz4", (void 0)))
+1629580195165	Marionette	INFO	Listening on port 42163
+1629580195599	Marionette	WARN	TLS certificate errors will be ignored for this session
+1629580298332	Marionette	INFO	Stopped listening on port 42163
+1629580820943	geckodriver	INFO	Listening on 127.0.0.1:38595
+1629580822042	mozrunner::runner	INFO	Running command: "/usr/lib/firefox/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileHNmzGr"
+[GFX1-]: More than 1 GPU from same vendor detected via PCI, cannot deduce device
+1629580828656	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /tmp/rust_mozprofileHNmzGr/search.json.mozlz4", (void 0)))
+1629580857992	Marionette	INFO	Listening on port 44455
+1629580859308	Marionette	WARN	TLS certificate errors will be ignored for this session
+1629580954103	Marionette	INFO	Stopped listening on port 44455
+1629581257079	geckodriver	INFO	Listening on 127.0.0.1:50037
+1629581258182	mozrunner::runner	INFO	Running command: "/usr/lib/firefox/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileI0n7yg"
+[GFX1-]: More than 1 GPU from same vendor detected via PCI, cannot deduce device
+1629581266308	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /tmp/rust_mozprofileI0n7yg/search.json.mozlz4", (void 0)))
+1629581287063	Marionette	INFO	Listening on port 41173
+1629581289205	Marionette	WARN	TLS certificate errors will be ignored for this session
+1629581385177	Marionette	INFO	Stopped listening on port 41173
+1629582873988	geckodriver	INFO	Listening on 127.0.0.1:37877
+1629582875040	mozrunner::runner	INFO	Running command: "/usr/lib/firefox/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofilehkaqsz"
+[GFX1-]: More than 1 GPU from same vendor detected via PCI, cannot deduce device
+1629582894126	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /tmp/rust_mozprofilehkaqsz/search.json.mozlz4", (void 0)))
+console.error: Region.jsm: "Error fetching region" (new Error("TIMEOUT", "resource://gre/modules/Region.jsm", 772))
+console.error: Region.jsm: "Failed to fetch region" (new Error("TIMEOUT", "resource://gre/modules/Region.jsm", 419))
+Exiting due to channel error.
+Exiting due to channel error.
+1629582938300	geckodriver	INFO	Listening on 127.0.0.1:36951
+1629582939850	mozrunner::runner	INFO	Running command: "/usr/lib/firefox/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofiled1VlB4"
+[GFX1-]: More than 1 GPU from same vendor detected via PCI, cannot deduce device
+1629582952907	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /tmp/rust_mozprofiled1VlB4/search.json.mozlz4", (void 0)))
+1629582975213	Marionette	INFO	Listening on port 34869
+1629582975705	Marionette	WARN	TLS certificate errors will be ignored for this session
+1629583096816	Marionette	INFO	Stopped listening on port 34869
+
+###!!! [Parent][RunMessage] Error: Channel error: cannot send/recv
+
+
+###!!! [Parent][RunMessage] Error: Channel error: cannot send/recv
+
+
+###!!! [Parent][RunMessage] Error: Channel error: cannot send/recv
+
+1629583214004	geckodriver	INFO	Listening on 127.0.0.1:39775
+1629583215073	mozrunner::runner	INFO	Running command: "/usr/lib/firefox/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileAj6w0M"
+[GFX1-]: More than 1 GPU from same vendor detected via PCI, cannot deduce device
+1629583222774	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /tmp/rust_mozprofileAj6w0M/search.json.mozlz4", (void 0)))
+1629583244627	Marionette	INFO	Listening on port 41855
+1629583245214	Marionette	WARN	TLS certificate errors will be ignored for this session
+1629583344474	Marionette	INFO	Stopped listening on port 41855
+
+###!!! [Parent][RunMessage] Error: Channel error: cannot send/recv
+

@@ -799,7 +799,9 @@ class TestSeleniumCreateProfileView(StaticLiveServerTestCase):
         """
         Test that all but one forms in formsets are marked 'deleted' by JS on 
         page load and user is returned to create profile view page while trying 
-        to submit the form with empty data.
+        to submit the form with empty data in formset forms. Personal information
+        form fields are marked as required. So the form can not be saved at all
+        until these fields are filled out.
         """
         #check if all forms in formset except the first form of the address formset are marked 'deleted'
         form_delete_checkboxes = self.selenium.find_elements_by_xpath("//input[@type='checkbox']")
@@ -808,6 +810,8 @@ class TestSeleniumCreateProfileView(StaticLiveServerTestCase):
                 self.assertFalse(checkbox.is_selected())
             else:
                 self.assertTrue(checkbox.is_selected())
+        #fill personal information form
+        self.sel_test_fill_name_form()
         #try to save profile
         save_profile = self.selenium.find_element_by_xpath("//input[@value='Save']")
         save_profile.click()
@@ -817,8 +821,7 @@ class TestSeleniumCreateProfileView(StaticLiveServerTestCase):
         #check if a number of field errors is equal to 10 (2 fields of full name 
         #form, 1x2 field of email address forms and 3x2 fields of address form).
         #even if a form in a formset is marked as deleted, a field error arised
-        print(len(re.findall("This field is required.", self.selenium.page_source)))
-        self.assertTrue(len(re.findall("This field is required.", self.selenium.page_source)) == 10)
+        self.assertIn("This field is required.", self.selenium.page_source)
 
     
     def test_create_profile_add_empty_email_form(self):
@@ -875,7 +878,7 @@ class TestSeleniumCreateProfileView(StaticLiveServerTestCase):
         #check if subbmission was not accepted
         self.check_wrong_submission()
         #check if email address validation error is displayed
-        self.assertTrue(len(re.findall('Enter a valid email address.', self.selenium.page_source)) == 1)
+        self.assertTrue(len(re.findall('Please enter email address.', self.selenium.page_source)) == 1)
 
         
     def test_create_profile_add_empty_second_address_form(self):
@@ -900,31 +903,50 @@ class TestSeleniumCreateProfileView(StaticLiveServerTestCase):
         self.sel_test_fill_name_form()
         self.sel_test_fill_address_form()
         
+        #check the first and the second email formsa are not displayed
+        email_form_1 = self.selenium.find_element_by_id("email-address-form-0")
+        email_form_2 = self.selenium.find_element_by_id("email-address-form-1")
+        self.assertFalse(email_form_1.is_displayed())
+        self.assertFalse(email_form_2.is_displayed())
         #add email form - the form should be unmarked from deletion on button click                           
         add_email_button = self.selenium.find_element_by_id("addEmail")
         add_email_button.click()
+        #check the email form-0 is displayed
+        self.assertTrue(email_form_1.is_displayed())
         #check that email_form-0 is not marked as deleted and 'input[type=checkbox]' is hidden'
         delete_email_checkbox = self.selenium.find_element_by_id("id_emailaddress_set-0-DELETE")
         self.assertFalse(delete_email_checkbox.is_displayed())
         self.assertFalse(delete_email_checkbox.is_selected())
+        #check label (Remove button) is hidden in address form 0
+        delete_address_0_label = self.selenium.find_element_by_xpath("//table[@id='address-form-0']/tr[td[input[@id='id_address_set-0-DELETE']]]")
+        self.assertFalse(delete_address_0_label.is_displayed()) 
         
         #add second email form - the form should be unmarked from deletion on button click                           
         add_email_button.click()
+        #check the email form-0 is displayed
+        self.assertTrue(email_form_2.is_displayed())
         #check that email_form-1 is not marked as deleted and 'input[type=checkbox]' is hidden
-        delete_email_checkbox1 = self.selenium.find_element_by_id("id_emailaddress_set-0-DELETE")
+        delete_email_checkbox1 = self.selenium.find_element_by_id("id_emailaddress_set-1-DELETE")
         self.assertFalse(delete_email_checkbox1.is_displayed())        
         self.assertFalse(delete_email_checkbox1.is_selected())
+        
+        #check address form-0 is displayed
+        address_from_1 = self.selenium.find_element_by_id("address-form-0")
+        self.assertTrue(address_form_1.is_displayed())
+        
+        #check address form-1 is not displayed
+        address_form_2 = self.selenium.find_element_by_id("address-form-1")
+        self.assertFalse(address_form_2.is_displayed())
         
         #add an additional address form                         
         add_address_button = self.selenium.find_element_by_id("addAddress")
         add_address_button.click()
+        #check address form-1 is now displayed
+        self.assertTrue(address_form_2.is_displayed())
         #check that address_form-1 is not marked as deleted
-        delete_address_checkbox = self.selenium.find_element_by_id("id_address_set-1-DELETE")
+        delete_address_checkbox1 = self.selenium.find_element_by_id("id_address_set-1-DELETE")
         self.assertFalse(delete_address_checkbox.is_selected())
         self.assertFalse(delete_address_checkbox.is_displayed())
-        #check if both checkbox and its label are hidden in address form 0
-        delete_address_0 = self.selenium.find_element_by_xpath("//tr[td[input[@id='id_emailaddress_set-0-DELETE']]]")
-        self.assertFalse(delete_address_0.is_displayed()) 
         
         #remove the second address form
         remove_buttons[2].click()
