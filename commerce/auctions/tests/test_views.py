@@ -875,7 +875,7 @@ class TestSeleniumCreateProfileView(StaticLiveServerTestCase):
         #check if subbmission was not accepted
         self.check_wrong_submission()
         #check if email address validation error is displayed
-        self.assertIn('Enter a valid email address.', self.selenium.page_source)
+        self.assertTrue(len(re.findall('Enter a valid email address.', self.selenium.page_source)) == 1)
 
         
     def test_create_profile_add_empty_second_address_form(self):
@@ -963,27 +963,28 @@ class TestSeleniumCreateProfileView(StaticLiveServerTestCase):
         self.assertEqual(email_form_0_type_selector.get_attribute("value"), "CT")
         self.assertEqual(email_form_1_type_selector.get_attribute("value"), "PT")
         #change type of the first email form and check if a type of the second form changed as well
-        self.selenium.execute_script("$('#id_emailaddress_set-0-email_type').prop('value', 'PT')")
+        Select(email_form_0_type_selector).select_by_value("PT")
         self.assertEqual(email_form_1_type_selector.get_attribute("value"), "CT")
-        #change type of the second email form and check if a type of the first form changed as well
-        self.selenium.execute_script("$('#id_emailaddress_set-1-email_type').prop('value', 'PT')")
-        self.assertEqual(email_form_0_type_selector.get_attribute("value"), "CT")
-        
+        #try to change type of the second email form and check if types of both forms were not changed
+        Select(email_form_1_type_selector).select_by_value("PT")
+        self.assertEqual(email_form_0_type_selector.get_attribute("value"), "PT")
+        self.assertEqual(email_form_1_type_selector.get_attribute("value"), "CT")
         
         #add an additional address form                         
         add_address_button = self.selenium.find_element_by_id("addAddress")
         add_address_button.click()
         #check initial types of address forms
-        address_form_0_type_selector = self.selenium.find_element_by_id("id_address_set-0-email_type")
-        address_form_1_type_selector = self.selenium.find_element_by_id("id_address_set-1-email_type")
+        address_form_0_type_selector = self.selenium.find_element_by_id("id_address_set-0-address_type")
+        address_form_1_type_selector = self.selenium.find_element_by_id("id_address_set-1-address_type")
         self.assertEqual(address_form_0_type_selector.get_attribute("value"), "DL")
         self.assertEqual(address_form_1_type_selector.get_attribute("value"), "BL")
         #change type of the first address form and check if a type of the second form changed as well
-        self.selenium.execute_script("$('#id_address_set-0-email_type').prop('value', 'BL')")
+        Select(address_form_0_type_selector).select_by_value('BL')
         self.assertEqual(address_form_1_type_selector.get_attribute("value"), "DL")
-        #change type of the second address form and check if a type of the first form changed as well
-        self.selenium.execute_script("$('#id_address_set-1-email_type').prop('value', 'BL')")
-        self.assertEqual(address_form_0_type_selector.get_attribute("value"), "DL")
+        #change type of the second address form and check if types of both forms were not changed
+        Select(address_form_1_type_selector).select_by_value('BL')
+        self.assertEqual(address_form_0_type_selector.get_attribute("value"), "BL")
+        self.assertEqual(address_form_1_type_selector.get_attribute("value"), "DL")
         
         
     def test_create_profile_submit_all_forms_filled(self):
