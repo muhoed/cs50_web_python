@@ -257,6 +257,10 @@ class CredentialsUpdateView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView
     model = User
     fields = ["username", "email"]
     
+    def form_valid(self, form):
+        messages.success(self.request, 'Your account credentials were updated.')
+        return super().form_valid(form)
+    
     
 class ActiveListingsView(ListView):
     queryset = Listing.objects.order_by('-start_time').all()
