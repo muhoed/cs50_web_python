@@ -651,6 +651,88 @@ class TestCreateProfileView(TestViews):
         self.user = User.objects.get(username='test_user3')
         if self.user is not None:
             self.client.force_login(self.user)
+        #set fields values as on actual web-page
+        self.data = {
+            'title': '',
+            'first_name': '',
+            'last_name': '',
+            'emailaddress_set-TOTAL_FORMS': '2',
+            'emailaddress_set-INITIAL_FORMS': '0',
+            'emailaddress_set-0-email_address': '',
+            'emailaddress_set-0-email_type': 'CT',
+            'emailaddress_set-0-DELETE': True,
+            'emailaddress_set-1-email_address': '',
+            'emailaddress_set-1-email_type': 'PT',
+            'emailaddress_set-1-DELETE': True,
+            'addres_set-TOTAL_FORMS': '2',
+            'address_set-INITIAL_FORMS': '0',
+            'address_set-0-address_type': 'DL',
+            'address_set-0-line1': '',
+            'address_set-0-line2': '', #not required field
+            'address_set-0-zip_code': '',
+            'address_set-0-city': '',
+            'address_set-0-country': 'SK',
+            'address_set-0-DELETE': False,
+            'address_set-1-address_type': 'BL',
+            'address_set-1-line1': '',
+            'address_set-1-line2': '', #not required field
+            'address_set-1-zip_code': '',
+            'address_set-1-city': '',
+            'address_set-1-country': 'SK',
+            'address_set-1-DELETE': True
+        }
+        
+    def set_data(
+            self, full_name=False, 
+            first_email=False, second_email=False,
+            first_address=False, second_address=False
+                ):
+        if full_name:
+            #fill out full name form
+            self.data['title'] = 'MR'
+            self.data['first_name'] = 'User'
+            self.data['last_name'] = 'useroff'
+        if fisrt_email:
+            #fill out first email address form
+            self.data['emailaddress_set-0-email_address'] = 'user@user.com'
+            self.data['emailaddress_set-0-DELETE'] = False
+        if second_email:
+            #fill out second email address form
+            self.data['emailaddress_set-1-email_address'] = 'user1@user.com'
+            self.data['emailaddress_set-1-DELETE'] = False
+        if fisrt_address:
+            #fill out first address form
+            self.data['address_set-0-line1'] = 'Street 1'
+            self.data['address_set-0-zip_code'] = '82100'
+            self.data['address_set-0-city'] = 'Bratislava'
+        if second_email:
+            #fill out second address form
+            self.data['address_set-1-line1'] = 'Street 2'
+            self.data['address_set-1-zip_code'] = '82100'
+            self.data['address_set-1-city'] = 'Bratislava'
+            
+    def check_wrong_submission(self, response, num_fields, error_message):
+        u = User.objects.get(pk=self.user.pk)
+        #Check if user profile is marked as completed
+        self.assertFalse(u.profile_completed)
+        #Check if response code is 200 OK
+        self.assertEqual(response.status_code, 200)
+        #Check if create profile view page was loaded again
+        self.assertTemplateUsed('/auctions/account/create_profile.html')
+        #Check if field errors are displayed for empty required fields of all forms
+        self.assertEqual(len(re.findall(error_message, response)), num_fields)
+        
+    def check_valid_submission(self, response):
+        u = User.objects.get(pk=self.user.pk)
+        #Check if user profile is marked as completed
+        self.assertTrue(u.profile_completed)
+        #Check if user was redirected to profile page
+        self.assertRedirects(response, reverse('auctions:profile', args=[self.user.pk]), 
+                                status_code=302, target_status_code=200,
+                                fetch_redirect_response=True)
+        #Check if success message is displayed
+        self.assertContains(response, "You profile was successfully created!")
+            
         
     def test_create_profile_view_url(self):
         """
@@ -705,6 +787,96 @@ class TestCreateProfileView(TestViews):
         #Check the second form of address formset is in content 
         self.assertContains(response, 'address_set-1')
         
+    def test_create_profile_post_empty_data(self):
+        """
+        Test if user is returned to create profile view page while trying 
+        to submit the form with empty data in full name form and formset
+        forms. Due to Django logic even forms in a formset marked as 
+        deleted will show error on empty but required fields if the whole
+        submission is not valid.
+        """
+        #Issue a POST request
+        response = self.client.post(reverse(
+                                        'auctions:create_profile', 
+                                        args=[self.user.pk,]
+                                        ), self.data)
+        self.check_wrong_submission(response, 11, "This field is required.")
+        
+    def test_create_profile_post_full_name_and_empty_formsets(self):
+        """
+        Test if user is returned on create profile page if full_name form
+        is valid but the first address form is not filled.
+        """
+        #prepare data set
+        self.set_data(full_name=True)
+        #Issue a POST request
+        response = self.client.post(reverse(
+                                        'auctions:create_profile', 
+                                        args=[self.user.pk,]
+                                        ), self.data)
+        self.check_wrong_submission(response, 8, "This field is required.")
+        
+    def test_create_profile_post_empty_full_name_and_address1(self):
+        """
+        Test if user is returned on create profile page if full_name form
+        is not filled and first address form is filled.
+        """
+        #prepare data set
+        self.set_data(first_address=True)
+        #Issue a POST request
+        response = self.client.post(reverse(
+                                        'auctions:create_profile', 
+                                        args=[self.user.pk,]
+                                        ), self.data)
+        self.check_wrong_submission(response, 8, "This field is required.")
+        
+    def test_create_profile_post_full_name_and_address1(self):
+        """
+        Test if profile is successfully created on submission of
+        full name and first address forms (other forms in formsets
+        are marked as 'deleted'.
+        """
+        #Prepare data set
+        self.set_data(full_name=True, first_address=True)
+        #Issue a POST request
+        response = self.client.post(reverse(
+                                        'auctions:create_profile', 
+                                        args=[self.user.pk,]
+                                        ), self.data,
+                                        follow=True)
+        self.check_valid_submission(response)
+        
+    def test_create_profile_empty_first_email(self):
+        """
+        Test if user is returned on create profile page if full_name form
+        is not filled and first address form is filled.
+        """
+        #Prepare data set
+        self.set_data(full_name=True, first_address=True)
+        self.data['emailaddress_set-0-DELETE'] = False
+        #Issue a POST request
+        response = self.client.post(reverse(
+                                        'auctions:create_profile', 
+                                        args=[self.user.pk,]
+                                        ), self.data)
+        self.check_wrong_submission(response, 8, "This field is required.")
+        
+    def test_create_profile_post_full_name_email1_address1(self):
+        """
+        Test if profile is successfully created on submission of
+        full name and first address forms (other forms in formsets
+        are marked as 'deleted'.
+        """
+        #Prepare data set
+        self.set_data(full_name=True, first_email=True, first_address=True)
+        #Issue a POST request
+        response = self.client.post(reverse(
+                                        'auctions:create_profile', 
+                                        args=[self.user.pk,]
+                                        ), self.data,
+                                        follow=True)
+        self.check_valid_submission(response)
+        
         
 class TestSeleniumCreateProfileView(StaticLiveServerTestCase):
     """
@@ -753,147 +925,53 @@ class TestSeleniumCreateProfileView(StaticLiveServerTestCase):
                                     "/create_profile/", 
                                     self.user.pk
                                     ))
-                                    
-                
-    def sel_test_fill_name_form(self):
-        title = self.selenium.find_element_by_id("id_title")
-        Select(title).select_by_value("MR")
-        first_name = self.selenium.find_element_by_id("id_first_name")
-        first_name.clear()
-        first_name.send_keys("User")
-        last_name = self.selenium.find_element_by_id("id_last_name")
-        last_name.clear()
-        last_name.send_keys("Useroff")
-        
-    def sel_test_fill_address_form(self, form_id="id_address_set-0-"):
-        fields = {}
-        fields["line1"] = self.selenium.find_element_by_id(form_id + "line1")
-        fields["zip_code"] = self.selenium.find_element_by_id(form_id + "zip_code")
-        fields["city"] = self.selenium.find_element_by_id(form_id + "city")
-        for field in fields.values():
-            field.clear()
-            field.send_keys("11111")
-            
-    def check_wrong_submission(self):
-        #try to save profile
-        save_profile = self.selenium.find_element_by_xpath("//input[@value='Save']")
-        save_profile.click()
-        #check that the user was returned to create profile page
-        self.assertIn("Create profile", self.selenium.title)
-        self.assertTemplateUsed(reverse('auctions:create_profile', args=[self.user.pk,]))
-        #check if a field error is displayed on the page
-        #assert "This field is required." in self.selenium.page_source
-        
-    def check_valid_submission(self):
-        #try to save profile
-        save_profile = self.selenium.find_element_by_xpath("//input[@value='Save']")
-        save_profile.click()
-        #check if profile page was loaded and profile_created attribute was set 
-        self.assertTemplateUsed(reverse('auctions:create_profile', args=[self.user.pk,]))
-        assert "You profile was successfully created!" in self.selenium.page_source
-        #self.updated_user = User.objects.get(str(self.user.pk))
-        self.user.refresh_from_db()
-        self.assertTrue(self.user.profile_completed)
-        
-    def test_create_profile_post_empty_data(self):
-        """
-        Test that all but one forms in formsets are marked 'deleted' by JS on 
-        page load and user is returned to create profile view page while trying 
-        to submit the form with empty data in formset forms. Personal information
-        form fields are marked as required. So the form can not be saved at all
-        until these fields are filled out.
-        """
-        #check if all forms in formset except the first form of the address formset are marked 'deleted'
-        form_delete_checkboxes = self.selenium.find_elements_by_xpath("//input[@type='checkbox']")
-        for checkbox in form_delete_checkboxes:
-            if checkbox.get_attribute("id") == "id_address_set-0-DELETE":
-                self.assertFalse(checkbox.is_selected())
-            else:
-                self.assertTrue(checkbox.is_selected())
-        #fill personal information form
-        self.sel_test_fill_name_form()
-        #try to save profile
-        save_profile = self.selenium.find_element_by_xpath("//input[@value='Save']")
-        save_profile.click()
-        #check that the user was returned to create profile page
-        self.assertIn("Create profile", self.selenium.title)
-        self.assertTemplateUsed(reverse('auctions:create_profile', args=[self.user.pk,]))
-        #check if a number of field errors is equal to 10 (2 fields of full name 
-        #form, 1x2 field of email address forms and 3x2 fields of address form).
-        #even if a form in a formset is marked as deleted, a field error arised
-        self.assertIn("This field is required.", self.selenium.page_source)
 
-    
-    def test_create_profile_add_empty_email_form(self):
+    def test_create_profile_add_remove_email_forms(self):
         """
-        Test that create profile view returns error if added email form is not filled.
+        Test that JS functions to add and remove email address forms
+        work as intended.
         """
-        #fill user full name form and address_formset form 0
-        self.sel_test_fill_name_form()
-        self.sel_test_fill_address_form()
-        #add an additional email form and left it empty                         
+        #check if email forms are not displayed and marked as 'deleted' 
+        #by default
+        TODO
+        #add first email form                        
         add_email_button = self.selenium.find_element_by_id("addEmail")
         add_email_button.click()
-        #check if subbmission was not accepted
-        self.check_wrong_submission()
-
-    
-    def test_create_profile_add_empty_second_email_form(self):
-        """
-        Test that create profile view returns error if the second added 
-        email form is not filled.
-        """
-        #fill user full name form and address_formset form 0
-        self.sel_test_fill_name_form()
-        self.sel_test_fill_address_form()
-        #add an additional email form and input email address there                         
-        add_email_button = self.selenium.find_element_by_id("addEmail")
+        #check first email form is displayed and not marked as 'deleted'
+        TODO
+        #add the second email form
         add_email_button.click()
-        email_address = self.selenium.find_element_by_id("id_emailaddress_set-0-email_address")
-        email_address.clear()
-        email_address.send_keys("some@email.com")
-        #add the second email form and left it empty                         
-        #add_email_button = self.selenium.find_element_by_id("addEmail")
-        add_email_button.click()
-        #check if subbmission was not accepted
-        self.check_wrong_submission()
-
-                
-    def test_create_profile_invalid_email(self):
-        """
-        Test that create profile view returns error if provided email is not valid.
-        """
-        #fill user full name form and address_formset form 0
-        self.sel_test_fill_name_form()
-        self.sel_test_fill_address_form()
-        #add an additional email form and input invalid email address there                         
-        add_email_button = self.selenium.find_element_by_id("addEmail")
-        add_email_button.click()
-        email_address = self.selenium.find_element_by_id("id_emailaddress_set-0-email_address")
-        email_address.clear()
-        email_address.send_keys("completely_invalid_email_address")
-        #add another email address form so that the following check does not fail
-        #on required field check
-        add_email_button.click()
-        #check if subbmission was not accepted
-        self.check_wrong_submission()
-        #check if email address validation error is displayed
-        self.assertTrue(len(re.findall('Please enter email address.', self.selenium.page_source)) == 1)
-
+        #check second email form is displayed and not marked as 'deleted'
+        TODO
+        #remove first email form
+        TODO
+        #check if first email form is not displayed and marked 'deleted'
+        TODO
+        #remove second email form
+        TODO
+        #check if second email form is not displayed and marked 'deleted'
+        TODO
         
-    def test_create_profile_add_empty_second_address_form(self):
+    def test_create_profile_add_remove_second_address_form(self):
         """
-        Test that create profile view returns error if added address form is not filled.
+        Test that JS functions to add and remove second address form
+        work as intended.
         """
-        #fill user full name form and address_formset form 0
-        self.sel_test_fill_name_form()
-        self.sel_test_fill_address_form()
+        #check if first addres form is displayed and not marked 'deleted'
+        #by default
+        TODO
+        #check if second address form is not displayed and marked as deleted
+        #by default
+        TODO
         #add an additional address form and left it empty                         
         add_address_button = self.selenium.find_element_by_id("addAddress")
         add_address_button.click()
-        #check if subbmission was not accepted
-        self.check_wrong_submission()
-
+        #check if second address form is displayed and not marked as 'deleted'
+        TODO
+        #remove second address form
+        TODO
+        #check if second address form is not displayed and marked 'deleted'
+        TODO
                                  
     def test_create_profile_add_remove_forms(self):
         """
@@ -971,10 +1049,6 @@ class TestSeleniumCreateProfileView(StaticLiveServerTestCase):
         """
         Test JS functionality to switch types of email and addresses.
         """
-        #fill user full name form and address_formset form 0
-        self.sel_test_fill_name_form()
-        self.sel_test_fill_address_form()
-        
         #add two email forms                           
         add_email_button = self.selenium.find_element_by_id("addEmail")
         add_email_button.click()
@@ -1007,46 +1081,3 @@ class TestSeleniumCreateProfileView(StaticLiveServerTestCase):
         Select(address_form_1_type_selector).select_by_value('BL')
         self.assertEqual(address_form_0_type_selector.get_attribute("value"), "BL")
         self.assertEqual(address_form_1_type_selector.get_attribute("value"), "DL")
-        
-        
-    def test_create_profile_submit_all_forms_filled(self):
-        """
-        Test that checks JS functionality of formsets forms deletion and adding.
-        """
-        #fill user full name form and address_formset form 0
-        self.sel_test_fill_name_form()
-        self.sel_test_fill_address_form()
-        
-        #add and fill the first email form                         
-        add_email_button = self.selenium.find_element_by_id("addEmail")
-        add_email_button.click()
-        email_address = self.selenium.find_element_by_id("id_emailaddress_set-0-email_address")
-        email_address.clear()
-        email_address.send_keys("some@email.test")
-        
-        #add and fill the second email form
-        add_email_button.click()
-        email_address = self.selenium.find_element_by_id("id_emailaddress_set-1-email_address")
-        email_address.clear()
-        email_address.send_keys("some1@email.test")
-        
-        #add and fill the second address form                         
-        add_address_button = self.selenium.find_element_by_id("addAddress")
-        add_address_button.click()
-        self.sel_test_fill_address_form(form_id="id_address_set-1-")        
-        
-        #check submission is valid
-        self.check_valid_submission()
-        
-        #check if all profile records are created
-        self.assertEqual(str(self.user), "Mr. User Useroff")
-        user_emails = self.user.emailaddress_set.all()
-        user_addresses = self.user.address_set.all()
-        self.assertEqual(len(user_emails), 2)
-        self.assertEqual(len(user_addresses), 2)
-        self.assertEqual(str(user_emails[0]), "Email address for contact: some@email.test")
-        self.assertEqual(str(user_emails[1]), "Email address for payment: some1@email.test")
-        self.assertEqual(str(user_addresses[0]),
-                            "Delivery address: 11111, 11111 11111, Slovakia")
-        self.assertEqual(str(user_addresses[1]),
-                            "Billing address: 11111, 11111 11111, Slovakia")
