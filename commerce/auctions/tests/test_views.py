@@ -664,7 +664,7 @@ class TestCreateProfileView(TestViews):
             'emailaddress_set-1-email_address': '',
             'emailaddress_set-1-email_type': 'PT',
             'emailaddress_set-1-DELETE': True,
-            'addres_set-TOTAL_FORMS': '2',
+            'address_set-TOTAL_FORMS': '2',
             'address_set-INITIAL_FORMS': '0',
             'address_set-0-address_type': 'DL',
             'address_set-0-line1': '',
@@ -692,7 +692,7 @@ class TestCreateProfileView(TestViews):
             self.data['title'] = 'MR'
             self.data['first_name'] = 'User'
             self.data['last_name'] = 'useroff'
-        if fisrt_email:
+        if first_email:
             #fill out first email address form
             self.data['emailaddress_set-0-email_address'] = 'user@user.com'
             self.data['emailaddress_set-0-DELETE'] = False
@@ -700,7 +700,7 @@ class TestCreateProfileView(TestViews):
             #fill out second email address form
             self.data['emailaddress_set-1-email_address'] = 'user1@user.com'
             self.data['emailaddress_set-1-DELETE'] = False
-        if fisrt_address:
+        if first_address:
             #fill out first address form
             self.data['address_set-0-line1'] = 'Street 1'
             self.data['address_set-0-zip_code'] = '82100'
@@ -720,7 +720,7 @@ class TestCreateProfileView(TestViews):
         #Check if create profile view page was loaded again
         self.assertTemplateUsed('/auctions/account/create_profile.html')
         #Check if field errors are displayed for empty required fields of all forms
-        self.assertEqual(len(re.findall(error_message, response)), num_fields)
+        self.assertEqual(len(re.findall(error_message, str(response))), num_fields)
         
     def check_valid_submission(self, response):
         u = User.objects.get(pk=self.user.pk)
@@ -877,11 +877,84 @@ class TestCreateProfileView(TestViews):
                                         follow=True)
         self.check_valid_submission(response)
         
+    def test_create_profile_post_full_name_email1_address1_empty_email2(self):
+        """
+        Test if user was returned to create profile page and correct number of
+        empty required fields errors are displayed.
+        """
+        #Prepare data set
+        self.set_data(full_name=True, first_email=True, first_address=True)
+        self.data["emailaddress_set-1-DELETE"] = False
+        #Issue a POST request
+        response = self.client.post(reverse(
+                                        'auctions:create_profile', 
+                                        args=[self.user.pk,]
+                                        ), self.data,
+                                        follow=True)
+        self.check_wrong_submission(response, 4, "This field is required.")
+        
+    def test_create_profile_post_full_name_wrong_emails(self):
+        """
+        Test if user was returned back to create profile page and email
+        addresses validation error are displayed on input of wrong email
+        addresses.
+        """
+        #Prepare data set
+        self.set_data(
+                full_name=True, first_email=True, 
+                second_email=True, first_address=True)
+        self.data["emailaddress_set-0-email_address"] = "wrong-email"
+        self.data["emailaddress_set-1-email_address"] = "wrong-email"
+        #Issue a POST request
+        response = self.client.post(reverse(
+                                        'auctions:create_profile', 
+                                        args=[self.user.pk,]
+                                        ), self.data,
+                                        follow=True)
+        self.check_wrong_submission(response, 2, "Please enter valid email address.")
+        
+    def test_create_profile_post_full_name_emails_address1_empty_address2(self):
+        """
+        Test if profile is successfully created on submission of
+        full name and all email formset' forms and first address form.
+        The second address form is not required.
+        """
+        #Prepare data set
+        self.set_data(
+                    full_name=True, first_email=True, 
+                    second_email=True, first_address=True)
+        self.data["address_set-1-DELETE"] = False
+        #Issue a POST request
+        response = self.client.post(reverse(
+                                        'auctions:create_profile', 
+                                        args=[self.user.pk,]
+                                        ), self.data,
+                                        follow=True)
+        self.check_valid_submission(response)
+        
+    def test_create_profile_post_full_name_emails_addresses(self):
+        """
+        Test if profile is successfully created on submission of
+        full name and all formsets' forms.
+        """
+        #Prepare data set
+        self.set_data(
+                    full_name=True, first_email=True, 
+                    second_email=True, first_address=True,
+                    second_address=True)
+        #Issue a POST request
+        response = self.client.post(reverse(
+                                        'auctions:create_profile', 
+                                        args=[self.user.pk,]
+                                        ), self.data,
+                                        follow=True)
+        self.check_valid_submission(response)
+        
         
 class TestSeleniumCreateProfileView(StaticLiveServerTestCase):
     """
-    Tests profile completion process including check of JS powered UI
-    elements works as expected.
+    Tests JS functionality of create profile view using Selenium Python
+    binding and Firefox webdriver.
     """
     @classmethod
     def setUpClass(cls):
@@ -933,60 +1006,11 @@ class TestSeleniumCreateProfileView(StaticLiveServerTestCase):
         """
         #check if email forms are not displayed and marked as 'deleted' 
         #by default
-        TODO
-        #add first email form                        
-        add_email_button = self.selenium.find_element_by_id("addEmail")
-        add_email_button.click()
-        #check first email form is displayed and not marked as 'deleted'
-        TODO
-        #add the second email form
-        add_email_button.click()
-        #check second email form is displayed and not marked as 'deleted'
-        TODO
-        #remove first email form
-        TODO
-        #check if first email form is not displayed and marked 'deleted'
-        TODO
-        #remove second email form
-        TODO
-        #check if second email form is not displayed and marked 'deleted'
-        TODO
-        
-    def test_create_profile_add_remove_second_address_form(self):
-        """
-        Test that JS functions to add and remove second address form
-        work as intended.
-        """
-        #check if first addres form is displayed and not marked 'deleted'
-        #by default
-        TODO
-        #check if second address form is not displayed and marked as deleted
-        #by default
-        TODO
-        #add an additional address form and left it empty                         
-        add_address_button = self.selenium.find_element_by_id("addAddress")
-        add_address_button.click()
-        #check if second address form is displayed and not marked as 'deleted'
-        TODO
-        #remove second address form
-        TODO
-        #check if second address form is not displayed and marked 'deleted'
-        TODO
-                                 
-    def test_create_profile_add_remove_forms(self):
-        """
-        Test JS functionality to add and delete forms in formsets.
-        """
-        #fill user full name form and address_formset form 0
-        self.sel_test_fill_name_form()
-        self.sel_test_fill_address_form()
-        
-        #check the first and the second email formsa are not displayed
         email_form_1 = self.selenium.find_element_by_id("email-address-form-0")
         email_form_2 = self.selenium.find_element_by_id("email-address-form-1")
         self.assertFalse(email_form_1.is_displayed())
         self.assertFalse(email_form_2.is_displayed())
-        #add email form - the form should be unmarked from deletion on button click                           
+        #add first email form                        
         add_email_button = self.selenium.find_element_by_id("addEmail")
         add_email_button.click()
         #check the email form-0 is displayed
@@ -995,55 +1019,62 @@ class TestSeleniumCreateProfileView(StaticLiveServerTestCase):
         delete_email_checkbox = self.selenium.find_element_by_id("id_emailaddress_set-0-DELETE")
         self.assertFalse(delete_email_checkbox.is_displayed())
         self.assertFalse(delete_email_checkbox.is_selected())
-        #check label (Remove button) is hidden in address form 0
-        delete_address_0_label = self.selenium.find_element_by_xpath("//table[@id='address-form-0']/tr[td[input[@id='id_address_set-0-DELETE']]]")
-        self.assertFalse(delete_address_0_label.is_displayed()) 
-        
-        #add second email form - the form should be unmarked from deletion on button click                           
+        #add the second email form
         add_email_button.click()
-        #check the email form-0 is displayed
+        #check the email form 1 is displayed
         self.assertTrue(email_form_2.is_displayed())
         #check that email_form-1 is not marked as deleted and 'input[type=checkbox]' is hidden
         delete_email_checkbox1 = self.selenium.find_element_by_id("id_emailaddress_set-1-DELETE")
         self.assertFalse(delete_email_checkbox1.is_displayed())        
         self.assertFalse(delete_email_checkbox1.is_selected())
         
-        #check address form-0 is displayed
-        address_from_1 = self.selenium.find_element_by_id("address-form-0")
-        self.assertTrue(address_form_1.is_displayed())
+        remove_button1 = self.selenium.find_element_by_xpath("//label[@for='id_emailaddress_set-0-DELETE']")
+        remove_button2 = self.selenium.find_element_by_xpath("//label[@for='id_emailaddress_set-1-DELETE']")
+        #remove first email form
+        remove_button1.click()
+        #check the email form-0 is not displayed
+        self.assertFalse(email_form_1.is_displayed())
+        #check that email_form-0 is marked as deleted
+        self.assertTrue(delete_email_checkbox.is_selected())
+        #remove second email form
+        remove_button2.click()
+        #check the email form-1 is not displayed
+        self.assertFalse(email_form_2.is_displayed())
+        #check that email_form-1 is marked as deleted
+        self.assertTrue(delete_email_checkbox1.is_selected())
         
-        #check address form-1 is not displayed
+    def test_create_profile_add_remove_second_address_form(self):
+        """
+        Test that JS functions to add and remove second address form
+        work as intended.
+        """
+        address_form_1 = self.selenium.find_element_by_id("address-form-0")
         address_form_2 = self.selenium.find_element_by_id("address-form-1")
+        remove_button1 = self.selenium.find_element_by_xpath("//label[@for='id-address_set-0-DELETE']")
+        remove_button2 = self.selenium.find_element_by_xpath("//label[input[@for='id-address_set-1-DELETE']")
+        address_form_1_delete_checkbox = self.selenium.find_element_by_id("id_address_set-0-DELETE")
+        address_form_2_delete_checkbox = self.selenium.find_element_by_id("id_address_set-1-DELETE")
+        #check if first address form is displayed and not marked 'deleted'
+        #by default
+        self.assertTrue(address_form_1.is_displayed())
+        self.assertFalse(remove_button1.is_displayed())
+        self.assertFalse(address_form_1_delete_checkbox.is_selected())
+        #check if second address form is not displayed and marked as deleted
+        #by default
         self.assertFalse(address_form_2.is_displayed())
-        
-        #add an additional address form                         
+        self.assertTrue(address_form_2_delete_checkbox.is_selected())
+        #add an additional address form and left it empty                         
         add_address_button = self.selenium.find_element_by_id("addAddress")
         add_address_button.click()
-        #check address form-1 is now displayed
+        #check if second address form is displayed and not marked as 'deleted'
         self.assertTrue(address_form_2.is_displayed())
-        #check that address_form-1 is not marked as deleted
-        delete_address_checkbox1 = self.selenium.find_element_by_id("id_address_set-1-DELETE")
-        self.assertFalse(delete_address_checkbox.is_selected())
-        self.assertFalse(delete_address_checkbox.is_displayed())
-        
-        #remove the second address form
-        remove_buttons[2].click()
-        #check that address_form-1 is marked as deleted
-        self.assertTrue(delete_address_checkbox.is_selected())
-        
-        #remove the second email form
-        remove_buttons[1].click()
-        #check that email_form-1 is marked as deleted
-        self.assertTrue(delete_email_checkbox2.is_selected())
-        
-        #remove the first email form
-        remove_buttons[0].click()
-        #check that email_form-0 is marked as deleted
-        self.assertTrue(delete_email_checkbox2.is_selected())
-        
-        #check profile created
-        self.check_valid_submission()
-
+        self.assertTrue(remove_button2.is_displayed())
+        self.assertFalse(address_form_2_delete_checkbox.is_selected())
+        #remove second address form
+        remove_button2.click()
+        #check if second address form is not displayed and marked 'deleted'
+        self.assertFalse(address_form_2.is_displayed())
+        self.assertTrue(address_form_2_delete_checkbox.is_selected())
                                  
     def test_create_profile_types_switch(self):
         """
