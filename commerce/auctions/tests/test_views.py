@@ -719,8 +719,8 @@ class TestCreateProfileView(TestViews):
         self.assertEqual(response.status_code, 200)
         #Check if create profile view page was loaded again
         self.assertTemplateUsed('/auctions/account/create_profile.html')
-        #Check if field errors are displayed for empty required fields of all forms
-        self.assertEqual(len(re.findall(error_message, str(response))), num_fields)
+        #Check if field errors are displayed for empty certain form fields
+        self.assertContains(response, error_message, count=num_fields)
         
     def check_valid_submission(self, response):
         u = User.objects.get(pk=self.user.pk)
@@ -849,7 +849,9 @@ class TestCreateProfileView(TestViews):
     def test_create_profile_empty_first_email(self):
         """
         Test if user is returned on create profile page if full_name form
-        is not filled and first address form is filled.
+        and first address form are filled but added email form is not filled.
+        Error should appear on all empty fields even of non-visible and marked
+        'deleted' forms.
         """
         #Prepare data set
         self.set_data(full_name=True, first_address=True)
@@ -859,7 +861,7 @@ class TestCreateProfileView(TestViews):
                                         'auctions:create_profile', 
                                         args=[self.user.pk,]
                                         ), self.data)
-        self.check_wrong_submission(response, 8, "This field is required.")
+        self.check_wrong_submission(response, 5, "This field is required.")
         
     def test_create_profile_post_full_name_email1_address1(self):
         """
@@ -911,7 +913,16 @@ class TestCreateProfileView(TestViews):
                                         args=[self.user.pk,]
                                         ), self.data,
                                         follow=True)
-        self.check_wrong_submission(response, 2, "Please enter valid email address.")
+        self.assertFormsetError(
+                            response, 'email_formset', 
+                            0, 'email_address', 
+                            'Enter a valid email address.'
+                            )
+        self.assertFormsetError(
+                            response, 'email_formset', 
+                            1, 'email_address', 
+                            'Enter a valid email address.'
+                            )
         
     def test_create_profile_post_full_name_emails_address1_empty_address2(self):
         """
@@ -1050,14 +1061,14 @@ class TestSeleniumCreateProfileView(StaticLiveServerTestCase):
         """
         address_form_1 = self.selenium.find_element_by_id("address-form-0")
         address_form_2 = self.selenium.find_element_by_id("address-form-1")
-        remove_button1 = self.selenium.find_element_by_xpath("//label[@for='id-address_set-0-DELETE']")
-        remove_button2 = self.selenium.find_element_by_xpath("//label[input[@for='id-address_set-1-DELETE']")
+        remove_button1 = self.selenium.find_element_by_xpath("//label[@for='id_address_set-0-DELETE']")
+        remove_button2 = self.selenium.find_element_by_xpath("//label[@for='id_address_set-1-DELETE']")
         address_form_1_delete_checkbox = self.selenium.find_element_by_id("id_address_set-0-DELETE")
         address_form_2_delete_checkbox = self.selenium.find_element_by_id("id_address_set-1-DELETE")
         #check if first address form is displayed and not marked 'deleted'
         #by default
         self.assertTrue(address_form_1.is_displayed())
-        self.assertFalse(remove_button1.is_displayed())
+        #self.assertFalse(remove_button1.is_displayed())
         self.assertFalse(address_form_1_delete_checkbox.is_selected())
         #check if second address form is not displayed and marked as deleted
         #by default
