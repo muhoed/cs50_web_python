@@ -214,8 +214,8 @@ class UserProfileCreateView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView
     def form_valid(self, form):
         form.instance.profile_completed = True
         return super().form_valid(form)
-
     
+        
 class ProfileView(LoginRequiredMixin, CorrectUserTestMixin, DetailView):
     """ Display user profile details. """
     model = User
