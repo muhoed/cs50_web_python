@@ -150,11 +150,37 @@ var createProfilePage = {
 		}
 };
 
+var passwordResetDonePage = {
+	
+	init: function(settings) {
+		passwordResetDonePage.config = {
+			openLink: $("#auth-password-reset-show"),
+			messageContainer: $(".auth-password-reset-email");
+		};
+		$.extend(passwordResetDonePage.config, settings);
+		passwordResetDonePage.setup();
+	},
+	
+	setup: function() {
+		passwordResetDonePage.config.openLink
+			.on("click", passwordResetDonePage.loadMessage());
+	},
+	
+	loadMessage: function() {
+		$.ajax({
+			url: "/"
+		});
+	}
+}
+
 $(document).ready(function(){
 	let pageTitle = $("title").text();
 	switch(pageTitle) {
 		case "Auction$ - Create profile":
 			createProfilePage.init();
+			break;
+		case "Auction$ - Password reset sent":
+			passwordResetDonePage.init();
 			break;
 		default:
 			return false;

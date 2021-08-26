@@ -1,5 +1,6 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.conf import settings as conf_settings
+from django.contrib.auth.forms import UserCreationForm, PasswordResetForm
 
 from .models import *
 
@@ -68,6 +69,22 @@ UserAddressFormset = forms.models.inlineformset_factory(User, Address,
 											max_num=2, validate_max=True, 
 											can_delete=True)
 
+
+class UserPasswordresetForm(PasswordResetForm):
+	"""
+	Override send_email method to save 'uid' to session in case of FileEmailBackend
+	to use it in filename.
+	"""
+	def send_mail(self, *args, **kwargs):
+        """
+        Send a django.core.mail.EmailMultiAlternatives to `to_email`.
+        """
+        email_backend_type = type(conf_settings.EMAIL_BACKEND)
+        if email_backend_type.__name__ == "FileEmailBackend":
+            session["uidb64"] = context["uid"]
+        return super().send_mail(*args, **kwargs)
+	
+	
 class SearchForm(forms.Form):
 	watched = forms.CharField(label="Search", max_length=100)
 	

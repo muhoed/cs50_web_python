@@ -1,9 +1,8 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.views import LoginView
+from django.contrib.auth.views import LoginView, PasswordResetDoneView
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.db import IntegrityError
@@ -166,11 +165,20 @@ class RegistrationCompleteView(TemplateView):
                 'validlink': False,
             })
         return context
+    
 
-
+class UserPasswordResetDoneView(PasswordResetDoneView):
+    """
+    Adds to the standard view an ability to display on screen
+    a text of email message with reset link in case of FileEmailBackend.
+    """
+    if session["uid"]:
+        extra_context.update({"uid": session["uid"]})
+    
+        
 class UserProfileCreateView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
     """
-    Create profile for newly registered user.
+    Creates profile for newly registered user.
     """
     model = User
     form_class = UserFullNameForm

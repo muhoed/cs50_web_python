@@ -2,6 +2,7 @@ from django.urls import path, include, reverse_lazy
 from django.contrib.auth import views as auth_views
 
 from . import views
+from .forms import UserPasswordResetForm
 
 app_name = "auctions"
 urlpatterns = [
@@ -31,12 +32,17 @@ urlpatterns = [
 	path("password_reset", 
 			auth_views.PasswordResetView.as_view(
 								template_name="auctions/auth/password_reset_form.html",
+								form_class=UserPasswordResetForm,
+								extra_context={'title': 'password reset'},
 								email_template_name="auctions/auth/emails/password_reset_email.html",
 								subject_template_name="auctions/auth/emails/password_reset_subject.txt", 
 								success_url=reverse_lazy("auctions:password_reset_done")), 
 			name='password_reset'),
 	path("password_reset_done", 
-			auth_views.PasswordResetDoneView.as_view(),
+			views.UserPasswordResetDoneView.as_view(
+								template_name="auctions/auth/password_reset_done.html",
+								extra_context={'title': 'password reset sent'}
+								),
 			name='password_reset_done'),
 	path("password_reset_confirm", 
 			auth_views.PasswordResetConfirmView.as_view(),
