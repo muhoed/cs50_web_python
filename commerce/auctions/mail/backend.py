@@ -14,12 +14,13 @@ class FileEmailBackend(EmailBackend):
         if self._fname is None:
 			uid = re.search("uidb64=..", email_messages[0])
             timestamp = datetime.datetime.now().strftime("%Y%m%d")
-            fname = "pwd-reset-%s-%s-%s.log" % (uid, timestamp, abs(id(self)))
+            fname = "%s-pwd-reset-%s.log" % (uid, timestamp)
             self._fname = os.path.join(self.file_path, fname)
         return self._fname
 
     def open(self, email_messages):
         if self.stream is None:
+            #added messages to call paramd
             self.stream = open(self._get_filename(email_messages), 'ab')
             return True
         return False
@@ -31,6 +32,7 @@ class FileEmailBackend(EmailBackend):
         msg_count = 0
         with self._lock:
             try:
+                #added messages to call paramd
                 stream_created = self.open(email_messages)
                 for message in email_messages:
                     self.write_message(message)
