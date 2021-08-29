@@ -44,6 +44,9 @@ urlpatterns = [
 								extra_context={'title': 'password reset sent'}
 								),
 			name='password_reset_done'),
+	path("get_email_filenames/<str:uid>/<str:topic>/<str:start>/<str:end>/", 
+			views.get_message_content, 
+			name="get_email_filenames"),
 	path("password_reset_confirm", 
 			auth_views.PasswordResetConfirmView.as_view(),
 			name='password_reset_confirm'),

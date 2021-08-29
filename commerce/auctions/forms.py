@@ -70,18 +70,16 @@ UserAddressFormset = forms.models.inlineformset_factory(User, Address,
 											can_delete=True)
 
 
-class UserPasswordresetForm(PasswordResetForm):
-	"""
-	Override send_email method to save 'uid' to session in case of FileEmailBackend
-	to use it in filename.
-	"""
-	def send_mail(self, *args, **kwargs):
-        """
-        Send a django.core.mail.EmailMultiAlternatives to `to_email`.
-        """
+class UserPasswordResetForm(PasswordResetForm):
+    """
+    Override send_email method to save 'uid' to session in case of FileEmailBackend
+    to use it in filename.
+    """
+    def send_mail(self, *args, **kwargs):
+        #Send a django.core.mail.EmailMultiAlternatives to 'to_email'
         email_backend_type = type(conf_settings.EMAIL_BACKEND)
         if email_backend_type.__name__ == "FileEmailBackend":
-            session["uidb64"] = context["uid"]
+            self.request.session["uidb64"] = context["uid"]
         return super().send_mail(*args, **kwargs)
 	
 	

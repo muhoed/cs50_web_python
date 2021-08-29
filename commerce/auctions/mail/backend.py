@@ -14,7 +14,7 @@ class FileEmailBackend(EmailBackend):
         if self._fname is None:
 			uid = re.search("uidb64=..", email_messages[0])
             timestamp = datetime.datetime.now().strftime("%Y%m%d")
-            fname = "%s-pwd-reset-%s.log" % (uid, timestamp)
+            fname = "%s-pwdreset-%s.log" % (uid, timestamp)
             self._fname = os.path.join(self.file_path, fname)
         return self._fname
 
