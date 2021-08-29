@@ -30,7 +30,7 @@ urlpatterns = [
 								template_name='auctions/auth/password_change_done.html'),
 			name="password_change_done"),
 	path("password_reset", 
-			auth_views.PasswordResetView.as_view(
+			views.UserPasswordResetView.as_view(
 								template_name="auctions/auth/password_reset_form.html",
 								form_class=UserPasswordResetForm,
 								extra_context={'title': 'password reset'},
@@ -39,7 +39,7 @@ urlpatterns = [
 								success_url=reverse_lazy("auctions:password_reset_done")), 
 			name='password_reset'),
 	path("password_reset_done", 
-			views.UserPasswordResetDoneView.as_view(
+			auth_views.PasswordResetDoneView.as_view(
 								template_name="auctions/auth/password_reset_done.html",
 								extra_context={'title': 'password reset sent'}
 								),
@@ -47,7 +47,7 @@ urlpatterns = [
 	path("get_email_filenames/<str:uid>/<str:topic>/<str:start>/<str:end>/", 
 			views.get_message_content, 
 			name="get_email_filenames"),
-	path("password_reset_confirm", 
+	path("password_reset_confirm/<str:uidb64>/<str:token>/", 
 			auth_views.PasswordResetConfirmView.as_view(),
 			name='password_reset_confirm'),
 	path("password_reset_complete", 

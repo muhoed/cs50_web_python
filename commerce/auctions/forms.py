@@ -75,11 +75,13 @@ class UserPasswordResetForm(PasswordResetForm):
     Override send_email method to save 'uid' to session in case of FileEmailBackend
     to use it in filename.
     """
+    uid = None
+    
     def send_mail(self, *args, **kwargs):
         #Send a django.core.mail.EmailMultiAlternatives to 'to_email'
         email_backend_type = type(conf_settings.EMAIL_BACKEND)
         if email_backend_type.__name__ == "FileEmailBackend":
-            self.request.session["uidb64"] = context["uid"]
+            self.uid = context["uid"]
         return super().send_mail(*args, **kwargs)
 	
 	

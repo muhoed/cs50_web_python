@@ -1,0 +1,26 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Subject: Password reset for email u@u.com
+From: webmaster@localhost
+To: u@u.com
+Date: Sun, 29 Aug 2021 15:01:45 -0000
+Message-ID: <163024930559.21533.4482182738024727864@localhost>
+
+Someone asked for password reset for email u@u.com. Follow the link below:
+http://127.0.0.1:8000/password_reset_confirm/MjI/as5jax-d196e393b63ec702d6aba4db581deef5/
+
+-------------------------------------------------------------------------------
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Subject: Password reset for email u@u.com
+From: webmaster@localhost
+To: u@u.com
+Date: Sun, 29 Aug 2021 15:01:45 -0000
+Message-ID: <163024930562.21533.7141439202350022763@localhost>
+
+Someone asked for password reset for email u@u.com. Follow the link below:
+http://127.0.0.1:8000/password_reset_confirm/MjI/as5jax-d196e393b63ec702d6aba4db581deef5/
+
+-------------------------------------------------------------------------------

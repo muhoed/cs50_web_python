@@ -134,4 +134,4 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 MEDIA_URL = '/media/'
 
 EMAIL_BACKEND = 'auctions.mail.backend.FileEmailBackend'
-EMAIL_FILE_PATH = '/tmp/emails'
+EMAIL_FILE_PATH = MEDIA_ROOT + '/emails'

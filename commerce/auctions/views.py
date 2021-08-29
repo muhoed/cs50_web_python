@@ -4,7 +4,7 @@ import json
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.views import LoginView, PasswordResetDoneView
+from django.contrib.auth.views import LoginView, PasswordResetView
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.tokens import default_token_generator
@@ -171,20 +171,26 @@ class RegistrationCompleteView(TemplateView):
         return context
     
 
-class UserPasswordResetDoneView(PasswordResetDoneView):
-    """
-    Overrides get_context_data method to add <uid> stored in session in case of
-    file-based email backend.
-    """
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        if self.request.session["uid"]:
-            self.extra_context.update({"uid": self.request.session["uid"]})
-        context.update({
-            'title': self.title,
-            **(self.extra_context or {})
-        })
-        return context
+class UserPasswordResetView(PasswordResetView):
+    
+    def form_valid(self, form):
+        opts = {
+            'use_https': self.request.is_secure(),
+            'token_generator': self.token_generator,
+            'from_email': self.from_email,
+            'email_template_name': self.email_template_name,
+            'subject_template_name': self.subject_template_name,
+            'request': self.request,
+            'html_email_template_name': self.html_email_template_name,
+            'extra_email_context': self.extra_email_context,
+        }
+        form.save(**opts)
+        
+        #save 'uid' used as a file uniq identifier by file email backend to session
+        #if settings.EMAIL_BACKEND == 'auctions.mail.backend.FileEmailBackend':
+        self.request.session["uid"] = form.uid
+        
+        return super().form_valid(form)
     
     
 def get_message_content(request, uid, topic=None, start=None, end=None):

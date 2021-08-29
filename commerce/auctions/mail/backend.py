@@ -12,7 +12,7 @@ class FileEmailBackend(EmailBackend):
     def _get_filename(self, email_messages):
         """Return a unique file name."""
         if self._fname is None:
-			uid = re.search("uidb64=..", email_messages[0])
+            uid = os.path.split(os.path.split(email_messages[0].body)[0])[1]
             timestamp = datetime.datetime.now().strftime("%Y%m%d")
             fname = "%s-pwdreset-%s.log" % (uid, timestamp)
             self._fname = os.path.join(self.file_path, fname)
