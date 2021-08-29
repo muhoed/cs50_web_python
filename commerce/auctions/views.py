@@ -1,7 +1,7 @@
 from datetime import datetime
 import json
 
-from django.conf import settings
+from django.conf import settings as conf_settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.views import LoginView, PasswordResetView
@@ -187,10 +187,12 @@ class UserPasswordResetView(PasswordResetView):
         form.save(**opts)
         
         #save 'uid' used as a file uniq identifier by file email backend to session
-        #if settings.EMAIL_BACKEND == 'auctions.mail.backend.FileEmailBackend':
-        self.request.session["uid"] = form.uid
+        email_backend_type = type(conf_settings.EMAIL_BACKEND)
+        if email_backend_type.__name__ == "FileEmailBackend" and form.uid:
+            self.request.session["uid"] = form.uid
         
-        return super().form_valid(form)
+        return HttpResponseRedirect(self.get_success_url())
+        #return super().form_valid(form)
     
     
 def get_message_content(request, uid, topic=None, start=None, end=None):

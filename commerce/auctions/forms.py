@@ -77,12 +77,14 @@ class UserPasswordResetForm(PasswordResetForm):
     """
     uid = None
     
-    def send_mail(self, *args, **kwargs):
+    def send_mail(self, subject_template_name, email_template_name,
+                  context, from_email, to_email, html_email_template_name=None):
         #Send a django.core.mail.EmailMultiAlternatives to 'to_email'
         email_backend_type = type(conf_settings.EMAIL_BACKEND)
-        if email_backend_type.__name__ == "FileEmailBackend":
+        if email_backend_type.__name__ == "FileEmailBackend" and context["uid"]:
             self.uid = context["uid"]
-        return super().send_mail(*args, **kwargs)
+        return super().send_mail(subject_template_name, email_template_name,
+                  context, from_email, to_email, html_email_template_name)
 	
 	
 class SearchForm(forms.Form):
