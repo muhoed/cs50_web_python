@@ -187,8 +187,8 @@ class UserPasswordResetView(PasswordResetView):
         form.save(**opts)
         
         #save 'uid' used as a file uniq identifier by file email backend to session
-        email_backend_type = type(conf_settings.EMAIL_BACKEND)
-        if email_backend_type.__name__ == "FileEmailBackend" and form.uid:
+        email_backend_type = conf_settings.EMAIL_BACKEND.rsplit(".", 1)[1]
+        if email_backend_type == "FileEmailBackend" and form.uid:
             self.request.session["uid"] = form.uid
         
         return HttpResponseRedirect(self.get_success_url())
@@ -210,7 +210,7 @@ def get_message_content(request, uid, topic=None, start=None, end=None):
     Return:
     JSONified list of triples of filename parts: [uid, topic. timestamp].
     """
-    path = settings.EMAIL_FILE_PATH
+    path = conf_settings.EMAIL_FILE_PATH
     file_list = os.listdir(path)
     params_list = []
     for mail in mail_list:
@@ -219,14 +219,18 @@ def get_message_content(request, uid, topic=None, start=None, end=None):
     if start and end:
         result = [
             select for select in params_list 
-            if select[2] >= datetime.timestamp(datetime.strptime(start, '%Y-%m-%d')) 
-            and select[2] <= datetime.timestamp(datetime.strptime(end, '%Y-%m-%d'))]
+            if datetime.timestamp(datetime.strptime(select[2], '%Y%m%d-%H%M%S')) >= datetime.timestamp(datetime.strptime(start, '%Y-%m-%d')) 
+            and datetime.timestamp(datetime.strptime(select[2], '%Y%m%d-%H%M%S')) <= datetime.timestamp(datetime.strptime(end, '%Y-%m-%d'))]
     else:
         result = params_list
     if topic:
         result = [select for select in result if select[1] == topic]
         
-    return JsonResponse([select for select in result if select[0] == uid])
+    result = [select for select in result if select[0] == uid]
+    
+    result.sort(key=lambda res: datetime.timestamp(datetime.strptime(res[2], '%Y%m%d-%H%M%S')), reverse=True)
+        
+    return JsonResponse(result)
     
 
         

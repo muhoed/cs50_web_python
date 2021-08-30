@@ -20,6 +20,7 @@ class User(AbstractUser):
 	title = models.CharField(max_length=3, choices=TITLE_CHOICES, null=True, blank=False)
 	first_name = models.CharField(max_length=50, null=True, blank=False)
 	last_name = models.CharField(max_length=50, null=True, blank=False)
+	email = models.EmailField(_('email address'), unique=True, null=False, blank=False)
 	profile_completed = models.BooleanField(default=False)
 	
 	@property

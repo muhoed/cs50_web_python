@@ -155,7 +155,7 @@ var passwordResetDonePage = {
 	init: function(settings) {
 		passwordResetDonePage.config = {
 			openLink: $("#auth-password-reset-show"),
-			messageContainer: $(".auth-password-reset-email");
+			messageContainer: $(".auth-password-reset-email")
 		};
 		$.extend(passwordResetDonePage.config, settings);
 		passwordResetDonePage.setup();
@@ -168,7 +168,8 @@ var passwordResetDonePage = {
 	
 	loadMessage: function() {
 		$.ajax({
-			url: "/"
+			url: "/get_email_filenames",
+			
 		});
 	}
 }

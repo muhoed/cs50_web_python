@@ -3,6 +3,8 @@ from django.conf import settings as conf_settings
 from django.contrib.auth.forms import UserCreationForm, PasswordResetForm
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext, gettext_lazy as _
 
 from .models import *
 
@@ -74,16 +76,32 @@ UserAddressFormset = forms.models.inlineformset_factory(User, Address,
 
 class UserPasswordResetForm(PasswordResetForm):
     """
-    Override send_email method to save 'uid' to session in case of FileEmailBackend
+    Adds required attribute to email field and validate whether the provided email
+    belongs to some registered user.
+    Overrides send_email method to save 'uid' to session in case of FileEmailBackend
     to use it in filename.
     """
+    email = forms.EmailField(
+        label=_("Email"),
+        max_length=254,
+        required=True,
+        widget=forms.EmailInput(attrs={'autocomplete': 'email'})
+    )
+    
+    def clean_email(self):
+        #checks email belongs to a registered user
+        data = self.cleaned_data['email']
+        if not User.objects.filter(email=data):
+            raise ValidationError(_("The provided email does not belong to a valid user account."))
+        return data
+    
     uid = None
     
     def send_mail(self, subject_template_name, email_template_name,
                   context, from_email, to_email, html_email_template_name=None):
         #Send a django.core.mail.EmailMultiAlternatives to 'to_email'
-        email_backend_type = type(conf_settings.EMAIL_BACKEND)
-        if email_backend_type.__name__ == "FileEmailBackend" and context["uid"]:
+        email_backend_type = conf_settings.EMAIL_BACKEND.rsplit(".", 1)[1]
+        if email_backend_type == "FileEmailBackend" and context["uid"]:
             self.uid = context["uid"]
         return super().send_mail(subject_template_name, email_template_name,
                   context, from_email, to_email, html_email_template_name)
