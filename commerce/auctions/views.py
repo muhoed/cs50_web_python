@@ -213,8 +213,9 @@ def get_message_content(request, uid, topic=None, start=None, end=None):
     path = conf_settings.EMAIL_FILE_PATH
     file_list = os.listdir(path)
     params_list = []
-    for mail in mail_list:
-        filename = mail.split(".")
+    for fname in file_list:
+        filename = fname.split(".")
+        filename[0] = path + filename[0]
         params_list.append(filename[0].split("-"))
     if start and end:
         result = [
@@ -226,7 +227,7 @@ def get_message_content(request, uid, topic=None, start=None, end=None):
     if topic:
         result = [select for select in result if select[1] == topic]
         
-    result = [select for select in result if select[0] == uid]
+    result = [select for select in result if select[0].rsplit("/", 1)[1] == uid]
     
     result.sort(key=lambda res: datetime.timestamp(datetime.strptime(res[2], '%Y%m%d-%H%M%S')), reverse=True)
         

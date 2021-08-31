@@ -168,8 +168,22 @@ var passwordResetDonePage = {
 	
 	loadMessage: function() {
 		$.ajax({
-			url: "/get_email_filenames",
+			url: "/get_message_content/",
+			data: {
+			    uid: uid,
+			    topic: "pwdreset"
+			},
+			type: "GET",
+			dataType: "json",
+			cache: false
 			
+		}).done(function(json){
+		    passwordResetDonePage.messageContainer.load(json[0][0] + json[0][1] + json[0][2] + ".log");
+		}).fail(function(xhr, status, error){
+		    var message = "<p>Sorry, there was a problem.</p><p>Request:" + xhr + "</p><p>Status: " + status + "</p><p>Error: " + error + "</p>";
+		    passwordResetDonePage.messageContainer.html(message);
+		}).always(function(xhr, status){
+		    alert("Loaded! Status:" + status);
 		});
 	}
 }
