@@ -1,5 +1,7 @@
+from django.conf import settings
 from django.urls import path, include, reverse_lazy
 from django.contrib.auth import views as auth_views
+from django.conf.urls.static import static
 
 from . import views
 from .forms import UserPasswordResetForm
@@ -41,10 +43,10 @@ urlpatterns = [
 	path("password_reset_done", 
 			auth_views.PasswordResetDoneView.as_view(
 								template_name="auctions/auth/password_reset_done.html",
-								extra_context={'title': 'password reset sent'}
+								extra_context={'title': 'password reset link sent'}
 								),
 			name='password_reset_done'),
-	path("get_email_filenames/<str:uid>/<str:topic>/<str:start>/<str:end>/", 
+	path("get_email_filenames/", 
 			views.get_message_content, 
 			name="get_email_filenames"),
 	path("password_reset_confirm/<str:uidb64>/<str:token>/", 
@@ -92,3 +94,6 @@ urlpatterns = [
     path("bid", views.bid, name="bid"),
     path("search", views.search, name="search")
 ]
+
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -163,14 +163,25 @@ var passwordResetDonePage = {
 	
 	setup: function() {
 		passwordResetDonePage.config.openLink
-			.on("click", passwordResetDonePage.loadMessage());
+			.on("click", function(event){
+					if(passwordResetDonePage
+										.config.messageContainer.html() == "") {
+						passwordResetDonePage.loadMessage();
+					}
+					$("html, body").animate({scrollTop: passwordResetDonePage
+															.config.messageContainer
+															.offset().top}, 'slow');
+					passwordResetDonePage.config.messageContainer
+															.attr("tabindex",-1)
+															.focus();
+				});
 	},
 	
 	loadMessage: function() {
 		$.ajax({
-			url: "/get_message_content/",
+			url: "/get_email_filenames/",
 			data: {
-			    uid: uid,
+			    uidb64: uid,
 			    topic: "pwdreset"
 			},
 			type: "GET",
@@ -178,12 +189,10 @@ var passwordResetDonePage = {
 			cache: false
 			
 		}).done(function(json){
-		    passwordResetDonePage.messageContainer.load(json[0][0] + json[0][1] + json[0][2] + ".log");
+		    passwordResetDonePage.config.messageContainer.load(json[0]);
 		}).fail(function(xhr, status, error){
-		    var message = "<p>Sorry, there was a problem.</p><p>Request:" + xhr + "</p><p>Status: " + status + "</p><p>Error: " + error + "</p>";
-		    passwordResetDonePage.messageContainer.html(message);
-		}).always(function(xhr, status){
-		    alert("Loaded! Status:" + status);
+		    var message = "<p>Sorry, there was a problem.</p><p>Error: " + error + "</p>";
+		    passwordResetDonePage.config.messageContainer.html(message);
 		});
 	}
 }
@@ -194,7 +203,7 @@ $(document).ready(function(){
 		case "Auction$ - Create profile":
 			createProfilePage.init();
 			break;
-		case "Auction$ - Password reset sent":
+		case "Auction$ - Password reset link sent":
 			passwordResetDonePage.init();
 			break;
 		default:
