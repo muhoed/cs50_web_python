@@ -1,0 +1,13 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Subject: Password reset for email u@u.com
+From: webmaster@localhost
+To: u@u.com
+Date: Wed, 01 Sep 2021 08:39:56 -0000
+Message-ID: <163048559676.12655.15683302245654247743@localhost>
+
+Someone asked for password reset for email u@u.com. Follow the link below:
+http://127.0.0.1:8000/password_reset_confirm/Mg/asalmk-5a7d75599cecfb313cf0cbb593f7e332/
+
+-------------------------------------------------------------------------------

@@ -168,12 +168,13 @@ var passwordResetDonePage = {
 										.config.messageContainer.html() == "") {
 						passwordResetDonePage.loadMessage();
 					}
-					$("html, body").animate({scrollTop: passwordResetDonePage
-															.config.messageContainer
-															.offset().top}, 'slow');
-					passwordResetDonePage.config.messageContainer
-															.attr("tabindex",-1)
-															.focus();
+					//$("html, body").animate({scrollTop: passwordResetDonePage
+															//.config.messageContainer
+															//.offset().top}, 'slow');
+					//passwordResetDonePage.config.messageContainer
+															//.attr("tabindex",-1)
+															//.focus();
+															passwordResetDonePage.config.messageContainer.get(0).scrollIntoView( {behavior: "smooth" });
 				});
 	},
 	

@@ -248,7 +248,8 @@ def get_message_content(request):
                                                                 res[2], 
                                                                 '%Y%m%d-%H%M%S'
                                                                 )
-                                            )
+                                            ),
+                                            reverse=True
             )
             
     result = ["media/emails/" + res[0] + "_" + res[1] + "_" + res[2] + ".log" for res in result]
