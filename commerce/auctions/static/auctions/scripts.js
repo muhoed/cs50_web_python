@@ -180,7 +180,7 @@ var passwordResetDonePage = {
 	
 	loadMessage: function() {
 		$.ajax({
-			url: "/get_email_filenames/",
+			url: "/get_email_filenames",
 			data: {
 			    uidb64: uid,
 			    topic: "pwdreset"

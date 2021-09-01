@@ -225,7 +225,6 @@ def get_message_content(request):
     params_list = []
     for fname in file_list:
         filename = fname.split(".")
-        #filename[0] = path + filename[0]
         params_list.append(filename[0].split("_"))
         
     if start and end:

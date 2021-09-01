@@ -2,6 +2,7 @@ from django.conf import settings
 from django.urls import path, include, reverse_lazy
 from django.contrib.auth import views as auth_views
 from django.conf.urls.static import static
+from django.utils.translation import gettext, gettext_lazy as _
 
 from . import views
 from .forms import UserPasswordResetForm
@@ -9,33 +10,33 @@ from .forms import UserPasswordResetForm
 app_name = "auctions"
 urlpatterns = [
     path("", views.ActiveListingsView.as_view(
-								extra_context={'title': 'home'}),
+								extra_context={'title': _('home')}),
 								name="index"),
     path("login", 
 			views.UserLoginView.as_view(
-								extra_context={'title': 'login'},
+								extra_context={'title': _('login')},
 								template_name='auctions/auth/login.html'), 
 			name="login"),	
     path("logout", 				
 			auth_views.LogoutView.as_view(
-								extra_context={'message':'You were logged out.'}), 
+								extra_context={'message':_('You were logged out.')}), 
 			name="logout"),
     path("password_change", 
 			auth_views.PasswordChangeView.as_view(
-								extra_context={'title': 'password change'},
+								extra_context={'title': _('password change')},
 								template_name='auctions/auth/password_change.html',
 								success_url=reverse_lazy('auctions:password_change_done')),
 			name="password_change"),
 	path("password_change_done", 
 			auth_views.PasswordChangeDoneView.as_view(
-								extra_context={'title': 'password change completed'},
+								extra_context={'title': _('password change completed')},
 								template_name='auctions/auth/password_change_done.html'),
 			name="password_change_done"),
 	path("password_reset", 
 			views.UserPasswordResetView.as_view(
 								template_name="auctions/auth/password_reset_form.html",
 								form_class=UserPasswordResetForm,
-								extra_context={'title': 'password reset'},
+								extra_context={'title': _('password reset')},
 								email_template_name="auctions/auth/emails/password_reset_email.html",
 								subject_template_name="auctions/auth/emails/password_reset_subject.txt", 
 								success_url=reverse_lazy("auctions:password_reset_done")), 
@@ -43,46 +44,51 @@ urlpatterns = [
 	path("password_reset_done", 
 			auth_views.PasswordResetDoneView.as_view(
 								template_name="auctions/auth/password_reset_done.html",
-								extra_context={'title': 'password reset link sent'}
+								extra_context={'title': _('password reset link sent')}
 								),
 			name='password_reset_done'),
-	path("get_email_filenames/", 
+	path("get_email_filenames", 
 			views.get_message_content, 
 			name="get_email_filenames"),
-	path("password_reset_confirm/<str:uidb64>/<str:token>/", 
-			auth_views.PasswordResetConfirmView.as_view(),
+	path("password_reset_confirm/<uidb64>/<token>/", 
+			auth_views.PasswordResetConfirmView.as_view(
+								extra_context={'title': _('enter new password')},
+								template_name='auctions/auth/password_reset_confirm.html',
+								success_url=reverse_lazy('auctions:password_reset_complete')),
 			name='password_reset_confirm'),
 	path("password_reset_complete", 
-			auth_views.PasswordResetCompleteView.as_view(),
+			auth_views.PasswordResetCompleteView.as_view(
+								extra_context={'title': _('password reset completed')},
+								template_name='auctions/auth/password_reset_complete.html'),
 			name='password_reset_complete'),
     path("register", 
 			views.UserRegisterView.as_view(
-								extra_context={'title': 'register'},
+								extra_context={'title': _('register')},
 								template_name='auctions/auth/register.html'),
 			name="register"),
     path("registration_confirm", 
 			views.RegistrationConfirmView.as_view(
-								extra_context={'title': 'confirm registration'},
+								extra_context={'title': _('confirm registration')},
 								template_name = 'auctions/auth/registration_confirm.html'),
 			name="registration_confirm"),
 	path("registration_complete/<uidb64>/<token>/", 
 			views.RegistrationCompleteView.as_view(
-								extra_context={'title': 'registration completed'},
+								extra_context={'title': _('registration completed')},
 								template_name = "auctions/auth/registration_complete.html"),
 			name="registration_complete"),
 	path("create_profile/<int:pk>/",
 			views.UserProfileCreateView.as_view(
-								extra_context={'title': 'create profile'},
+								extra_context={'title': _('create profile')},
 								template_name="auctions/account/create_profile.html"),
 			name="create_profile"),
     path("profile/<int:pk>/",
 			views.ProfileView.as_view(
-								extra_context={'title': 'account'},
+								extra_context={'title': _('account')},
 								template_name='auctions/account/profile.html'), 
 			name="profile"),
 	path("credentials/<int:pk>/",
 			views.CredentialsUpdateView.as_view(
-								extra_context={'title': 'credentials'},
+								extra_context={'title': _('credentials')},
 								template_name="auctions/account/credentials.html"),
 			name="credentials"),
     path("categories", views.categories, name="categories"),
