@@ -255,8 +255,7 @@ def get_message_content(request):
         
     return JsonResponse(result, safe=False)
     
-
-        
+            
 class UserProfileCreateView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
     """
     Creates profile for newly registered user.
