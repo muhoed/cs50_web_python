@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
+from django.core.mail import EmailMultiAlternatives
 from django.db import IntegrityError
 from django.db.models import (F, Q, Max, Case, When, Value, OuterRef, 
                                 Subquery, ExpressionWrapper, DateTimeField)
@@ -94,20 +95,63 @@ class RegistrationConfirmView(TemplateView):
     """
     success_url = reverse_lazy('auctions:registration_complete')
     token_generator = default_token_generator
+    subject_template_name = None
+    email_template_name = None
+    from_email = None
+    to_email = None
+    html_email_template_name = None
+    use_https = False
+    extra_email_context = None
         
     def get(self, request, *args, **kwargs):
         if request.session["newuser"]:
-            protocol = 'http'
+            user = User.objects.get(pk=request.session["newuser"])
+            #protocol = 'http'
+            protocol = 'https' if use_https else 'http'
             current_site = get_current_site(request)
             site_name = current_site.name
             domain = current_site.domain
-            uid = urlsafe_base64_encode(force_bytes(request.session["newuser"]))
-            token = self.token_generator.make_token(User.objects.get(pk=request.session["newuser"]))
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = self.token_generator.make_token(user)
+            self.send_mail(protocol=protocol, domain=domain, uid=uid, token=token, user=user)
             return render(request, self.template_name, {
-                                                'protocol':protocol, 
-                                                'domain':domain, 
-                                                'uid':uid, 'token':token})
+                                                #'protocol':protocol,
+                                                #'site_name':site_name, 
+                                                #'domain':domain, 
+                                                'uid':uid, 'topic':'regactivate'}) #token':token})
         return redirect(reverse('auctions:register'))
+        
+    def send_mail(self, protocol, site_name, domain, uid, token, user):
+        """
+        Generate a one-use only link for activate account and send it to the
+        user.
+        """
+        user_email = user.email
+        context = {
+            'email': user_email,
+            'domain': domain,
+            'site_name': site_name,
+            'uid': uid,
+            'user': user,
+            'token': token,
+            'protocol': 'https' if use_https else 'http',
+            **(extra_email_context or {}),
+        }
+        
+        #Send a django.core.mail.EmailMultiAlternatives to `to_email`.
+        #Use FileEmailBackend if set in settings
+        
+        subject = loader.render_to_string(self.subject_template_name, context)
+        # Email subject *must not* contain newlines
+        subject = ''.join(subject.splitlines())
+        body = loader.render_to_string(self.email_template_name, context)
+
+        email_message = EmailMultiAlternatives(subject, body, self.from_email, user_email)
+        if self.html_email_template_name is not None:
+            html_email = loader.render_to_string(self.html_email_template_name, context)
+            email_message.attach_alternative(html_email, 'text/html')
+
+        email_message.send()
         
 INTERNAL_RESET_SESSION_TOKEN = '_activate_user_token'
         
