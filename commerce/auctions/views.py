@@ -26,6 +26,7 @@ from django.views.generic import TemplateView, ListView, DetailView
 from django.views.generic.edit import CreateView, UpdateView
 from django.views.decorators.cache import never_cache
 from django.core.exceptions import ImproperlyConfigured, ValidationError
+from django.template import loader
 
 from .models import *
 from .forms import *
@@ -95,30 +96,32 @@ class RegistrationConfirmView(TemplateView):
     """
     success_url = reverse_lazy('auctions:registration_complete')
     token_generator = default_token_generator
-    subject_template_name = "auctions/auth/account_activation_subject.html"
-    email_template_name = "auctions/auth/account_activation_email.html"
+    subject_template_name = "auctions/auth/emails/account_activation_subject.txt"
+    email_template_name = "auctions/auth/emails/account_activation_email.html"
     from_email = None
     to_email = None
     html_email_template_name = None
     use_https = False
+    extra_context = None
     extra_email_context = None
         
     def get(self, request, *args, **kwargs):
         if request.session["newuser"]:
             user = User.objects.get(pk=request.session["newuser"])
             #protocol = 'http'
-            protocol = 'https' if use_https else 'http'
+            protocol = 'https' if self.use_https else 'http'
             current_site = get_current_site(request)
             site_name = current_site.name
             domain = current_site.domain
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             token = self.token_generator.make_token(user)
-            self.send_mail(protocol=protocol, domain=domain, uid=uid, token=token, user=user)
+            self.send_mail(
+                    protocol=protocol, site_name=site_name, 
+                    domain=domain, uid=uid, token=token, user=user
+                    )
             return render(request, self.template_name, {
-                                                #'protocol':protocol,
-                                                #'site_name':site_name, 
-                                                #'domain':domain, 
-                                                'uid':uid, 'topic':'regactivate'}) #token':token})
+                                                'uid':uid, 'topic':'regactivate', 
+                                                'token':token, 'title': self.extra_context['title']})
         return redirect(reverse('auctions:register'))
         
     def send_mail(self, protocol, site_name, domain, uid, token, user):
@@ -134,8 +137,8 @@ class RegistrationConfirmView(TemplateView):
             'uid': uid,
             'user': user,
             'token': token,
-            'protocol': 'https' if use_https else 'http',
-            **(extra_email_context or {}),
+            'protocol': protocol,
+            **(self.extra_email_context or {}),
         }
         
         #Send a django.core.mail.EmailMultiAlternatives to `to_email`.
@@ -146,7 +149,7 @@ class RegistrationConfirmView(TemplateView):
         subject = ''.join(subject.splitlines())
         body = loader.render_to_string(self.email_template_name, context)
 
-        email_message = EmailMultiAlternatives(subject, body, self.from_email, user_email)
+        email_message = EmailMultiAlternatives(subject, body, self.from_email, [user_email])
         if self.html_email_template_name is not None:
             html_email = loader.render_to_string(self.html_email_template_name, context)
             email_message.attach_alternative(html_email, 'text/html')
@@ -266,19 +269,17 @@ def get_message_content(request):
     
     path = conf_settings.EMAIL_FILE_PATH
     file_list = os.listdir(path)
-    params_list = []
+    result = []
     for fname in file_list:
         filename = fname.split(".")
-        params_list.append(filename[0].split("_"))
+        result.append(filename[0].split("_"))
         
     if start and end:
         result = [
-            select for select in params_list 
+            select for select in result 
             if datetime.timestamp(datetime.strptime(select[2], '%Y%m%d-%H%M%S')) >= datetime.timestamp(datetime.strptime(start, '%Y-%m-%d')) 
             and datetime.timestamp(datetime.strptime(select[2], '%Y%m%d-%H%M%S')) <= datetime.timestamp(datetime.strptime(end, '%Y-%m-%d'))
             ]
-    else:
-        result = params_list
         
     if topic:
         result = [select for select in result if select[1] == topic]

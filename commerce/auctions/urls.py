@@ -37,6 +37,7 @@ urlpatterns = [
 								template_name="auctions/auth/password_reset_form.html",
 								form_class=UserPasswordResetForm,
 								extra_context={'title': _('password reset')},
+								extra_email_context={'topic': 'pwdreset'},
 								email_template_name="auctions/auth/emails/password_reset_email.html",
 								subject_template_name="auctions/auth/emails/password_reset_subject.txt", 
 								success_url=reverse_lazy("auctions:password_reset_done")), 
@@ -69,6 +70,7 @@ urlpatterns = [
     path("registration_confirm", 
 			views.RegistrationConfirmView.as_view(
 								extra_context={'title': _('confirm registration')},
+								extra_email_context={'topic': 'regactivation'},
 								template_name = 'auctions/auth/registration_confirm.html'),
 			name="registration_confirm"),
 	path("registration_complete/<uidb64>/<token>/", 

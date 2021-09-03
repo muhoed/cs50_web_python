@@ -164,8 +164,7 @@ var emailLinkPage = {
 	setup: function() {
 		emailLinkPage.config.openLink
 			.on("click", function(event){
-					if(emailLinkPage
-										.config.messageContainer.html() == "") {
+					if(emailLinkPage.config.messageContainer.html() == "") {
 						emailLinkPage.loadMessage();
 					}
 					emailLinkPage.config.messageContainer.get(0).scrollIntoView( {behavior: "smooth" });
@@ -202,7 +201,7 @@ $(document).ready(function(){
 			emailLinkPage.init({topic: "pwdreset"});
 			break;
 		case "Auction$ - Confirm registration":
-		        emailLinkPage.init({topic:"regactivate"});
+		        emailLinkPage.init({topic: "regactivation"});
 		        break;
 		default:
 			return false;
