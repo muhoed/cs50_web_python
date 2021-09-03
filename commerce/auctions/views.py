@@ -95,8 +95,8 @@ class RegistrationConfirmView(TemplateView):
     """
     success_url = reverse_lazy('auctions:registration_complete')
     token_generator = default_token_generator
-    subject_template_name = None
-    email_template_name = None
+    subject_template_name = "auctions/auth/account_activation_subject.html"
+    email_template_name = "auctions/auth/account_activation_email.html"
     from_email = None
     to_email = None
     html_email_template_name = None

@@ -150,31 +150,25 @@ var createProfilePage = {
 		}
 };
 
-var passwordResetDonePage = {
+var emailLinkPage = {
 	
 	init: function(settings) {
-		passwordResetDonePage.config = {
-			openLink: $("#auth-password-reset-show"),
-			messageContainer: $(".auth-password-reset-email")
+		emailLinkPage.config = {
+			openLink: $("#show-message"),
+			messageContainer: $("#message-text")
 		};
-		$.extend(passwordResetDonePage.config, settings);
-		passwordResetDonePage.setup();
+		$.extend(emailLinkPage.config, settings);
+		emailLinkPage.setup();
 	},
 	
 	setup: function() {
-		passwordResetDonePage.config.openLink
+		emailLinkPage.config.openLink
 			.on("click", function(event){
-					if(passwordResetDonePage
+					if(emailLinkPage
 										.config.messageContainer.html() == "") {
-						passwordResetDonePage.loadMessage();
+						emailLinkPage.loadMessage();
 					}
-					//$("html, body").animate({scrollTop: passwordResetDonePage
-															//.config.messageContainer
-															//.offset().top}, 'slow');
-					//passwordResetDonePage.config.messageContainer
-															//.attr("tabindex",-1)
-															//.focus();
-															passwordResetDonePage.config.messageContainer.get(0).scrollIntoView( {behavior: "smooth" });
+					emailLinkPage.config.messageContainer.get(0).scrollIntoView( {behavior: "smooth" });
 				});
 	},
 	
@@ -183,17 +177,17 @@ var passwordResetDonePage = {
 			url: "/get_email_filenames",
 			data: {
 			    uidb64: uid,
-			    topic: "pwdreset"
+			    topic: emailLinkPage.config.topic
 			},
 			type: "GET",
 			dataType: "json",
 			cache: false
 			
 		}).done(function(json){
-		    passwordResetDonePage.config.messageContainer.load(json[0]);
+		    emailLinkPage.config.messageContainer.load(json[0]);
 		}).fail(function(xhr, status, error){
 		    var message = "<p>Sorry, there was a problem.</p><p>Error: " + error + "</p>";
-		    passwordResetDonePage.config.messageContainer.html(message);
+		    emailLinkPage.config.messageContainer.html(message);
 		});
 	}
 }
@@ -205,8 +199,11 @@ $(document).ready(function(){
 			createProfilePage.init();
 			break;
 		case "Auction$ - Password reset link sent":
-			passwordResetDonePage.init();
+			emailLinkPage.init({topic: "pwdreset"});
 			break;
+		case "Auction$ - Confirm registration":
+		        emailLinkPage.init({topic:"regactivate"});
+		        break;
 		default:
 			return false;
 	}

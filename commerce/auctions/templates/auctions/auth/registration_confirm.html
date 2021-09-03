@@ -1,21 +1,22 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
+<script>var uid = {{ uid }};</script>
 <h2>Confirm registration</h2>
 <div id="registration_confirmation">
 	<h4>Thank you for registering on Auction$ webportal!</h4>
 	<p>There should be an email sent to you at this stage of the registration 
 	process with a link to confirm your registration. However there is no email 
 	functionality implemented in this version of the application yet.</p>
-	<p>Instead please see a content of respective email message below and follow
+	<p>Instead please <span id="show-message">click here</span> to see a content of respective email message below and follow
 	the activation link to confirm your registration.</p>
 </div>
-<div id="activation_message">
-	<p>Message text:</p>
+<div id="message=text" class="container">
+	<!--<p>Message text:</p>
 	<p>Thank you for registering on Auction$ webportal. Please follow the link below 
 	to confirm your registration:
 	<a href="{{ protocol }}://{{ domain }}{% url 'auctions:registration_complete' uidb64=uid token=token %}" id="activation_link">Confirm registration</a>
-	</p>
+	</p>-->
 </div>
 
 {% endblock %}
