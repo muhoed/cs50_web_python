@@ -1,7 +1,7 @@
-var createProfilePage = {
+var profilePage = {
 	
 	init: function(settings) {
-		createProfilePage.config = {
+		profilePage.config = {
 			deleteForms: $("tr").filter(":contains('Delete:')"),
 			emailForms: $(".email-address-form"),
 			addressForms: $(".address-form"),
@@ -10,65 +10,92 @@ var createProfilePage = {
 			emailTypeSelectors: $("tr:contains('Email type:')").find("select"),
 			addressTypeSelectors: $("tr:contains('Address type:')").find("select")
 		};
-		$.extend(createProfilePage.config, settings);
-		createProfilePage.setup();
+		$.extend(profilePage.config, settings);
+		profilePage.setup();
 	},
 	
 	setup: function(){
 		//set form labels and input fields width
 		$("tr").find("td:first-child, th:first-child").addClass("w-50");
 		$("input").attr("size", "50");
+		//set initial visibility of email and address form depending on action
+		if (profilePage.config.action === "create") {
+			profilePage.config.emailForms.hide();
+			profilePage.config.addressForms.eq(1).hide();
+		} else {
+			profilePage.config.emailForms
+									.each(profilePage.setVisibility);
+			profilePage.config.addressForms.eq(1)
+									.each(profilePage.setVisibility);
+		}
 		//set remove form functionality and display
-		createProfilePage.config.deleteForms
-			.each(createProfilePage.setRemove);
-		createProfilePage.config.deleteForms
-			.each(createProfilePage.removeForm);
+		profilePage.config.deleteForms
+			.each(profilePage.setRemove);
+		profilePage.config.deleteForms
+			.each(profilePage.removeForm);
 		//delete row should not be displayed for the first address form
-		createProfilePage.config.deleteForms
+		profilePage.config.deleteForms
 			.filter(":contains('#id_address_set-0-DELETE')")
 			.hide();
 		//configure add email function
-		createProfilePage.config.addEmail
+		profilePage.config.addEmail
 			.on("click", function (event) {
-								createProfilePage.addForm(
+								profilePage.addForm(
 										event.delegateTarget,
-										createProfilePage.config.emailForms
+										profilePage.config.emailForms
 										)
 						});
 		//configure add address function
-		createProfilePage.config.addAddress
+		profilePage.config.addAddress
 			.on("click", function (event) {
-								createProfilePage.addForm(
+								profilePage.addForm(
 										event.delegateTarget,
-										createProfilePage.config.addressForms
+										profilePage.config.addressForms
 										)
 						});
 		//set initial types
-		createProfilePage.config.emailForms//[0])
+		profilePage.config.emailForms//[0])
 			.on("change", function(event){
-				createProfilePage.changeSelection(
+				profilePage.changeSelection(
 									event.delegateTarget,
-									createProfilePage.config.emailTypeSelectors.eq(0),
-									createProfilePage.config.emailTypeSelectors.eq(1),
-									createProfilePage.getTypes(createProfilePage.config.emailTypeSelectors.eq(0))
+									profilePage.config.emailTypeSelectors.eq(0),
+									profilePage.config.emailTypeSelectors.eq(1),
+									profilePage.getTypes(profilePage.config.emailTypeSelectors.eq(0))
 									);
 								});
-		createProfilePage.config.addressForms//[0])
+		profilePage.config.addressForms//[0])
 			.on("change", function(event){
-				createProfilePage.changeSelection(
+				profilePage.changeSelection(
 									event.delegateTarget,
-									createProfilePage.config.addressTypeSelectors.eq(0),
-									createProfilePage.config.addressTypeSelectors.eq(1),
-									createProfilePage.getTypes(createProfilePage.config.addressTypeSelectors.eq(0))
+									profilePage.config.addressTypeSelectors.eq(0),
+									profilePage.config.addressTypeSelectors.eq(1),
+									profilePage.getTypes(profilePage.config.addressTypeSelectors.eq(0))
 									);
 								});
+	},
+	
+	setVisibility: function() {
+		var inputs = $(this).find('input');
+		var hasValue = false;
+		var i = 0, l = inputs.length;
+		for (; i < l; i++) {
+			var value = inputs.eq(i).attr('value');
+			if (value && value != "") {
+				hasValue = true;
+				$(this).show();
+				break;
+			}
+		}
+		if (!hasValue) {
+			$(this).hide();
+		}
 	},
 	
 	setRemove: function() {
 		var item = $(this);
 		item.find("label")
 			.html("<h4 class='btn btn-primary text-left remove' title='Click to remove form.'>Remove</h4>")
-			.click(createProfilePage.removeForm);
+			.click(profilePage.removeForm);
 		item.find("input[type='checkbox']")
 			.not("#id_address_set-0-DELETE")
 			.prop("checked", true)
@@ -90,7 +117,7 @@ var createProfilePage = {
 		var deleteForm2 = forms.eq(1).find("input[type='checkbox']");
 		var selectTypeForm1 = forms.eq(0).find("select:first");
 		var selectTypeForm2 = forms.eq(1).find("select:first");
-		var types = createProfilePage.getTypes(selectTypeForm1);
+		var types = profilePage.getTypes(selectTypeForm1);
 		if (forms.eq(0).is(":hidden")) {
 			forms.eq(0).show();
 			deleteForm1.prop("checked", false);
@@ -98,7 +125,7 @@ var createProfilePage = {
 			forms.eq(1).show();
 			deleteForm2.prop("checked", false);
 			//$(trigger).hide();
-			createProfilePage.changeSelection(
+			profilePage.changeSelection(
 				selectTypeForm1.attr("id"),
 				selectTypeForm1,
 				selectTypeForm2,
@@ -140,11 +167,11 @@ var createProfilePage = {
 		let selectorForm2 = $(this).parent().siblings("table").find("select:first");
 		selectorForm1
 			.on("change", function(event){
-				createProfilePage.changeSelection(
+				profilePage.changeSelection(
 							event.delegateTarget,
 							selectorForm1,
 							selectorForm2,
-							createProfilePage.getTypes(selectorForm1)
+							profilePage.getTypes(selectorForm1)
 							);
 				});
 		}
@@ -195,7 +222,10 @@ $(document).ready(function(){
 	let pageTitle = $("title").text();
 	switch(pageTitle) {
 		case "Auction$ - Create profile":
-			createProfilePage.init();
+			profilePage.init({'action': 'create'});
+			break;
+		case "Auction$ - Profile":
+			profilePage.init({'action': 'update'});
 			break;
 		case "Auction$ - Password reset link sent":
 			emailLinkPage.init({topic: "pwdreset"});

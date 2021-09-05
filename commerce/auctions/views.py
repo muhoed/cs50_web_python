@@ -301,7 +301,7 @@ def get_message_content(request):
     return JsonResponse(result, safe=False)
     
             
-class UserProfileCreateView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
+class ProfileView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
     """
     Creates profile for newly registered user.
     """
@@ -321,7 +321,8 @@ class UserProfileCreateView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView
     def dispatch(self, *args, **kwargs):
         self.object = self.get_object()
         if self.object.profile_completed:
-            return redirect(self.get_success_url())
+            self.extra_context = {'title': 'profile'}
+            #return redirect(self.get_success_url())
         return super().dispatch(*args, **kwargs)
            
     @method_decorator(never_cache)
@@ -349,7 +350,7 @@ class UserProfileCreateView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView
         return super().form_valid(form)
     
         
-class ProfileView(LoginRequiredMixin, CorrectUserTestMixin, DetailView):
+class ActivitiesSummaryView(LoginRequiredMixin, CorrectUserTestMixin, DetailView):
     """ Display user profile details. """
     model = User
     permission_denied_message='Access to the requested page was denied.'
