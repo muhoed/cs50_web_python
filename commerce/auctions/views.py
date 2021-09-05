@@ -393,6 +393,11 @@ class CredentialsUpdateView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView
     def form_valid(self, form):
         messages.success(self.request, 'Your account credentials were updated.')
         return super().form_valid(form)
+        
+class PersonalInfoView(LoginRequiredMixin, CorrectUserTestMixin, DetailView):
+	"""Summary of user's personal and contact information."""
+	model = User
+	
     
     
 class ActiveListingsView(ListView):

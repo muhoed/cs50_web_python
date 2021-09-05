@@ -88,11 +88,16 @@ urlpatterns = [
 								extra_context={'title': _('account')},
 								template_name='auctions/account/profile.html'), 
 			name="profile"),
-	path("credentials/<int:pk>/",
+	path("profile/<int:pk>/credentials/",
 			views.CredentialsUpdateView.as_view(
 								extra_context={'title': _('credentials')},
 								template_name="auctions/account/credentials.html"),
 			name="credentials"),
+	path("profile/<int:pk>/information/",
+			views.PersonalInfoView.as_view(
+								extra_context={'title': _('personal and contact information')},
+								template_name="auctions/account/information.html"),
+			name="user_info"),
     path("categories", views.categories, name="categories"),
     path("categories/<int:cat_id>/", views.categories, name="categories"),
     path("create", views.create_listing, name="create_listing"),

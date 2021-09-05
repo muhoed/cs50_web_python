@@ -8,10 +8,9 @@
 		</div>
 		<div class="main flex-row d-flex w-100">
 			<ul class="nav flex-column w-25 border border-top-0 border-bottom-0 border-left-0">
-				<li class="nav-item"><a href="{% url 'auctions:profile' user.id %}">Account home</a></li>
+				<li class="nav-item"><a href="{% url 'auctions:profile' user.id %}">Dashboard</a></li>
 				<li class="nav-item"><a href="{% url 'auctions:credentials' user.id %}">Credentials</a></li>
-				<li class="nav-item">Personal info</li>
-				<li class="nav-item">Contact info</li>
+				<li class="nav-item"><a href="{% url 'auctions:user_info' user.pk %}">Personal and Contact info</a></li>
 				<li class="nav-item">Sell activity</li>
 				<li class="nav-item">Purchase activity</li>
 				<li class="nav-item">Watchlist</li>
