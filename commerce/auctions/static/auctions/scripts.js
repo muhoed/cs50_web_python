@@ -18,17 +18,7 @@ var profilePage = {
 		//set form labels and input fields width
 		$("tr").find("td:first-child, th:first-child").addClass("w-50");
 		$("input").attr("size", "50");
-		//set initial visibility of email and address form depending on action
-		if (profilePage.config.action === "create") {
-			profilePage.config.emailForms.hide();
-			profilePage.config.addressForms.eq(1).hide();
-		} else {
-			profilePage.config.emailForms
-									.each(profilePage.setVisibility);
-			profilePage.config.addressForms.eq(1)
-									.each(profilePage.setVisibility);
-		}
-		//set remove form functionality and display
+		//set remove form functionality and initial visibility
 		profilePage.config.deleteForms
 			.each(profilePage.setRemove);
 		profilePage.config.deleteForms
@@ -74,23 +64,6 @@ var profilePage = {
 								});
 	},
 	
-	setVisibility: function() {
-		var inputs = $(this).find('input');
-		var hasValue = false;
-		var i = 0, l = inputs.length;
-		for (; i < l; i++) {
-			var value = inputs.eq(i).attr('value');
-			if (value && value != "") {
-				hasValue = true;
-				$(this).show();
-				break;
-			}
-		}
-		if (!hasValue) {
-			$(this).hide();
-		}
-	},
-	
 	setRemove: function() {
 		var item = $(this);
 		item.find("label")
@@ -104,12 +77,16 @@ var profilePage = {
 	},
 	
 	removeForm: function() {
+	    if(profilePage.config.action === "create") {
 		$(this).not("tr:has('#id_address_set-0-DELETE')")
 				.each(function(){
 					let parentTable = $(this).parents("table");
 					parentTable.hide();
 					parentTable.siblings("h4").show();
 				});
+	    } else {
+	        
+	    }
 	},
 	
 	addForm: function(trigger, forms) {
