@@ -94,7 +94,15 @@ var profilePage = {
 			if (profilePage.config.action === "create") {
 				$(this).hide();
 			} else {
-				var formInputs = 
+				var formInputs = $(this).find("input");
+				for (var i=0; i < formInputs.length; i++) {
+				    if ($(formInputs[i]).val()) {
+				        $(formInputs[i]).parents("table").show();
+				        break;
+				    }
+				    $(formInputs[i]).parents("table").hide();
+				    (formInputs[i]).parents("table").siblings("h4").show();
+				}
 			}
 		});
 	},
