@@ -18,11 +18,15 @@ var profilePage = {
 		//set form labels and input fields width
 		$("tr").find("td:first-child, th:first-child").addClass("w-50");
 		$("input").attr("size", "50");
-		//set remove form functionality and initial visibility
+		//set remove form functionality
 		profilePage.config.deleteForms
 			.each(profilePage.setRemove);
-		profilePage.config.deleteForms
-			.each(profilePage.removeForm);
+		//set initial visibility
+		profilePage.config.emailForms
+			.each(profilePage.setVisibility);
+		profilePage.config.addressForms
+			.filter("#address-form-1")
+			.each(profilePage.setVisibility);
 		//delete row should not be displayed for the first address form
 		profilePage.config.deleteForms
 			.filter(":contains('#id_address_set-0-DELETE')")
@@ -77,16 +81,22 @@ var profilePage = {
 	},
 	
 	removeForm: function() {
-	    if(profilePage.config.action === "create") {
 		$(this).not("tr:has('#id_address_set-0-DELETE')")
 				.each(function(){
 					let parentTable = $(this).parents("table");
 					parentTable.hide();
 					parentTable.siblings("h4").show();
 				});
-	    } else {
-	        
-	    }
+	},
+	
+	setVisibility: function() {
+		$(this).each(function(){
+			if (profilePage.config.action === "create") {
+				$(this).hide();
+			} else {
+				var formInputs = 
+			}
+		});
 	},
 	
 	addForm: function(trigger, forms) {
