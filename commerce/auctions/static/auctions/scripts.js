@@ -2,7 +2,10 @@ var profilePage = {
 	
 	init: function(settings) {
 		profilePage.config = {
+			allForms: $("table"),
+			personalForm: $(".full_name_form"),
 			deleteForms: $("tr").filter(":contains('Delete:')"),
+			editForms: $("span.edit-button"),
 			emailForms: $(".email-address-form"),
 			addressForms: $(".address-form"),
 			addEmail: $("#addEmail"),
@@ -22,15 +25,19 @@ var profilePage = {
 		profilePage.config.deleteForms
 			.each(profilePage.setRemove);
 		//set initial visibility
-		profilePage.config.emailForms
-			.each(profilePage.setVisibility);
-		profilePage.config.addressForms
-			.filter("#address-form-1")
-			.each(profilePage.setVisibility);
+		profilePage.config.allForms
+			.each(profilePage.setInitialState);
 		//delete row should not be displayed for the first address form
 		profilePage.config.deleteForms
 			.filter(":contains('#id_address_set-0-DELETE')")
 			.hide();
+		//enable form editing in update view
+		profilePage.config.editForms
+			.on("click", function (event) {
+				profilePage.editForm(
+					event.delegateTarget
+				);
+			});
 		//configure add email function
 		profilePage.config.addEmail
 			.on("click", function (event) {
@@ -89,22 +96,39 @@ var profilePage = {
 				});
 	},
 	
-	setVisibility: function() {
+	setInitialState: function() {
 		$(this).each(function(){
 			if (profilePage.config.action === "create") {
-				$(this).hide();
+				$(this).filter(":not(.full_name_form) :not(#address-form-0)").hide();
+				$(this).siblings("h4").show();
 			} else {
-				var formInputs = $(this).find("input");
+				$(this).find("label, input, select, option")
+												.attr("disabled", true);
+				var formInputs = $(this).find("input:visible")
+										.filter(":not(:checkbox)");
 				for (var i=0; i < formInputs.length; i++) {
-				    if ($(formInputs[i]).val()) {
-				        $(formInputs[i]).parents("table").show();
-				        break;
-				    }
-				    $(formInputs[i]).parents("table").hide();
-				    (formInputs[i]).parents("table").siblings("h4").show();
+					var parentTable = $(formInputs[i]).parents("table");
+					parentTable.siblings("h4").hide();
+					var inputValue = $(formInputs[i]).val();
+				    if (inputValue != null && inputValue != "") {
+				        parentTable.show();
+				    } else {
+						parentTable.hide();
+						parentTable.siblings("h4").show();
+					}
 				}
+				$(".btn").filter(":not(input[type='submit']) :not(span.edit-button)").hide();
 			}
 		});
+	},
+	
+	editForm: function(trigger) {
+		$(trigger).next()
+					.find("label, input, select, option")
+					.attr("disabled", false);
+		$(trigger).next()
+					.find(".btn")
+					.show();
 	},
 	
 	addForm: function(trigger, forms) {

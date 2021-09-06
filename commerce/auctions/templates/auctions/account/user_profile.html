@@ -18,19 +18,14 @@
 						<h4>Personal information:</h4>
 						{{ form.non_field_errors }}
 						<form action="{% url 'auctions:user_profile' user.id %}" method="post">
-							{% csrf_token %}
-							<table class="full_name_form mb-5 border border-primary border-top-0 border-right-0 border-left-0">
-							{% for field in form %}
-								<tr>
-									<td colspan="2">{{ field.errors }}</td>
-								</tr>
-								<tr>
-									<th>{{ field.label_tag }}</th>
-									<td>{{ field }}</td>
-								</tr>
-							{% endfor %}
-							</table>
+							<div id="full-name-form" class="mb-5 border border-primary border-top-0 border-right-0 border-left-0">
+								{% csrf_token %}
+								<table class="full-name-form w-100 mb-3" id="full-name-form-table">
+									{{ form.as_table }}
+								</table>
+							</div>
 							
+							<h4>Email addresses: {% if user.profile_completed %}<span class="btn btn-secondary edit-button" id="edit-emails-form">Edit</span>{% endif %}</h4>
 							<div id="email-address-formset" class="mb-5 border border-primary border-top-0 border-right-0 border-left-0">
 								{{ email_formset.management_form }}
 								
@@ -43,7 +38,7 @@
 								<h4 class="btn btn-primary w-25 text-left" id="addEmail" title="Click here to add an email address for correspondence and/or payments other than email address you provided during registration.">Add email</h4>
 							</div>
 							
-							<h4>Addresses:</h4>
+							<h4>Addresses: {% if user.profile_completed %}<span class="btn btn-secondary edit-button" id="edit-addresses-form">Edit</span>{% endif %}</h4>
 							<div id="address-formset" class="mb-5 w-100 border border-primary border-top-0 border-right-0 border-left-0">
 								{{ address_formset.management_form }}
 								{% for form in address_formset %}
@@ -53,7 +48,11 @@
 								{% endfor %}
 								<h4 class="btn btn-primary w-25 text-left" id="addAddress" title="Click here to add an additional address for delivery and/or billing.">Add address</h4>
 							</div>
-							<input class="btn btn-primary" type="submit" value="Save">
+							{% if not user.profile_completed %}
+								<input class="btn btn-primary" type="submit" value="Save">
+							{% else %}
+								<input class="btn btn-primary" type="submit" value="Update">
+							{% endif %}
 						</form>
 					</div>					
 				</div>
