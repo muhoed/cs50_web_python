@@ -5,7 +5,7 @@ var profilePage = {
 			allForms: $("table"),
 			personalForm: $(".full_name_form"),
 			deleteForms: $("tr").filter(":contains('Delete:')"),
-			editForms: $("span.edit-button"),
+			editForms: $(".edit-button"),
 			emailForms: $(".email-address-form"),
 			addressForms: $(".address-form"),
 			addEmail: $("#addEmail"),
@@ -33,7 +33,7 @@ var profilePage = {
 			.hide();
 		//enable form editing in update view
 		profilePage.config.editForms
-			.on("click", function (event) {
+		    .on("click", function (event) {
 				profilePage.editForm(
 					event.delegateTarget
 				);
@@ -123,10 +123,10 @@ var profilePage = {
 	},
 	
 	editForm: function(trigger) {
-		$(trigger).next()
+		$(trigger).parent().next()
 					.find("label, input, select, option")
 					.attr("disabled", false);
-		$(trigger).next()
+		$(trigger).parent().next()
 					.find(".btn")
 					.show();
 	},
