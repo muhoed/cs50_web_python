@@ -99,7 +99,7 @@ var profilePage = {
 	setInitialState: function() {
 		$(this).each(function(){
 			if (profilePage.config.action === "create") {
-				$(this).filter(":not(.full_name_form) :not(#address-form-0)").hide();
+				$(this).filter(":not(.full-name-form, #address-form-0)").hide();
 				$(this).siblings("h4").show();
 			} else {
 				$(this).find("label, input, select, option")
@@ -117,7 +117,7 @@ var profilePage = {
 						parentTable.siblings("h4").show();
 					}
 				}
-				$(".btn").filter(":not(input[type='submit']) :not(span.edit-button)").hide();
+				$(".btn").filter(":not(input[type='submit'], span.edit-button)").hide();
 			}
 		});
 	},
@@ -128,7 +128,17 @@ var profilePage = {
 					.attr("disabled", false);
 		$(trigger).parent().next()
 					.find(".btn")
+					.not(".edit-button")
 					.show();
+		if (profilePage.config.emailForms.eq(0).is(":visible") 
+					&& profilePage.config.emailForms.eq(1).is(":visible")) {
+			profilePage.config.addEmail.hide();
+		}
+		if (profilePage.config.addressForms.eq(0).is(":visible") 
+					&& profilePage.config.addressForms.eq(1).is(":visible")) {
+			profilePage.config.addAddress.hide();
+		}
+		$(trigger).hide();
 	},
 	
 	addForm: function(trigger, forms) {
