@@ -3,7 +3,7 @@ var profilePage = {
 	init: function(settings) {
 		profilePage.config = {
 			allForms: $("table"),
-			personalForm: $(".full_name_form"),
+			personalForm: $(".full-name-form"),
 			deleteForms: $("tr").filter(":contains('Delete:')"),
 			editForms: $(".edit-button"),
 			emailForms: $(".email-address-form"),
@@ -23,11 +23,11 @@ var profilePage = {
 		$("input").attr("size", "50");
 		//copy disabled select values to hidden fields
 		if (profilePage.config.action == "update") {
-		    $("title-value").val(profilePage.config.personalForm.find("select").val());
+		    $("#title-value").val(profilePage.config.personalForm.find("select").val());
 		    for (var i=0; i<2; i++) {
-		        $("email-type-value-"+i).val(profilePage.config.emailForms.eq(i).find("select").val());
-		        $("address-type-value-"+i).val(profilePage.config.addressForms.eq(i).find("select").eq(0).val());
-		        $("country-value-"+i).val(profilePage.config.addressForms.eq(i).find("select").eq(1).val());
+		        $("#email-type-value-"+i).val(profilePage.config.emailForms.eq(i).find("select").val());
+		        $("#address-type-value-"+i).val(profilePage.config.addressForms.eq(i).find("select").eq(0).val());
+		        $("#country-value-"+i).val(profilePage.config.addressForms.eq(i).find("select").eq(1).val());
 		    }
 		}
 		//set remove form functionality
@@ -111,34 +111,35 @@ var profilePage = {
 				$(this).filter(":not(.full-name-form, #address-form-0)").hide();
 				$(this).siblings("h4").show();
 			} else {
-				$(this).find("label, input, select, option")
-												.attr("readonly", true);
-				var formInputs = $(this).find("input:visible")
-										.filter(":not(:checkbox)");
-				for (var i=0; i < formInputs.length; i++) {
-					var parentTable = $(formInputs[i]).parents("table");
-					parentTable.siblings("h4").hide();
-					var inputValue = $(formInputs[i]).val();
-				    if (inputValue != null && inputValue != "") {
-				        parentTable.show();
-				    } else {
-						parentTable.hide();
-						parentTable.siblings("h4").show();
+				if (!$(this).hasClass("full-name-form")) {
+					var formInputs = $(this).find("input:visible")
+											.filter(":not(:checkbox)");
+					for (var i=0; i < formInputs.length; i++) {
+						var parentTable = $(formInputs[i]).parents("table");
+						parentTable.siblings("h4").hide();
+						var inputValue = $(formInputs[i]).val();
+						if (inputValue != null && inputValue != "") {
+							parentTable.show();
+						} else {
+							parentTable.hide();
+							parentTable.siblings("h4").show();
+						}
 					}
 				}
-				$(".btn").filter(":not(input[type='submit'], span.edit-button)").hide();
+				if (!err || err != "true") {
+					$(this).find("label, input").attr("readonly", true);
+					$(this).find("select").attr("disabled", true);
+					$(".btn").filter(":not(span.edit-button)").hide();
+				}
 			}
 		});
 	},
 	
 	editForm: function(trigger) {
-		$(trigger).parent().next()
-					.find("label, input, select, option")
-					.attr("disabled", false);
-		$(trigger).parent().next()
-					.find(".btn")
-					.not(".edit-button")
-					.show();
+		var form = $(trigger).parent().next()
+		form.find("label, input").attr("readonly", false);
+		form.find("select").attr("disabled", false);
+		form.find(".btn").not(".edit-button").show();
 		if (profilePage.config.emailForms.eq(0).is(":visible") 
 					&& profilePage.config.emailForms.eq(1).is(":visible")) {
 			profilePage.config.addEmail.hide();
@@ -147,6 +148,7 @@ var profilePage = {
 					&& profilePage.config.addressForms.eq(1).is(":visible")) {
 			profilePage.config.addAddress.hide();
 		}
+		$("input[type='submit']").show();
 		$(trigger).hide();
 	},
 	

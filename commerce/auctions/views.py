@@ -324,25 +324,56 @@ class ProfileView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
             self.extra_context = {'title': 'profile'}
             #return redirect(self.get_success_url())
         return super().dispatch(*args, **kwargs)
+        
+    def get_form_kwargs(self):
+        """Return the keyword arguments for instantiating the form."""
+        kwargs = {
+            'initial': self.get_initial(),
+            'prefix': self.get_prefix(),
+        }
+
+        if self.request.method in ('POST', 'PUT'):
+            kwargs.update({
+                'data': self.post_data,
+                'files': self.request.FILES,
+            })
+        return kwargs
            
     @method_decorator(never_cache)
     def post(self, request, *args, **kwargs):
+        self.post_data = self.request.POST.copy()
+        if not self.request.POST.get("title") and self.request.POST.get("titlevalue"):
+            self.post_data["title"] = self.request.POST["titlevalue"] 
+        for i in range(2):
+            if not self.request.POST.get("emailaddress_set-" + str(i) + "-email_type") \
+                    and self.request.POST.get("emailtype" + str(i)):
+                self.post_data["emailaddress_set-" + str(i) + "-email_type"] = self.request.POST["emailtype" + str(i)]
+            if not self.request.POST.get("address_set-" + str(i) + "-address_type") \
+                    and self.request.POST.get("addresstype" + str(i)):
+                self.post_data["address_set-" + str(i) + "-address_type"] = self.request.POST["addresstype" + str(i)]
+            if not self.request.POST.get("address_set-" + str(i) + "-country") \
+                    and self.request.POST.get("country" + str(i)):
+                self.post_data["address_set-" + str(i) + "-country"] = self.request.POST["country" + str(i)]
         form = self.get_form()
-        email_formset = UserEmailFormset(self.request.POST, instance=self.object)
-        address_formset = UserAddressFormset(self.request.POST, instance=self.object)
+        email_formset = UserEmailFormset(self.post_data, instance=self.object)
+        address_formset = UserAddressFormset(self.post_data, instance=self.object)
+        
+        message = "Your profile was successfully created! Let's go, Sell of buy something on Auction$!"
+        if self.object.profile_completed:
+            message = "Your profile was successfully updated."
+        
         if form.is_valid() and email_formset.is_valid() and address_formset.is_valid():
             emails = email_formset.save()
             addresses = address_formset.save()
-                                
-            messages.success(self.request, 'You profile was successfully created! \
-                                            Let\'s go, Sell of buy something on Auction$!')
+            messages.success(self.request, message)
             return self.form_valid(form)
             
         else:
             return self.render_to_response(self.get_context_data(
                                                         form=form,
                                                         email_formset=email_formset,
-                                                        address_formset=address_formset
+                                                        address_formset=address_formset,
+                                                        err="true"
                                                         ))
 
     def form_valid(self, form):
