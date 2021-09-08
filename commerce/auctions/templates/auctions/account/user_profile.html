@@ -18,8 +18,12 @@
 						<h4>Personal information:</h4>
 						{{ form.non_field_errors }}
 						<form action="{% url 'auctions:user_profile' user.id %}" method="post">
+						    : {% if user.profile_completed %}
+						    <input type="hidden" id="title-value" name="titlevalue" value="">
+						    {% endif %}
 							<div id="full-name-form" class="mb-5 border border-primary border-top-0 border-right-0 border-left-0">
 								{% csrf_token %}
+							
 								<table class="full-name-form w-100 mb-3" id="full-name-form-table">
 									{{ form.as_table }}
 								</table>
@@ -30,6 +34,9 @@
 								{{ email_formset.management_form }}
 								
 									{% for form in email_formset %}
+									: {% if user.profile_completed %}
+									<input type="hidden" id="email-type-value-{{ forloop.counter0 }}" value="" name="emailtype{{ forloop.counter0 }}">
+									{% endif %}
 									<table class="email-address-form w-100 mb-3" id="email-address-form-{{ forloop.counter0 }}">
 											{{ form.as_table }}
 									</table>
@@ -42,6 +49,10 @@
 							<div id="address-formset" class="mb-5 w-100 border border-primary border-top-0 border-right-0 border-left-0">
 								{{ address_formset.management_form }}
 								{% for form in address_formset %}
+								: {% if user.profile_completed %}
+								<input type="hidden" id="address-type-value-{{ forloop.counter0 }}" value="" name="addresstype{{ forloop.counter0 }}">
+								<input type="hidden" id="country-value-{{ forloop.counter0 }}" value="" name="country{{ forloop.counter0 }}>
+								{% endif %}
 								<table class="address-form mb-3" id="address-form-{{ forloop.counter0 }}">
 									{{ form.as_table }}
 								</table>

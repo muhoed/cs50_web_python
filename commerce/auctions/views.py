@@ -303,7 +303,7 @@ def get_message_content(request):
             
 class ProfileView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
     """
-    Creates profile for newly registered user.
+    Creates profile for newly registered user. Updates existing profile. 
     """
     model = User
     form_class = UserFullNameForm

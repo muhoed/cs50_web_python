@@ -21,6 +21,15 @@ var profilePage = {
 		//set form labels and input fields width
 		$("tr").find("td:first-child, th:first-child").addClass("w-50");
 		$("input").attr("size", "50");
+		//copy disabled select values to hidden fields
+		if (profilePage.config.action == "update") {
+		    $("title-value").val(profilePage.config.personalForm.find("select").val());
+		    for (var i=0; i<2; i++) {
+		        $("email-type-value-"+i).val(profilePage.config.emailForms.eq(i).find("select").val());
+		        $("address-type-value-"+i).val(profilePage.config.addressForms.eq(i).find("select").eq(0).val());
+		        $("country-value-"+i).val(profilePage.config.addressForms.eq(i).find("select").eq(1).val());
+		    }
+		}
 		//set remove form functionality
 		profilePage.config.deleteForms
 			.each(profilePage.setRemove);
@@ -103,7 +112,7 @@ var profilePage = {
 				$(this).siblings("h4").show();
 			} else {
 				$(this).find("label, input, select, option")
-												.attr("disabled", true);
+												.attr("readonly", true);
 				var formInputs = $(this).find("input:visible")
 										.filter(":not(:checkbox)");
 				for (var i=0; i < formInputs.length; i++) {

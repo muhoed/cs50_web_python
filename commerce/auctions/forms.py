@@ -39,6 +39,7 @@ class UserFullNameForm(forms.ModelForm):
 	class Meta():
 		model = User
 		fields = ("title", "first_name", "last_name",)
+		
 					
 class EmailAddressForm(forms.ModelForm):
 	class Meta():
