@@ -91,18 +91,20 @@ var profilePage = {
 			.click(profilePage.removeForm);
 		item.find("input[type='checkbox']")
 			.not("#id_address_set-0-DELETE")
-			.prop("checked", true)
-			.css("visibility", "hidden");
-		item.has("#id_address_set-0-DELETE").hide();
+			.prop("checked", true);
+			//.css("visibility", "hidden");
+		item.has("#id_address_set-0-DELETE")
+			.prop("checked", false);
+			//.css("visibility", "hidden");;
 	},
 	
 	removeForm: function() {
-		$(this).not("tr:has('#id_address_set-0-DELETE')")
-				.each(function(){
-					let parentTable = $(this).parents("table");
-					parentTable.hide();
-					parentTable.siblings("h4").show();
-				});
+			$(this).parent().next()
+					.find("input[type='checkbox']")
+					.prop('checked', true);	
+			let parentTable = $(this).parents("table");
+			parentTable.hide();
+			parentTable.siblings("h4").show();
 	},
 	
 	setInitialState: function() {
@@ -112,21 +114,25 @@ var profilePage = {
 				$(this).siblings("h4").show();
 			} else {
 				//if (!$(this).hasClass("full-name-form")) {
-					var formInputs = $(this).find("input:visible")
-											.filter(":not(:checkbox)");
-					for (var i=0; i < formInputs.length; i++) {
-						var parentTable = $(formInputs[i]).parents("table");
-						parentTable.siblings("h4").hide();
-						var inputValue = $(formInputs[i]).val();
-						if (inputValue != null && inputValue != "") {
-							parentTable.show();
-						} else {
-							parentTable.hide();
-							parentTable.siblings("h4").show();
-						}
+				var formInputs = $(this).find("input:visible")
+										.filter(":not(:checkbox)");
+				for (var i=0; i < formInputs.length; i++) {
+					var parentTable = $(formInputs[i]).parents("table");
+					parentTable.siblings("h4").hide();
+					var inputValue = $(formInputs[i]).val();
+					if (inputValue != null && inputValue != "") {
+						parentTable.show();
+						parentTable.find("input[type='checkbox']")
+									.prop('checked', false);
+					} else {
+						//parentTable.hide();
+						parentTable.find("input[type='checkbox']")
+									.prop('checked', true);
+						parentTable.siblings("h4").show();
 					}
+				}
 				//}
-				if ($(this).hasClass("full-name-form" || (!err || err != "true")) {
+				if ($(this).hasClass("full-name-form") || err !== "true") {
 					$(this).find("label, input:visible").attr("readonly", true);
 					$(this).find("select").attr("disabled", true);
 					$(".btn").filter(":not(span.edit-button)").hide();
@@ -155,15 +161,17 @@ var profilePage = {
 	addForm: function(trigger, forms) {
 		var deleteForm1 = forms.eq(0).find("input[type='checkbox']");
 		var deleteForm2 = forms.eq(1).find("input[type='checkbox']");
+		console.log(deleteForm1[0]);
+		console.log(deleteForm2[0]);
 		var selectTypeForm1 = forms.eq(0).find("select:first");
 		var selectTypeForm2 = forms.eq(1).find("select:first");
 		var types = profilePage.getTypes(selectTypeForm1);
 		if (forms.eq(0).is(":hidden")) {
 			forms.eq(0).show();
-			deleteForm1.prop("checked", false);
+			deleteForm1.attr("checked", false);
 		} else {
 			forms.eq(1).show();
-			deleteForm2.prop("checked", false);
+			deleteForm2.attr("checked", false);
 			//$(trigger).hide();
 			profilePage.changeSelection(
 				selectTypeForm1.attr("id"),

@@ -357,7 +357,7 @@ class ProfileView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
             if not self.request.POST.get("address_set-" + str(i) + "-country") \
                     and self.request.POST.get("country" + str(i)):
                 self.post_data["address_set-" + str(i) + "-country"] = self.request.POST["country" + str(i)]
-                print(self.post_data)
+        print(self.post_data)
         form = self.get_form()
         email_formset = UserEmailFormset(self.post_data, instance=self.object)
         address_formset = UserAddressFormset(self.post_data, instance=self.object)
