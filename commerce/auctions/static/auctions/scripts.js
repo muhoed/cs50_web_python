@@ -73,7 +73,7 @@ var profilePage = {
 									profilePage.getTypes(profilePage.config.emailTypeSelectors.eq(0))
 									);
 								});
-		profilePage.config.addressForms//[0])
+		profilePage.config.addressForms
 			.on("change", function(event){
 				profilePage.changeSelection(
 									event.delegateTarget,
@@ -127,7 +127,7 @@ var profilePage = {
 					}
 				//}
 				if ($(this).hasClass("full-name-form" || (!err || err != "true")) {
-					$(this).find("label, input").attr("readonly", true);
+					$(this).find("label, input:visible").attr("readonly", true);
 					$(this).find("select").attr("disabled", true);
 					$(".btn").filter(":not(span.edit-button)").hide();
 				}
