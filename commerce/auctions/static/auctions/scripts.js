@@ -111,7 +111,7 @@ var profilePage = {
 				$(this).filter(":not(.full-name-form, #address-form-0)").hide();
 				$(this).siblings("h4").show();
 			} else {
-				if (!$(this).hasClass("full-name-form")) {
+				//if (!$(this).hasClass("full-name-form")) {
 					var formInputs = $(this).find("input:visible")
 											.filter(":not(:checkbox)");
 					for (var i=0; i < formInputs.length; i++) {
@@ -125,8 +125,8 @@ var profilePage = {
 							parentTable.siblings("h4").show();
 						}
 					}
-				}
-				if (!err || err != "true") {
+				//}
+				if ($(this).hasClass("full-name-form" || (!err || err != "true")) {
 					$(this).find("label, input").attr("readonly", true);
 					$(this).find("select").attr("disabled", true);
 					$(".btn").filter(":not(span.edit-button)").hide();
