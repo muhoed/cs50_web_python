@@ -18,10 +18,10 @@ var profilePage = {
 	},
 	
 	setup: function(){
-		//set form labels and input fields width
+		// set form labels and input fields width
 		$("tr").find("td:first-child, th:first-child").addClass("w-50");
 		$("input").attr("size", "50");
-		//copy disabled select values to hidden fields in update view
+		// copy disabled select values to hidden fields in update view
 		if (profilePage.config.action == "update") {
 		    $("#title-value").val(profilePage.config.personalForm.find("select").val());
 		    for (var i=0; i<2; i++) {
@@ -29,38 +29,40 @@ var profilePage = {
 		        $("#address-type-value-"+i).val(profilePage.config.addressForms.eq(i).find("select").eq(0).val());
 		        $("#country-value-"+i).val(profilePage.config.addressForms.eq(i).find("select").eq(1).val());
 		    }
-		    //setup edit form buttons in update view
-		profilePage.config.editForms
-		    .on("click", function (event) {
-				profilePage.editForm(
-					event.delegateTarget
-				);
-			});
-		}
-		//setup remove form buttons
+			// setup edit form buttons in update view
+			profilePage.config.editForms
+				.on("click", function (event) {
+					profilePage.editForm(
+						event.delegateTarget
+					);
+				});
+			}
+		// setup remove form buttons
 		profilePage.config.deleteForms
 			.each(function() {
-		var item = $(this);
-		item.find("label")
-			.html("<h4 class='btn btn-primary text-left remove' title='Click to remove form.'>Remove</h4>")
-			.click(profilePage.removeForm););
-		//setup add email form button
+				$(this).find("label")
+					.html("<h4 class='btn btn-primary text-left remove' title='Click to remove form.'>Remove</h4>")
+					.on('click', function (event) {
+						profilePage.removeForm
+					});
+			});
+		// setup add email form button
 		profilePage.config.addEmail
 			.on("click", function (event) {
 								profilePage.addForm(
 										event.delegateTarget,
 										profilePage.config.emailForms
-										)
-						});
-		//setup add address form button
+									)
+					});
+		// setup add address form button
 		profilePage.config.addAddress
 			.on("click", function (event) {
 								profilePage.addForm(
 										event.delegateTarget,
 										profilePage.config.addressForms
-										)
-						});
-		//setup types switch handler
+									)
+					});
+		// setup types switch handler
 		profilePage.config.emailForms//[0])
 			.on("change", function(event){
 				profilePage.changeSelection(
@@ -79,9 +81,8 @@ var profilePage = {
 									profilePage.getTypes(profilePage.config.addressTypeSelectors.eq(0))
 									);
 								});
-								//setup initial state
-		profilePage.config.allForms
-			.each(profilePage.setInitialState);
+		// setup initial state
+		profilePage.setInitialState(profilePage.config.allForms);
 	},
 	removeForm: function() {
 			$(this).parent().next()
@@ -92,51 +93,47 @@ var profilePage = {
 			parentTable.siblings("h4").show();
 	},
 	
-	setInitialState: function() {
-		$(this).each(function(){
-		    		//delete row should not be displayed for the first address form
+	setInitialState: function(forms) {
+		// common display settings
+		// delete row should not be displayed for the first address form
 		profilePage.config.deleteForms
 			.filter(":contains('#id_address_set-0-DELETE')")
 			.hide();
-			if (profilePage.config.action === "create") {
-		$("input[type='checkbox']")
-			.not("#id_address_set-0-DELETE")
-			.prop("checked", true)
-			.css("visibility", "hidden");
-		$("#id_address_set-0-DELETE")
-			//.prop("checked", false);
-			.css("visibility", "hidden");
-	},
-	
-				$(this).filter(":not(.full-name-form, #address-form-0)").hide();
-				$(this).siblings("h4").show();
-			} else {
-				//if (!$(this).hasClass("full-name-form")) {
-				var formInputs = $(this).find("input:visible")
+		if (profilePage.config.action === "create") {
+			// display settings for create profile view
+			$("input[type='checkbox']")
+				.not("#id_address_set-0-DELETE")
+				.prop("checked", true)
+				.css("visibility", "hidden");
+
+			$(forms).filter(":not(.full-name-form, #address-form-0)").hide();
+			$(forms).siblings("h4").show();
+		} else {
+			// display settings for update profile view
+			$(forms).each(function() {
+				var self = $(this);
+				// hide if form has only empty fields and mark it for deletion
+				var formInputs = self.find("input:visible")
 										.filter(":not(:checkbox)");
 				for (var i=0; i < formInputs.length; i++) {
-					var parentTable = $(formInputs[i]).parents("table");
-					parentTable.siblings("h4").hide();
+					self.siblings("h4").hide();
 					var inputValue = $(formInputs[i]).val();
-					if (inputValue != null && inputValue != "") {
-						parentTable.show();
-						parentTable.find("input[type='checkbox']")
-									.prop('checked', false);
-					} else {
-						//parentTable.hide();
-						parentTable.find("input[type='checkbox']")
+					if (!inputValue || inputValue === "") {
+						self.find("input[type='checkbox']")
 									.prop('checked', true);
-						parentTable.siblings("h4").show();
+						//parentTable.siblings("h4").show();
+						self.siblings("h4").show();
+						self.hide();
 					}
 				}
-				//}
-				if ($(this).hasClass("full-name-form") || err !== "true") {
-					$(this).find("label, input:visible").attr("readonly", true);
-					$(this).find("select").attr("disabled", true);
+				// make visible input/select fields readonly/disabled and hide all but edit buttons
+				if (self.hasClass("full-name-form") || err !== "true") {
+					self.find("label, input:visible").attr("readonly", true);
+					self.find("select").attr("disabled", true);
 					$(".btn").filter(":not(span.edit-button)").hide();
 				}
-			}
-		});
+			});
+		}
 	},
 	
 	editForm: function(trigger) {
@@ -159,8 +156,6 @@ var profilePage = {
 	addForm: function(trigger, forms) {
 		var deleteForm1 = forms.eq(0).find("input[type='checkbox']");
 		var deleteForm2 = forms.eq(1).find("input[type='checkbox']");
-		console.log(deleteForm1[0]);
-		console.log(deleteForm2[0]);
 		var selectTypeForm1 = forms.eq(0).find("select:first");
 		var selectTypeForm2 = forms.eq(1).find("select:first");
 		var types = profilePage.getTypes(selectTypeForm1);
