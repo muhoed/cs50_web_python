@@ -21,7 +21,7 @@ var profilePage = {
 		//set form labels and input fields width
 		$("tr").find("td:first-child, th:first-child").addClass("w-50");
 		$("input").attr("size", "50");
-		//copy disabled select values to hidden fields
+		//copy disabled select values to hidden fields in update view
 		if (profilePage.config.action == "update") {
 		    $("#title-value").val(profilePage.config.personalForm.find("select").val());
 		    for (var i=0; i<2; i++) {
@@ -29,25 +29,22 @@ var profilePage = {
 		        $("#address-type-value-"+i).val(profilePage.config.addressForms.eq(i).find("select").eq(0).val());
 		        $("#country-value-"+i).val(profilePage.config.addressForms.eq(i).find("select").eq(1).val());
 		    }
-		}
-		//set remove form functionality
-		profilePage.config.deleteForms
-			.each(profilePage.setRemove);
-		//set initial visibility
-		profilePage.config.allForms
-			.each(profilePage.setInitialState);
-		//delete row should not be displayed for the first address form
-		profilePage.config.deleteForms
-			.filter(":contains('#id_address_set-0-DELETE')")
-			.hide();
-		//enable form editing in update view
+		    //setup edit form buttons in update view
 		profilePage.config.editForms
 		    .on("click", function (event) {
 				profilePage.editForm(
 					event.delegateTarget
 				);
 			});
-		//configure add email function
+		}
+		//setup remove form buttons
+		profilePage.config.deleteForms
+			.each(function() {
+		var item = $(this);
+		item.find("label")
+			.html("<h4 class='btn btn-primary text-left remove' title='Click to remove form.'>Remove</h4>")
+			.click(profilePage.removeForm););
+		//setup add email form button
 		profilePage.config.addEmail
 			.on("click", function (event) {
 								profilePage.addForm(
@@ -55,7 +52,7 @@ var profilePage = {
 										profilePage.config.emailForms
 										)
 						});
-		//configure add address function
+		//setup add address form button
 		profilePage.config.addAddress
 			.on("click", function (event) {
 								profilePage.addForm(
@@ -63,7 +60,7 @@ var profilePage = {
 										profilePage.config.addressForms
 										)
 						});
-		//set initial types
+		//setup types switch handler
 		profilePage.config.emailForms//[0])
 			.on("change", function(event){
 				profilePage.changeSelection(
@@ -82,22 +79,10 @@ var profilePage = {
 									profilePage.getTypes(profilePage.config.addressTypeSelectors.eq(0))
 									);
 								});
+								//setup initial state
+		profilePage.config.allForms
+			.each(profilePage.setInitialState);
 	},
-	
-	setRemove: function() {
-		var item = $(this);
-		item.find("label")
-			.html("<h4 class='btn btn-primary text-left remove' title='Click to remove form.'>Remove</h4>")
-			.click(profilePage.removeForm);
-		item.find("input[type='checkbox']")
-			.not("#id_address_set-0-DELETE")
-			.prop("checked", true);
-			//.css("visibility", "hidden");
-		item.has("#id_address_set-0-DELETE")
-			.prop("checked", false);
-			//.css("visibility", "hidden");;
-	},
-	
 	removeForm: function() {
 			$(this).parent().next()
 					.find("input[type='checkbox']")
@@ -109,7 +94,20 @@ var profilePage = {
 	
 	setInitialState: function() {
 		$(this).each(function(){
+		    		//delete row should not be displayed for the first address form
+		profilePage.config.deleteForms
+			.filter(":contains('#id_address_set-0-DELETE')")
+			.hide();
 			if (profilePage.config.action === "create") {
+		$("input[type='checkbox']")
+			.not("#id_address_set-0-DELETE")
+			.prop("checked", true)
+			.css("visibility", "hidden");
+		$("#id_address_set-0-DELETE")
+			//.prop("checked", false);
+			.css("visibility", "hidden");
+	},
+	
 				$(this).filter(":not(.full-name-form, #address-form-0)").hide();
 				$(this).siblings("h4").show();
 			} else {
