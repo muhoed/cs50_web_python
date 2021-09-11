@@ -63,14 +63,15 @@ class AddressForm(forms.ModelForm):
 	#		self._errors = ErrorDict()
 
 UserEmailFormset = forms.models.inlineformset_factory(User, EmailAddress,
-											form=EmailAddressForm, min_num=2,
+											form=EmailAddressForm, extra=2,
 											formset = RequiredInlineFormSet,
 											max_num=2, validate_max=True,
 											can_delete=True)
 
 UserAddressFormset = forms.models.inlineformset_factory(User, Address,
 											form=AddressForm,
-											min_num=2, validate_min=True, 
+											extra=2,
+											min_num=1, validate_min=True, 
 											max_num=2, validate_max=True, 
 											can_delete=True)
 

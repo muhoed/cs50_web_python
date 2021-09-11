@@ -42,7 +42,7 @@
 									</table>
 									{% endfor %}
 								
-								<h4 class="btn btn-primary w-25 text-left" id="addEmail" title="Click here to add an email address for correspondence and/or payments other than email address you provided during registration.">Add email</h4>
+								<h4 class="btn btn-primary w-25 text-left add" id="addEmail" title="Click here to add an email address for correspondence and/or payments other than email address you provided during registration.">Add email</h4>
 							</div>
 							
 							<h4>Addresses: {% if user.profile_completed %}<span class="btn btn-secondary edit-button" id="edit-addresses-form">Edit</span>{% endif %}</h4>
@@ -57,7 +57,7 @@
 									{{ form.as_table }}
 								</table>
 								{% endfor %}
-								<h4 class="btn btn-primary w-25 text-left" id="addAddress" title="Click here to add an additional address for delivery and/or billing.">Add address</h4>
+								<h4 class="btn btn-primary w-25 text-left add" id="addAddress" title="Click here to add an additional address for delivery and/or billing.">Add address</h4>
 							</div>
 							{% if not user.profile_completed %}
 								<input class="btn btn-primary" type="submit" value="Save">
