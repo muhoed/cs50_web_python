@@ -23,6 +23,7 @@
 						    {% endif %}
 							<div id="full-name-form" class="mb-5 border border-primary border-top-0 border-right-0 border-left-0">
 								{% csrf_token %}
+								{{ form.non_field_errors }}
 							
 								<table class="full-name-form w-100 mb-3" id="full-name-form-table">
 									{{ form.as_table }}
@@ -31,9 +32,11 @@
 							
 							<h4>Email addresses: {% if user.profile_completed %}<span class="btn btn-secondary edit-button" id="edit-emails-form">Edit</span>{% endif %}</h4>
 							<div id="email-address-formset" class="mb-5 border border-primary border-top-0 border-right-0 border-left-0">
+								{{ formset.non_form_errors }}
 								{{ email_formset.management_form }}
 								
 									{% for form in email_formset %}
+									{{ form.non_field_errors }}
 									{% if user.profile_completed %}
 										<input type="hidden" id="email-type-value-{{ forloop.counter0 }}" value="" name="emailtype{{ forloop.counter0 }}">
 									{% endif %}
@@ -47,8 +50,10 @@
 							
 							<h4>Addresses: {% if user.profile_completed %}<span class="btn btn-secondary edit-button" id="edit-addresses-form">Edit</span>{% endif %}</h4>
 							<div id="address-formset" class="mb-5 w-100 border border-primary border-top-0 border-right-0 border-left-0">
+								{{ formset.non_form_errors }}
 								{{ address_formset.management_form }}
 								{% for form in address_formset %}
+								{{ form.non_field_errors }}
 								{% if user.profile_completed %}
 								<input type="hidden" id="address-type-value-{{ forloop.counter0 }}" value="" name="addresstype{{ forloop.counter0 }}">
 								<input type="hidden" id="country-value-{{ forloop.counter0 }}" value="" name="country{{ forloop.counter0 }}">

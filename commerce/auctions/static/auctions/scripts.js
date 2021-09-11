@@ -104,7 +104,7 @@ var profilePage = {
 
 			forms.filter(":not(.full-name-form, #address-form-0)").hide();
 			forms.siblings("h4").show();
-		} else {
+		} else if (err !== "true") {
 			// display settings for update profile view
 			forms.each(function() {
 				var self = $(this);
@@ -148,17 +148,12 @@ var profilePage = {
 			$(el).not("#address-form-0").find(".btn").not(".edit-button").show();
 			$(el).find("input[type='checkbox']").css('visibility', 'hidden');
 		});
-		if (profilePage.config.emailForms.eq(0).is(":visible") 
-					&& profilePage.config.emailForms.eq(1).is(":visible")) {
-			profilePage.config.addEmail.hide();
+		var addButton = forms.eq(0).siblings("h4");
+		if (forms.eq(0).is(":visible") 
+					&& forms.eq(1).is(":visible")) {
+			addButton.hide();
 		} else {
-			profilePage.config.addEmail.show();
-		}
-		if (profilePage.config.addressForms.eq(0).is(":visible") 
-					&& profilePage.config.addressForms.eq(1).is(":visible")) {
-			profilePage.config.addAddress.hide();
-		} else {
-			profilePage.config.addAddress.show();
+			addButton.show();
 		}
 		$("input[type='submit']").show();
 		$(trigger).hide();
@@ -175,7 +170,7 @@ var profilePage = {
 			deleteForm1.prop("checked", false);
 		} else {
 			forms.eq(1).show();
-			deleteForm2.pr("checked", false);
+			deleteForm2.prop("checked", false);
 			profilePage.changeSelection(
 				selectTypeForm1.attr("id"),
 				selectTypeForm1,
