@@ -342,6 +342,7 @@ class ProfileView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
             kwargs.update({'instance': self.object})
         return kwargs
            
+    @method_decorator(sensitive_post_parameters())
     @method_decorator(never_cache)
     def post(self, request, *args, **kwargs):
         self.post_data = self.request.POST.copy()

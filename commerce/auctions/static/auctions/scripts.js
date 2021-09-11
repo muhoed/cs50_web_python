@@ -42,9 +42,7 @@ var profilePage = {
 			.each(function() {
 				$(this).find("label")
 					.html("<h4 class='btn btn-primary text-left remove' title='Click to remove form.'>Remove</h4>")
-					.on('click', function (event) {
-						profilePage.removeForm
-					});
+					.click(profilePage.removeForm);
 			});
 		// setup add email form button
 		profilePage.config.addEmail
@@ -85,9 +83,9 @@ var profilePage = {
 		profilePage.setInitialState(profilePage.config.allForms);
 	},
 	removeForm: function() {
-			$(this).parent().next()
-					.find("input[type='checkbox']")
-					.prop('checked', true);	
+			//$(this).parent().next()
+			//		.find("input[type='checkbox']")
+			//		.prop('checked', true);	
 			let parentTable = $(this).parents("table");
 			parentTable.hide();
 			parentTable.siblings("h4").show();
@@ -96,35 +94,41 @@ var profilePage = {
 	setInitialState: function(forms) {
 		// common display settings
 		// delete row should not be displayed for the first address form
-		profilePage.config.deleteForms
-			.filter(":contains('#id_address_set-0-DELETE')")
-			.hide();
-		if (profilePage.config.action === "create") {
+		$("tr:contains('#id_address_set-0-DELETE')").hide();
+		if (profilePage.config.action == "create") {
 			// display settings for create profile view
 			$("input[type='checkbox']")
 				.not("#id_address_set-0-DELETE")
 				.prop("checked", true)
 				.css("visibility", "hidden");
 
-			$(forms).filter(":not(.full-name-form, #address-form-0)").hide();
-			$(forms).siblings("h4").show();
+			forms.filter(":not(.full-name-form, #address-form-0)").hide();
+			forms.siblings("h4").show();
 		} else {
 			// display settings for update profile view
-			$(forms).each(function() {
+			forms.each(function() {
 				var self = $(this);
 				// hide if form has only empty fields and mark it for deletion
-				var formInputs = self.find("input:visible")
-										.filter(":not(:checkbox)");
-				for (var i=0; i < formInputs.length; i++) {
-					self.siblings("h4").hide();
-					var inputValue = $(formInputs[i]).val();
-					if (!inputValue || inputValue === "") {
-						self.find("input[type='checkbox']")
-									.prop('checked', true);
-						//parentTable.siblings("h4").show();
-						self.siblings("h4").show();
-						self.hide();
+				var formInputs = self.find("input:visible").not("[type='checkbox']");
+				var test = false;
+				for (var i=0; i<formInputs.length; i++) {
+					var value = formInputs.eq(i).prop("value");
+					if (value && value != "") {
+						test = true;
+						break;
 					}
+				}
+				if (!test) {
+					self.find("input[type='checkbox']")
+						.prop('checked', true);
+					self.siblings("h4").show();
+					self.hide();
+				} else {
+					self.siblings("h4").hide();
+					self.find("input[type='checkbox']")
+						.prop('checked', false)
+						.hide();
+					self.show();
 				}
 				// make visible input/select fields readonly/disabled and hide all but edit buttons
 				if (self.hasClass("full-name-form") || err !== "true") {
@@ -137,17 +141,24 @@ var profilePage = {
 	},
 	
 	editForm: function(trigger) {
-		var form = $(trigger).parent().next()
-		form.find("label, input").attr("readonly", false);
-		form.find("select").attr("disabled", false);
-		form.find(".btn").not(".edit-button").show();
+		var forms = $(trigger).parent().next().find("table");
+		forms.each(function (i, el) {
+			$(el).find("label, input").attr("readonly", false);
+			$(el).find("select").attr("disabled", false);
+			$(el).not("#address-form-0").find(".btn").not(".edit-button").show();
+			$(el).find("input[type='checkbox']").hide();
+		});
 		if (profilePage.config.emailForms.eq(0).is(":visible") 
 					&& profilePage.config.emailForms.eq(1).is(":visible")) {
 			profilePage.config.addEmail.hide();
+		} else {
+			profilePage.config.addEmail.show();
 		}
 		if (profilePage.config.addressForms.eq(0).is(":visible") 
 					&& profilePage.config.addressForms.eq(1).is(":visible")) {
 			profilePage.config.addAddress.hide();
+		} else {
+			profilePage.config.addAddress.show();
 		}
 		$("input[type='submit']").show();
 		$(trigger).hide();
@@ -165,7 +176,6 @@ var profilePage = {
 		} else {
 			forms.eq(1).show();
 			deleteForm2.attr("checked", false);
-			//$(trigger).hide();
 			profilePage.changeSelection(
 				selectTypeForm1.attr("id"),
 				selectTypeForm1,
