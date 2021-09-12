@@ -61,7 +61,7 @@ var profilePage = {
 									)
 					});
 		// setup types switch handler
-		profilePage.config.emailForms//[0])
+		profilePage.config.emailForms
 			.on("change", function(event){
 				profilePage.changeSelection(
 									event.delegateTarget,
@@ -83,9 +83,6 @@ var profilePage = {
 		profilePage.setInitialState(profilePage.config.allForms);
 	},
 	removeForm: function() {
-			//$(this).parent().next()
-			//		.find("input[type='checkbox']")
-			//		.prop('checked', true);	
 			let parentTable = $(this).parents("table");
 			parentTable.hide();
 			parentTable.siblings("h4").show();
@@ -96,7 +93,9 @@ var profilePage = {
 		// delete row should not be displayed for the first address form
 		$("tr:contains('#id_address_set-0-DELETE')").hide();
 		if (profilePage.config.action == "create") {
-			// display settings for create profile view
+		    // display settings for create profile view
+		    if (err !== "true") {
+			
 			$("input[type='checkbox']")
 				.not("#id_address_set-0-DELETE")
 				.prop("checked", true)
@@ -104,9 +103,16 @@ var profilePage = {
 
 			forms.filter(":not(.full-name-form, #address-form-0)").hide();
 			forms.siblings("h4").show();
+		    } else {
+		        forms.contains("input[type='checkbox']:checked")
+		        .hide();
+		        $("input[type='checkbox']")
+				.css("visibility", "hidden");
+		    }
 		} else if (err !== "true") {
 			// display settings for update profile view
 			forms.each(function() {
+			    profilePage.checkEmpty;
 				var self = $(this);
 				// hide if form has only empty fields and mark it for deletion
 				var formInputs = self.find("input:visible").not("[type='checkbox']");
