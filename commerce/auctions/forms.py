@@ -48,8 +48,11 @@ class EmailAddressForm(forms.ModelForm):
 		
 	#def full_clean(self, *args, **kwargs):
 	#	super().full_clean(*args, **kwargs)
-	#	if hasattr(self, 'cleaned_data') and self.cleaned_data.get('DELETE', False):
-	#		self._errors = ErrorDict()
+	#	if hasattr(self, 'cleaned_data') and \
+    #            self.cleaned_data.get('DELETE', False) and \
+    #            not self.has_changed():
+	#		raise forms.ValidationError('Please fill out the form or remove it.')
+			#self._errors = ErrorDict()
 			
 								
 class AddressForm(forms.ModelForm):
@@ -59,8 +62,11 @@ class AddressForm(forms.ModelForm):
 		
 	#def full_clean(self, *args, **kwargs):
 	#	super().full_clean(*args, **kwargs)
-	#	if hasattr(self, 'cleaned_data') and self.cleaned_data.get('DELETE', False):
-	#		self._errors = ErrorDict()
+	#	if hasattr(self, 'cleaned_data') and \
+    #            self.cleaned_data.get('DELETE', False) and \
+    #            not self.has_changed():
+	#		raise forms.ValidationError('Please fill out the form or remove it.')
+			#self._errors = ErrorDict()
 
 UserEmailFormset = forms.models.inlineformset_factory(User, EmailAddress,
 											form=EmailAddressForm, extra=2,
@@ -71,7 +77,7 @@ UserEmailFormset = forms.models.inlineformset_factory(User, EmailAddress,
 UserAddressFormset = forms.models.inlineformset_factory(User, Address,
 											form=AddressForm,
 											extra=2,
-											min_num=1, validate_min=True, 
+											#min_num=1, validate_min=True, 
 											max_num=2, validate_max=True, 
 											can_delete=True)
 

@@ -82,6 +82,7 @@ var profilePage = {
 		// setup initial state
 		profilePage.setInitialState(profilePage.config.allForms);
 	},
+	
 	removeForm: function() {
 			let parentTable = $(this).parents("table");
 			parentTable.hide();
@@ -92,27 +93,17 @@ var profilePage = {
 		// common display settings
 		// delete row should not be displayed for the first address form
 		$("tr:contains('#id_address_set-0-DELETE')").hide();
-		if (profilePage.config.action == "create") {
+		if (profilePage.config.action == "create" && err !== "true") {
 		    // display settings for create profile view
-		    if (err !== "true") {
-			
 			$("input[type='checkbox']")
 				.not("#id_address_set-0-DELETE")
 				.prop("checked", true)
 				.css("visibility", "hidden");
-
 			forms.filter(":not(.full-name-form, #address-form-0)").hide();
 			forms.siblings("h4").show();
-		    } else {
-		        forms.contains("input[type='checkbox']:checked")
-		        .hide();
-		        $("input[type='checkbox']")
-				.css("visibility", "hidden");
-		    }
-		} else if (err !== "true") {
+		} else if (profilePage.config.action == "update" && err !== "true") {
 			// display settings for update profile view
 			forms.each(function() {
-			    profilePage.checkEmpty;
 				var self = $(this);
 				// hide if form has only empty fields and mark it for deletion
 				var formInputs = self.find("input:visible").not("[type='checkbox']");
@@ -137,13 +128,29 @@ var profilePage = {
 						.hide();
 				}
 				// make visible input/select fields readonly/disabled and hide all but edit buttons
-				if (self.hasClass("full-name-form") || err !== "true") {
-					self.find("label, input:visible").attr("readonly", true);
-					self.find("select").attr("disabled", true);
-					$(".btn").filter(":not(span.edit-button, [name='search'])").hide();
-				}
+				//self.find("label, input:visible").attr("readonly", true);
+				//self.find("select").attr("disabled", true);
+				profilePage.disableInputs(self);
+				$(".btn").filter(":not(span.edit-button, [name='search'])").hide();
 			});
+		} else {
+			// display settings in case of invalid form(-s) on POST
+			if (profilePage.config.action === "update") {
+				$(".btn").filter("span.edit-button").hide();
+				profilePage.disableInputs(profilePage.config.personalForm);
+			}
+			forms.has("input[type='checkbox']:checked")
+				.hide();
+			$("input[type='checkbox']").css("visibility", "hidden");
+			profilePage.setAddButton(profilePage.config.emailForms);
+			profilePage.setAddButton(profilePage.config.addressForms);
 		}
+	},
+	
+	disableInputs: function(form) {
+		// make visible input/select fields readonly/disabled
+		form.find("label, input:visible").attr("readonly", true);
+		form.find("select").attr("disabled", true);
 	},
 	
 	editForm: function(trigger) {
@@ -154,6 +161,19 @@ var profilePage = {
 			$(el).not("#address-form-0").find(".btn").not(".edit-button").show();
 			$(el).find("input[type='checkbox']").css('visibility', 'hidden');
 		});
+		profilePage.setAddButton(forms);
+		//var addButton = forms.eq(0).siblings("h4");
+		//if (forms.eq(0).is(":visible") 
+		//			&& forms.eq(1).is(":visible")) {
+		//	addButton.hide();
+		//} else {
+		//	addButton.show();
+		//}
+		$("input[type='submit']").show();
+		$(trigger).hide();
+	},
+	
+	setAddButton: function(forms) {
 		var addButton = forms.eq(0).siblings("h4");
 		if (forms.eq(0).is(":visible") 
 					&& forms.eq(1).is(":visible")) {
@@ -161,8 +181,6 @@ var profilePage = {
 		} else {
 			addButton.show();
 		}
-		$("input[type='submit']").show();
-		$(trigger).hide();
 	},
 	
 	addForm: function(trigger, forms) {
@@ -172,9 +190,11 @@ var profilePage = {
 		var selectTypeForm2 = forms.eq(1).find("select:first");
 		var types = profilePage.getTypes(selectTypeForm1);
 		if (forms.eq(0).is(":hidden")) {
+			forms.eq(0).find(".errorlist").hide();
 			forms.eq(0).show();
 			deleteForm1.prop("checked", false);
 		} else {
+			forms.eq(1).find(".errorlist").hide();
 			forms.eq(1).show();
 			deleteForm2.prop("checked", false);
 			profilePage.changeSelection(
