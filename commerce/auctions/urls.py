@@ -93,11 +93,11 @@ urlpatterns = [
 								extra_context={'title': _('credentials')},
 								template_name="auctions/account/credentials.html"),
 			name="credentials"),
-	#path("account/<int:pk>/information/",
-	#		views.UserProfileView.as_view(
-	#							extra_context={'title': _('personal and contact information')},
-	#							template_name="auctions/account/information.html"),
-	#		name="user_info"),
+	path("account/<int:pk>/selling/",
+			views.SellActivitiesView.as_view(
+								extra_context={'title': _('selling activities')},
+								template_name="auctions/account/selling.html"),
+			name="sell_activities"),
     path("categories", views.categories, name="categories"),
     path("categories/<int:cat_id>/", views.categories, name="categories"),
     path("create", views.create_listing, name="create_listing"),

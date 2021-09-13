@@ -155,7 +155,8 @@ var profilePage = {
 	},
 	
 	editForm: function(trigger) {
-		var forms = $(trigger).parent().next().find("table");
+		var forms = $(trigger).parent().nextAll("div").eq(0).find("table");
+		console.log(forms);
 		forms.each(function (i, el) {
 			$(el).find("label, input").attr("readonly", false);
 			$(el).find("select").attr("disabled", false);

@@ -22,7 +22,7 @@ class RequiredInlineFormSet(forms.BaseInlineFormSet):
 		super().clean()
 		if any(self.errors):
 			return
-		if not self.forms[0].has_changed():
+		if (not self.forms[1].has_changed() and self.form[1].errors) or (not self.forms[1].has_changed() and self.form[1].errors):
 			raise forms.ValidationError('Please complete required information.')
 
 
@@ -71,13 +71,14 @@ class AddressForm(forms.ModelForm):
 UserEmailFormset = forms.models.inlineformset_factory(User, EmailAddress,
 											form=EmailAddressForm, extra=2,
 											formset = RequiredInlineFormSet,
+											#min_num=2, validate_min=True, 
 											max_num=2, validate_max=True,
 											can_delete=True)
 
 UserAddressFormset = forms.models.inlineformset_factory(User, Address,
 											form=AddressForm, extra=2,
 											formset = RequiredInlineFormSet,
-											#min_num=1, validate_min=True, 
+											min_num=1, validate_min=True, 
 											max_num=2, validate_max=True, 
 											can_delete=True)
 

@@ -12,10 +12,13 @@
 				<div class="container">
 					<h3 class="">Hello {{ user.username|capfirst }} ({{ user.email }})!</h3>
 					{% if not user.profile_completed %}
-					<p>Please fill the information below.</p>
+                        <p>Please fill the information below.</p>
 					{% endif %}
 					<div class="container mt-5 mb-2">
 						<h4>Personal information:</h4>
+                        {% if not user.profile_completed %}
+                            <p>This information is required.</p>
+                        {% endif %}
 						{{ form.non_field_errors }}
 						<form action="{% url 'auctions:user_profile' user.id %}" method="post">
 						    {% if user.profile_completed %}
@@ -31,6 +34,7 @@
 							</div>
 							
 							<h4>Email addresses: {% if user.profile_completed %}<span class="btn btn-secondary edit-button" id="edit-emails-form">Edit</span>{% endif %}</h4>
+                            <p>If no additional emails provided your main account email will be used for both communication and authentication at payment services.</p>
 							<div id="email-address-formset" class="mb-5 border border-primary border-top-0 border-right-0 border-left-0">
 								{{ formset.non_form_errors }}
 								{{ email_formset.management_form }}
@@ -49,6 +53,9 @@
 							</div>
 							
 							<h4>Addresses: {% if user.profile_completed %}<span class="btn btn-secondary edit-button" id="edit-addresses-form">Edit</span>{% endif %}</h4>
+                            {% if not user.profile_completed %}
+                                <p>At least one address should be provided for delivery and billing purposes.</p>
+                            {% endif %}
 							<div id="address-formset" class="mb-5 w-100 border border-primary border-top-0 border-right-0 border-left-0">
 								{{ formset.non_form_errors }}
 								{{ address_formset.management_form }}

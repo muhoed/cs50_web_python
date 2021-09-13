@@ -431,9 +431,11 @@ class CredentialsUpdateView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView
         messages.success(self.request, 'Your account credentials were updated.')
         return super().form_valid(form)
         
-class PersonalInfoView(LoginRequiredMixin, CorrectUserTestMixin, DetailView):
-	"""Summary of user's personal and contact information."""
-	model = User
+class SellActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
+	"""Summary of user's selling activities."""
+	context_object_name = "listings_list"
+	queryset = Listing.objects.filter(product__seller=User.objects.get(pk=pk))
+	
 	
     
     
