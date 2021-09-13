@@ -70,13 +70,13 @@ class AddressForm(forms.ModelForm):
 
 UserEmailFormset = forms.models.inlineformset_factory(User, EmailAddress,
 											form=EmailAddressForm, extra=2,
-											#formset = RequiredInlineFormSet,
+											formset = RequiredInlineFormSet,
 											max_num=2, validate_max=True,
 											can_delete=True)
 
 UserAddressFormset = forms.models.inlineformset_factory(User, Address,
-											form=AddressForm,
-											extra=2,
+											form=AddressForm, extra=2,
+											formset = RequiredInlineFormSet,
 											#min_num=1, validate_min=True, 
 											max_num=2, validate_max=True, 
 											can_delete=True)

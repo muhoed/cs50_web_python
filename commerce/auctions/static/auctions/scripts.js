@@ -92,7 +92,8 @@ var profilePage = {
 	setInitialState: function(forms) {
 		// common display settings
 		// delete row should not be displayed for the first address form
-		$("tr:contains('#id_address_set-0-DELETE')").hide();
+		//$("tr:contains('#id_address_set-0-DELETE')").hide();
+		$("tr").has('#id_address_set-0-DELETE').hide();
 		if (profilePage.config.action == "create" && err !== "true") {
 		    // display settings for create profile view
 			$("input[type='checkbox']")
