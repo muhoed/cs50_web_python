@@ -1,0 +1,97 @@
+{% extends "auctions/account/profile_layout.html" %}
+
+{% block content %}
+				
+				{% if not user.profile_completed %}
+				<div class="container m-2 bg-warning">
+					<p>Your profile information is incomplete!</p>
+					<p>You will not be able to buy or sell products on Auction$ till 
+					all required information is not provided.</p>
+					<a href="{% url 'auctions:user_profile' user.pk %}">
+						Complete profile now.
+					</a>
+				</div>
+				{% else %}
+				<div class="container">
+					<ul class="nav nav-tabs nav-justified">
+						<li class="nav-item">
+							<a class="nav-link active" data-toggle="tab" href="#active">
+								Active listings
+							</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" data-toggle="tab" href="#sold">
+								Sold items
+							</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" data-toggle="tab" href="#unsold">
+								Unsold items
+							</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" data-toggle="tab" href="#products">
+								Manage products
+							</a>
+						</li>
+					</ul>
+					<div class="tab-content">
+						<div class="tab-pane active" id="active">
+							<div class="d-flex nowrap w-100" id="tab-header">
+								<h3 class="flex-grow">Your active listings:</h3>
+								<button class="btn btn-primary" id="create-listing-btn">
+									Create new listing
+								</button>
+							</div>
+							{% for listing in listings_list|dictsort:"end_time" %}
+								{% if listing.status == "active" %}
+								<div class="listing d-flex nowrap w-100">
+									<div class="w-25">
+										<img src="{{ listing.product.image_set.0.img_url }}">
+									</div>
+									<div class="w-25">
+										{{ listing.product.name|capfirst }}
+									</div>
+									<div class="w-25">
+										<p>Highest bid: {{ listing.max_bid }}</p>
+										<p>Num.of bids: {{ listing.bids.count }}</p>
+									</div>
+									<div class="w-25">
+										<p>End time: {{ listing.end_time }}</p>
+										<p>{{ listing.end_time|timeuntil:now }}</p>
+									</div>
+								</div>
+								{% endif %}
+							{% empty %}
+								<p>You do not have active listings at the moment. <a href="{% url 'auctions:create_listing' %}">Click here</a> to create one.</p>
+							{% endfor %}
+						</div>
+						<div class="tab-pane" id="sold">
+							<div class="d-flex nowrap w-100" id="tab-header">
+								<h3 class="flex-grow">Your sold items:</h3>
+								<button class="btn btn-primary" id="create-listing-btn">
+									Show stats
+								</button>
+							</div>
+						</div>
+						<div class="tab-pane" id="unsold">
+							<div class="d-flex nowrap w-100" id="tab-header">
+								<h3 class="flex-grow">Items that was not sold:</h3>
+								<button class="btn btn-primary" id="create-listing-btn">
+									Show stats
+								</button>
+							</div>
+						</div>
+						<div class="tab-pane" id="products">
+							<div class="d-flex nowrap w-100" id="tab-header">
+								<h3 class="flex-grow">Manage products you offer:</h3>
+								<button class="btn btn-primary" id="create-listing-btn">
+									Add product
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				{% endif %}
+	
+{% endblock %}

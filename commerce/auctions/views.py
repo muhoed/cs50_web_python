@@ -434,7 +434,7 @@ class CredentialsUpdateView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView
 class SellActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
 	"""Summary of user's selling activities."""
 	context_object_name = "listings_list"
-	queryset = Listing.objects.filter(product__seller=User.objects.get(pk=pk))
+	queryset = Listing.objects.filter(product__seller=User.objects.get(pk=user.pk))
 	
 	
     
