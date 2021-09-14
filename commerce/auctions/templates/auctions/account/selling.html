@@ -36,7 +36,7 @@
 						</li>
 					</ul>
 					<div class="tab-content">
-						<div class="tab-pane active" id="active">
+						<div class="tab-pane active mt-2" id="active">
 							<div class="d-flex nowrap w-100" id="tab-header">
 								<h3 class="flex-grow-1">Your active listings:</h3>
 								<button class="btn btn-primary" id="create-listing-btn">
@@ -66,29 +66,91 @@
 								<p>You do not have active listings at the moment. <a href="{% url 'auctions:create_listing' %}">Click here</a> to create one.</p>
 							{% endfor %}
 						</div>
-						<div class="tab-pane" id="sold">
+						<div class="tab-pane mt-2" id="sold">
 							<div class="d-flex nowrap w-100" id="tab-header">
 								<h3 class="flex-grow-1">Your sold items:</h3>
 								<button class="btn btn-primary" id="create-listing-btn">
 									Show stats
 								</button>
 							</div>
+                            {% for listing in listings_list|dictsort:"end_time" %}
+								{% if listing.winner %}
+								<div class="listing d-flex nowrap w-100">
+									<div class="w-25">
+										<img src="{{ listing.product.image_set.0.img_url }}">
+									</div>
+									<div class="w-25">
+										{{ listing.product.name|capfirst }}
+									</div>
+									<div class="w-25">
+										<p>Highest bid: {{ listing.max_bid }}</p>
+										<p>Num.of bids: {{ listing.bids.count }}</p>
+									</div>
+									<div class="w-25">
+										<p>Ended on: {% if listing.cancelled_on %}{{ listing.cancelled_on }}{% else %}{{ listing.end_time}}{% endif %}</p>
+										<p>Winner: {{ listing.winner.username }}</p>
+									</div>
+								</div>
+								{% endif %}
+							{% empty %}
+								<p>You did not sold any items yet. <a href="{% url 'auctions:create_listing' %}">Click here</a> to sell one.</p>
+							{% endfor %}
 						</div>
-						<div class="tab-pane" id="unsold">
+						<div class="tab-pane mt-2" id="unsold">
 							<div class="d-flex nowrap w-100" id="tab-header">
 								<h3 class="flex-grow-1">Items that was not sold:</h3>
 								<button class="btn btn-primary" id="create-listing-btn">
 									Show stats
 								</button>
 							</div>
+                            {% for listing in listings_list|dictsort:"end_time" %}
+								{% if listing.status == "ended" or listing.status == "cancelled" and not listing.winner %}
+								<div class="listing d-flex nowrap w-100">
+									<div class="w-25">
+										<img src="{{ listing.product.image_set.0.img_url }}">
+									</div>
+									<div class="w-25">
+										{{ listing.product.name|capfirst }}
+									</div>
+									<div class="w-25">
+										<p>Ended on: {% if listing.cancelled_on %}{{ listing.cancelled_on }}{% else %}{{ listing.end_time}}{% endif %}</p>
+										<p>Num.of followers: {{ listing.followers.count }}</p>
+									</div>
+									<div class="w-25">
+										<button class="btn btn-secondary" id="relist">Relist</button>
+									</div>
+								</div>
+								{% endif %}
+							{% empty %}
+								<p>You do not have any ended or cancelled listings remained unsold. <a href="{% url 'auctions:create_listing' %}">Click here</a> to create new listing.</p>
+							{% endfor %}
 						</div>
-						<div class="tab-pane" id="products">
+						<div class="tab-pane mt-2" id="products">
 							<div class="d-flex nowrap w-100" id="tab-header">
 								<h3 class="flex-grow-1">Manage products you offer:</h3>
 								<button class="btn btn-primary" id="create-listing-btn">
 									Add product
 								</button>
 							</div>
+                            {% for product in products_list|dictsort:"created_on" %}
+								<div class="product d-flex nowrap w-100">
+									<div class="w-25">
+										<img src="{{ product.image_set.0.img_url }}">
+									</div>
+									<div class="w-25">
+										<p>{{ product.name|capfirst }}</p>
+                                        <p>Category: {{ product.category }}</p>
+									</div>
+									<div class="w-25">
+										<p>Listed in: {{ product.listings }}</p>
+									</div>
+									<div class="w-25">
+										<button class="btn btn-secondary" id="sell">Relist</button>
+									</div>
+								</div>
+							{% empty %}
+								<p>You did not add any product yet. <a href="">Click here</a> to add one.</p>
+							{% endfor %}
 						</div>
 					</div>
 				</div>

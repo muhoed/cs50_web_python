@@ -416,9 +416,9 @@ class ActivitiesSummaryView(LoginRequiredMixin, CorrectUserTestMixin, DetailView
                                                 (Q(
                                                 endtime__lt=timezone.now()
                                                 )|Q(
-                                                cancelled=True)),
+                                                cancelled_on!=None)),
                                                 bids__isnull=False
-                                                ).order_by('-endtime')
+                                                ).order_by('calcelled_on', '-endtime')
         return context
         
         
