@@ -432,11 +432,24 @@ class CredentialsUpdateView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView
         return super().form_valid(form)
         
 class SellActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
-	"""Summary of user's selling activities."""
-	context_object_name = "listings_list"
-	queryset = Listing.objects.filter(product__seller=User.objects.get(pk=user.pk))
-	
-	
+    """Summary of user's selling activities."""
+    context_object_name = "listings_list"
+    
+    def dispatch(self, *args, **kwargs):
+        if 'pk' not in kwargs:
+            raise ImproperlyConfigured(
+                "The URL path must contain 'pk' parameter."
+            )
+        self.user = User.objects.get(pk=kwargs['pk'])
+        self.queryset = Listing.objects.filter(product__seller=self.user)
+        
+        return super().dispatch(*args, **kwargs)
+        
+    def get_context_data(self, *args, **kwargs):
+        # add user's products to context
+        context = super().get_context_data(*args, **kwargs)
+        context['products_list'] = Product.objects.filter(seller=self.user)
+        return context
     
     
 class ActiveListingsView(ListView):

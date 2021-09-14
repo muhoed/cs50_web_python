@@ -1,6 +1,7 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
+<div class="container">
     <h2>Active Listings</h2>
 	{% if listing_list %}
 		<div>
@@ -80,4 +81,5 @@
 			<p>There are no active listings at the moment.</p>
 		</div>
 	{% endif %}
+</div>
 {% endblock %}
