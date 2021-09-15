@@ -1,34 +1,61 @@
 {% extends "auctions/account/profile_layout.html" %}
 
 {% block content %}
-				
-			
+						
 			<div class="container">
-							<div class="d-flex nowrap w-100" id="tab-header">
-								<h3 class="flex-grow-1">Your watchlist:</h3>
-								<button class="btn btn-primary" id="clear-watchlist">
-									Remove all
-								</button>
+							<h3 class="flex-grow-1">Your watchlist:</h3>
+							<div class="d-flew nowrap w-100 header-row">
+								<div class="w-10 header-item">
+									<button class="btn btn-primary" id="clear-watchlist">
+										Remove all
+									</button>
+								</div>
+								<div class="w-10 header-item">
+									Product's image
+								</div>
+								<div class="w-25 header-item">
+									Name
+								</div>
+								<div class "w-15 header-item">
+									Categories
+								</div>
+								<div class="w-10 header-item">
+									Bids count
+								</div>
+								<div class="w-10 header-item">
+									Highest bid
+								</div>
+								<div class="w-10 header-item">
+									Time left
+								</div>
+								<div class="w-10 header-item">
+									Action
+								</div>			
 							</div>
 							{% for item in watched_list|dictsort:"end_time" %}
-								{% if listing.status == "active" %}
+								{% if item.status == "active" %}
 								<div class="listing d-flex nowrap w-100" id="{{ item.id }}">
 								    <div class="w-10">
 								        <button class="btn btn-warning remove">Remove</button>
 								    </div>
-									<div class="w-20">
-										<img src="{{ listing.product.image_set.0.img_url }}">
+									<div class="w-10">
+										<img src="{{ item.product.image_set.0.img_url }}">
 									</div>
 									<div class="w-25">
-										{{ listing.product.name|capfirst }}
+										{{ item.product.name|capfirst }}
 									</div>
 									<div class="w-15">
-										<p>Highest bid: {{ listing.max_bid }}</p>
-										<p>Num.of bids: {{ listing.bids.count }}</p>
+										{% for category in item.product.categories %}
+											<p>{{ category.name }}</p>
+										{% endfor %}
+									<div class="w-10">
+										{{ item.bids.count }}
 									</div>
-									<div class="w-20">
-										<p>End time: {{ listing.end_time }}</p>
-										<p>{{ listing.end_time|timeuntil:now }}</p>
+									<div class="w-10">
+										{{ item.max_bid }}
+									</div>
+									<div class="w-10">
+										{{ item.end_time|timeuntil:now }}
 									</div>
 									<div class="w-10">
 									    <button class="btn btn-primary bid">Bid</button>
