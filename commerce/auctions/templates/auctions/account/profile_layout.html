@@ -12,8 +12,8 @@
 				<li class="nav-item"><a href="{% url 'auctions:credentials' user.id %}">Credentials</a></li>
 				<li class="nav-item"><a href="{% url 'auctions:user_profile' user.pk %}">Personal and Contact info</a></li>
 				<li class="nav-item"><a href="{% url 'auctions:sell_activities' user.pk %}">Sell activity</a></li>
-				<li class="nav-item">Purchase activity</li>
-				<li class="nav-item">Watchlist</li>
+				<li class="nav-item"><a href="{% url 'auctions:purchase_activities' user.pk %}">Purchase activity</a></li>
+				<li class="nav-item"><a href="{% url 'auctions:watchlist' user.pk %}">Watchlist</a></li>
 				<li class="nav-item">Manage comments</li>
 				<li  class="nav-item">Message center</li>
 			</ul>

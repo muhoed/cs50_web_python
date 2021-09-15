@@ -1,0 +1,44 @@
+{% extends "auctions/account/profile_layout.html" %}
+
+{% block content %}
+				
+			
+			<div class="container">
+							<div class="d-flex nowrap w-100" id="tab-header">
+								<h3 class="flex-grow-1">Your watchlist:</h3>
+								<button class="btn btn-primary" id="clear-watchlist">
+									Remove all
+								</button>
+							</div>
+							{% for item in watched_list|dictsort:"end_time" %}
+								{% if listing.status == "active" %}
+								<div class="listing d-flex nowrap w-100" id="{{ item.id }}">
+								    <div class="w-10">
+								        <button class="btn btn-warning remove">Remove</button>
+								    </div>
+									<div class="w-20">
+										<img src="{{ listing.product.image_set.0.img_url }}">
+									</div>
+									<div class="w-25">
+										{{ listing.product.name|capfirst }}
+									</div>
+									<div class="w-15">
+										<p>Highest bid: {{ listing.max_bid }}</p>
+										<p>Num.of bids: {{ listing.bids.count }}</p>
+									</div>
+									<div class="w-20">
+										<p>End time: {{ listing.end_time }}</p>
+										<p>{{ listing.end_time|timeuntil:now }}</p>
+									</div>
+									<div class="w-10">
+									    <button class="btn btn-primary bid">Bid</button>
+									</div>
+								</div>
+								{% endif %}
+							{% empty %}
+								<p>Your watchlist is empty.</p>
+							{% endfor %}
+							
+			</div>
+	
+{% endblock %}

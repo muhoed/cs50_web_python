@@ -98,12 +98,21 @@ urlpatterns = [
 								extra_context={'title': _('selling activities')},
 								template_name="auctions/account/selling.html"),
 			name="sell_activities"),
+	path("account/<int:pk>/buying/",
+			views.BuyActivitiesView.as_view(
+								extra_context={'title': _('purchase activities')},
+								template_name="auctions/account/buying.html"),
+			name="purchase_activities"),
+	path("account/<int:pk>/watchlist/",
+			views.UserWatchlistView.as_view(
+								extra_context={'title': _('watchlist')},
+								template_name="auctions/account/watchlist.html"),
+			name="watchlist"),
     path("categories", views.categories, name="categories"),
     path("categories/<int:cat_id>/", views.categories, name="categories"),
     path("create", views.create_listing, name="create_listing"),
     path("messenger", views.messenger, name="messenger"),
     path("listing/<int:listing_id>/", views.listing, name="listing"),
-    path("watchlist", views.watchlist, name="watchlist"),
     path("bid", views.bid, name="bid"),
     path("search", views.search, name="search")
 ]

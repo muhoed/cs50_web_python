@@ -1,0 +1,160 @@
+{% extends "auctions/account/profile_layout.html" %}
+
+{% block content %}
+				
+				{% if not user.profile_completed %}
+				<div class="container m-2 bg-warning">
+					<p>Your profile information is incomplete!</p>
+					<p>You will not be able to buy or sell products on Auction$ till 
+					all required information is not provided.</p>
+					<a href="{% url 'auctions:user_profile' user.pk %}">
+						Complete profile now.
+					</a>
+				</div>
+				{% else %}
+				<div class="container">
+					<ul class="nav nav-tabs nav-justified">
+						<li class="nav-item">
+							<a class="nav-link active" data-toggle="tab" href="#active">
+								Active listings
+							</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" data-toggle="tab" href="#won">
+								Won listings
+							</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" data-toggle="tab" href="#lost">
+								Lost listings
+							</a>
+						</li>
+						</ul>
+					<div class="tab-content">
+						<div class="tab-pane active mt-2" id="active">
+							<div class="d-flex nowrap w-100" id="tab-header">
+								<h3 class="flex-grow-1">Active listings you have bidded on:</h3>
+								<button class="btn btn-primary" id="create-listing-btn">
+									Show stats
+								</button>
+								</div>
+							{% for item in user_bids|dictsort:"end_time" %}
+								{% if item.status == "active" %}
+								<div class="listing d-flex nowrap w-100">
+									<div class="w-15">
+										<img src="{{ item.product.image_set.0.img_url }}">
+									</div>
+									<div class="w-25">
+										{{ item.product.name|capfirst }}
+									</div>
+									<div class="w-25">
+										<p>Highest bid: {{ item.max_bid }}</p>
+										<p>Num.of bids: {{ item.bids.count }}</p>
+									</div>
+									<div class="w-20">
+										<p>End time: {{ item.end_time }}</p>
+										<p>{{ item.end_time|timeuntil:now }}</p>
+									</div>
+								</div>
+								<div class="w-10">
+										<p>Your latest bid: {{ item.latest_bid }}</p>
+									</div>
+								</div>
+								="w-10">
+										<button class="btn btn-primary" id="bid">Bid again</button>
+									</div>
+								</div>
+								{% endif %}
+							{% empty %}
+								<p>You did not bid on any listing yet. </p>
+							{% endfor %}
+						</div>
+						<div class="tab-pane mt-2" id="won">
+							<div class="d-flex nowrap w-100" id="tab-header">
+								<h3 class="flex-grow-1">Products you have purchased:</h3>
+								<button class="btn btn-primary" id="create-listing-btn">
+									Show stats
+								</button>
+							</div>
+                            {% for product in products_list|dictsort:"listing__end_time" %}
+								<div class="listing d-flex nowrap w-100">
+									<div class="w-25">
+										<img src="{{ product.image_set.0.img_url }}">
+									</div>
+									<div class="w-25">
+										{{ product.name|capfirst }}
+									</div>
+									<div class="w-25">
+										<p>Categories: {{ product.categories }}</p>
+									</div>
+									<div class="w-25">
+										<p>Ended on: {% if listing.cancelled_on %}{{ product.listing.cancelled_on }}{% else %}{{ product.listing.end_time}}{% endif %}</p>
+										<p>Purchase price: {{ product.listing.max_bid }}</p>
+									</div>
+								</div>
+								{% endif %}
+							{% empty %}
+								<p>You did not buy any items yet.</p>
+							{% endfor %}
+						</div>
+						<div class="tab-pane mt-2" id="unsold">
+							<div class="d-flex nowrap w-100" id="tab-header">
+								<h3 class="flex-grow-1">Items that was not sold:</h3>
+								<button class="btn btn-primary" id="create-listing-btn">
+									Show stats
+								</button>
+							</div>
+                            {% for listing in listings_list|dictsort:"end_time" %}
+								{% if listing.status == "ended" or listing.status == "cancelled" and not listing.winner %}
+								<div class="listing d-flex nowrap w-100">
+									<div class="w-25">
+										<img src="{{ listing.product.image_set.0.img_url }}">
+									</div>
+									<div class="w-25">
+										{{ listing.product.name|capfirst }}
+									</div>
+									<div class="w-25">
+										<p>Ended on: {% if listing.cancelled_on %}{{ listing.cancelled_on }}{% else %}{{ listing.end_time}}{% endif %}</p>
+										<p>Num.of followers: {{ listing.followers.count }}</p>
+									</div>
+									<div class="w-25">
+										<button class="btn btn-secondary" id="relist">Relist</button>
+									</div>
+								</div>
+								{% endif %}
+							{% empty %}
+								<p>You do not have any ended or cancelled listings remained unsold. <a href="{% url 'auctions:create_listing' %}">Click here</a> to create new listing.</p>
+							{% endfor %}
+						</div>
+						<div class="tab-pane mt-2" id="products">
+							<div class="d-flex nowrap w-100" id="tab-header">
+								<h3 class="flex-grow-1">Manage products you offer:</h3>
+								<button class="btn btn-primary" id="create-listing-btn">
+									Add product
+								</button>
+							</div>
+                            {% for product in products_list|dictsort:"created_on" %}
+								<div class="product d-flex nowrap w-100">
+									<div class="w-25">
+										<img src="{{ product.image_set.0.img_url }}">
+									</div>
+									<div class="w-25">
+										<p>{{ product.name|capfirst }}</p>
+                                        <p>Category: {{ product.category }}</p>
+									</div>
+									<div class="w-25">
+										<p>Listed in: {{ product.listings }}</p>
+									</div>
+									<div class="w-25">
+										<button class="btn btn-secondary" id="sell">Relist</button>
+									</div>
+								</div>
+							{% empty %}
+								<p>You did not add any product yet. <a href="">Click here</a> to add one.</p>
+							{% endfor %}
+						</div>
+					</div>
+				</div>
+				{% endif %}
+	
+{% endblock %}

@@ -450,6 +450,47 @@ class SellActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
         context = super().get_context_data(*args, **kwargs)
         context['products_list'] = Product.objects.filter(seller=self.user)
         return context
+        
+        
+class BuyActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
+    """Summary of user's buying activities."""
+    context_object_name = "products_list"
+    
+    def dispatch(self, *args, **kwargs):
+        if 'pk' not in kwargs:
+            raise ImproperlyConfigured(
+                "The URL path must contain 'pk' parameter."
+            )
+        self.user = User.objects.get(pk=kwargs['pk'])
+        self.queryset = Listing.objects.values('product').filter(winner=self.user)
+        
+        return super().dispatch(*args, **kwargs)
+        
+    def get_context_data(self, *args, **kwargs):
+        # add user's products to context
+        context = super().get_context_data(*args, **kwargs)
+        context['user_bids'] = Bid.objects.values(
+                                                'listing'
+                                            ).filter(
+                                                bidder=self.request.user
+                                            ).aggregate(
+                                                latest_bid=Max('value'))
+        return context
+        
+        
+class UserWatchlistView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
+    """Display and manage user's watchlist."""
+    context_object_name = "watched_list"
+    
+    def dispatch(self, *args, **kwargs):
+        if 'pk' not in kwargs:
+            raise ImproperlyConfigured(
+                "The URL path must contain 'pk' parameter."
+            )
+        user = User.objects.get(pk=kwargs['pk'])
+        self.queryset = user.watchlist.all()
+        
+        return super().dispatch(*args, **kwargs)
     
     
 class ActiveListingsView(ListView):
