@@ -4,63 +4,65 @@
 						
 			<div class="container">
 							<h3 class="flex-grow-1">Your watchlist:</h3>
-							<div class="d-flew nowrap w-100 header-row">
-								<div class="w-10 header-item">
+							<div class="d-flex nowrap w-100 header-row">
+								<div class="w-10 p-1 header-item">
 									<button class="btn btn-primary" id="clear-watchlist">
 										Remove all
 									</button>
 								</div>
-								<div class="w-10 header-item">
-									Product's image
+								<div class="w-10 p-1 header-item">
+									Image
 								</div>
-								<div class="w-25 header-item">
-									Name
+								<div class="w-25 p-1 header-item">
+									Title
 								</div>
-								<div class "w-15 header-item">
+								<div class="w-15 p-1 header-item">
 									Categories
 								</div>
-								<div class="w-10 header-item">
+								<div class="w-10 p-1 header-item">
 									Bids count
 								</div>
-								<div class="w-10 header-item">
+								<div class="w-10 p-1 header-item">
 									Highest bid
 								</div>
-								<div class="w-10 header-item">
+								<div class="w-10 p-1 header-item">
 									Time left
 								</div>
-								<div class="w-10 header-item">
+								<div class="w-10 p-1 header-item">
 									Action
 								</div>			
 							</div>
 							{% for item in watched_list|dictsort:"end_time" %}
 								{% if item.status == "active" %}
 								<div class="listing d-flex nowrap w-100" id="{{ item.id }}">
-								    <div class="w-10">
+								    <div class="w-10 p-1">
 								        <button class="btn btn-warning remove">Remove</button>
 								    </div>
-									<div class="w-10">
+									<div class="w-10 p-1">
 										<img src="{{ item.product.image_set.0.img_url }}">
 									</div>
-									<div class="w-25">
+									<div class="w-25 p-1">
 										{{ item.product.name|capfirst }}
 									</div>
-									<div class="w-15">
+									<div class="w-15 p-1">
 										{% for category in item.product.categories %}
 											<p>{{ category.name }}</p>
 										{% endfor %}
-									<div class="w-10">
+									<div class="w-10 p-1">
 										{{ item.bids.count }}
 									</div>
-									<div class="w-10">
+									<div class="w-10 p-1">
 										{{ item.max_bid }}
 									</div>
-									<div class="w-10">
+									<div class="w-10 p-1">
 										{{ item.end_time|timeuntil:now }}
 									</div>
-									<div class="w-10">
+									<div class="w-10 p-1">
 									    <button class="btn btn-primary bid">Bid</button>
 									</div>
 								</div>
+                                {% else %}
+                                    <p>Your watchlist is empty.</p>
 								{% endif %}
 							{% empty %}
 								<p>Your watchlist is empty.</p>

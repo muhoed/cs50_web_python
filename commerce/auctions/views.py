@@ -13,7 +13,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMultiAlternatives
 from django.db import IntegrityError
 from django.db.models import (F, Q, Max, Case, When, Value, OuterRef, 
-                                Subquery, ExpressionWrapper, DateTimeField)
+                                Count, Subquery, ExpressionWrapper, DateTimeField)
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
@@ -448,7 +448,7 @@ class SellActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
     def get_context_data(self, *args, **kwargs):
         # add user's products to context
         context = super().get_context_data(*args, **kwargs)
-        context['products_list'] = Product.objects.annotate(sold_num=Listing.objects.filter(product.id==id, winner!=None).count()).filter(seller=self.user)
+        context["product_list"] = [product for listings in Listing.objects.filter(product__seller=self.user) if listing.winner != None for product in listings]
         return context
         
         
@@ -462,12 +462,9 @@ class BuyActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
                 "The URL path must contain 'pk' parameter."
             )
         self.user = User.objects.get(pk=kwargs['pk'])
-        self.queryset = Bid.objects.values(
-                                                'listing'
-                                            ).filter(
+        self.queryset = Bid.objects.values('listing').filter(
                                                 bidder=self.request.user
-                                            ).aggregate(
-                                                latest_bid=Max('value'))
+                                            ).aggregate(latest_bid=Max('value'))
         
         return super().dispatch(*args, **kwargs)
         

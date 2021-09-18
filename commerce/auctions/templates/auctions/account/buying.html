@@ -34,174 +34,181 @@
 						<div class="tab-pane active mt-2" id="active">
 							<div class="d-flex nowrap w-100" id="tab-header">
 								<h3 class="flex-grow-1">Active listings you have bidded on:</h3>
-								<button class="btn btn-primary" id="create-listing-btn">
+								<button class="btn btn-primary" id="bidded-stats-btn">
 									Show stats
 								</button>
-								</div>
-												<div class="d-flew nowrap w-100 header-row">
-								<div class="w-10 header-item">
-									Product's image
-								</div>
-								<div class="w-25 header-item">
-									Name
-								</div>
-								<div class="w-15 header-item">
-								    Categories
-								</div>
-								<div class "w-10 header-item">
-									Highest bid
-								</div>
-								<div class="w-10 header-item">
-									Bids count
-								</div>
-								<div class="w-10 header-item">
-									Time left
-								</div>
-								<div class="w-10 header-item">
-									Your latest bid
-								</div>
-								<div class="w-10 header-item">
-									Action
-								</div>				
-							</div>
+                            </div>
+                            <div class="d-flex nowrap w-100 header-row">
+                                <div class="w-10 header-item">
+                                    Image
+                                </div>
+                                <div class="w-25 p-1 header-item">
+                                    Title
+                                </div>
+                                <div class="w-15 p-1 header-item">
+                                    Categories
+                                </div>
+                                <div class="w-10 p-1 header-item">
+                                    Highest bid
+                                </div>
+                                <div class="w-10 p-1 header-item">
+                                    Bids count
+                                </div>
+                                <div class="w-10 p-1 header-item">
+                                    Time left
+                                </div>
+                                <div class="w-10 p-1 header-item">
+                                    Your bid
+                                </div>
+                                <div class="w-10 p-1 header-item">
+                                    Action
+                                </div>				
+                            </div>
 							{% for item in user_bidded_listings|dictsort:"end_time" %}
 								{% if item.listing.status == "active" %}
 								<div class="listing d-flex nowrap w-100">
-									<div class="w-10">
+									<div class="w-10 p-1">
 										<img src="{{ item.listing.product.image_set.0.img_url }}">
 									</div>
-									<div class="w-25">
+									<div class="w-25 p-1">
 										{{ item.listing.product.name|capfirst }}
 									</div>
-										<div class="w-15">
+                                    <div class="w-15 p-1">
 										{% for category in item.listing.product.categories %}
 											{{ category.name }}
 										{% endfor %}
 									</div>
-									<div class="w-10">
+									<div class="w-10 p-1">
 										{{ item.listing.max_bid }}
 										</div>
-										<div class="w-10">
+										<div class="w-10 p-1">
 										{{ item.listing.bids.count }}
 									</div>
-									<div class="w-10">
+									<div class="w-10 p-1">
 										{{ item.listing.end_time|timeuntil:now }}
 									</div>
-								<div class="w-10">
+                                    <div class="w-10 p-1">
 										{{ item.latest_bid }}
 									</div>
-								<div>
-								="w-10">
+                                    <div class="w-10 p-1">
 										<button class="btn btn-primary" id="bid">Bid again</button>
 									</div>
 								</div>
+                                {% else %}
+                                    <p>There are no any active listing you bidded on.</p>
 								{% endif %}
 							{% empty %}
-								<p>You did not bid on any listing yet. </p>
+								<p>You did not bid on any listing yet.</p>
 							{% endfor %}
 						</div>
 						<div class="tab-pane mt-2" id="won">
 							<div class="d-flex nowrap w-100" id="tab-header">
 								<h3 class="flex-grow-1">Products you have purchased:</h3>
-								<button class="btn btn-primary" id="create-listing-btn">
+								<button class="btn btn-primary" id="won-stats-btn">
 									Show stats
 								</button>
 							</div>
-							<div class="d-flew nowrap w-100 header-row">
-								<div class="w-20 header-item">
-									Product's image
+							<div class="d-flex nowrap w-100 header-row">
+								<div class="w-20 p-1 header-item">
+									Image
 								</div>
-								<div class="w-30 header-item">
+								<div class="w-30 p-1 header-item">
 									Name
 								</div>
-								<div class="w-20 header-item">
+								<div class="w-20 p-1 header-item">
 								    Categories
 								</div>
-								<div class "w-15 header-item">
+								<div class="w-15 p-1 header-item">
 									Highest bid
 								</div>
-								<div class="w-15 header-item">
+								<div class="w-15 p-1 header-item">
 									Bids count
 								</div>
 							</div>
                             {% for item in user_bidded_listings|dictsort:"end_time" %}
-                            {% if item.winner == user %}
+                            {% if item.listing.winner == user %}
 								<div class="listing d-flex nowrap w-100">
-									<div class="w-20">
+									<div class="w-20 p-1">
 										<img src="{{ item.listing.product.image_set.0.img_url }}">
 									</div>
-									<div class="w-30">
+									<div class="w-30 p-1">
 										{{ item.listing.product.name|capfirst }}
 									</div>
-									<div class="w-20">
-										{{ item.listing.product.categories }}
+									<div class="w-20 p-1">
+										{% for category in item.listing.product.categories %}
+											{{ category.name }}
+										{% endfor %}
 									</div>
-									<div class="w-15">
-										{% if item.cancelled_on %}{{ item.cancelled_on }}{% else %}{{ item.end_time}}{% endif %}
+									<div class="w-15 p-1">
+										{% if item.listing.cancelled_on %}{{ item.listing.cancelled_on }}{% else %}{{ itemlisting..end_time}}{% endif %}
 										</div>
-										<div class="w-15">
+                                    <div class="w-15 p-1">
 										{{ item.listing.max_bid }}
 									</div>
 								</div>
+                                {% else %}
+                                    <p>You did not buy any items yet.</p>
 								{% endif %}
 							{% empty %}
-								<p>You did not buy any items yet.</p>
+								<p>You did not bid on any listing yet.</p>
 							{% endfor %}
 						</div>
 						<div class="tab-pane mt-2" id="unsold">
 							<div class="d-flex nowrap w-100" id="tab-header">
 								<h3 class="flex-grow-1">Items that was not sold:</h3>
-								<button class="btn btn-primary" id="create-listing-btn">
+								<button class="btn btn-primary" id="lost-stats-btn">
 									Show stats
 								</button>
 							</div>
+							<div class="d-flex nowrap w-100 header-row">
+								<div class="w-15 p-1 header-item">
+									Image
+								</div>
+								<div class="w-30 p-1 header-item">
+									Name
+								</div>
+								<div class="w-20 p-1 header-item">
+								    Categories
+								</div>
+								<div class="w-15 p-1 header-item">
+									Followers
+								</div>
+								<div class="w-10 p-1 header-item">
+									Ended on
+								</div>
+								<div class="w-10 p-1 header-item">
+									Action
+								</div>
+							</div>
                             {% for item in user_bidded_listings|dictsort:"end_time" %}
-								{% if item.status == "ended" or item.status == "cancelled" and item.winner != user %}
+								{% if item.listing.status == "ended" or item.listing.status == "cancelled" and item.listing.winner != user %}
 								<div class="listing d-flex nowrap w-100">
-									<div class="w-25">
-										<img src="{{ item.product.image_set.0.img_url }}">
+									<div class="w-15 p-1">
+										<img src="{{ item.listing.product.image_set.0.img_url }}">
 									</div>
-									<div class="w-25">
-										{{ item.product.name|capfirst }}
+									<div class="w-30 p-1">
+										{{ item.listing.product.name|capfirst }}
 									</div>
-									<div class="w-25">
-										<p>Ended on: {% if item.cancelled_on %}{{ item.cancelled_on }}{% else %}{{ item.end_time}}{% endif %}</p>
-										<p>Num.of followers: {{ item.followers.count }}</p>
+									<div class="w-20 p-1">
+										{% for category in item.listing.product.categories %}
+											{{ category.name }}
+										{% endfor %}
 									</div>
-									<div class="w-25">
-										<button class="btn btn-secondary" id="relist">Relist</button>
+									<div class="w-15 p-1">
+										{{ item.listing.followers.count }}
+									</div>
+									<div class="w-10 p-1">
+										{% if item.listing.cancelled_on %}{{ item.listing.cancelled_on }}{% else %}{{ item.listing.end_time}}{% endif %}
+									</div>
+									<div class="w-10 p-1">
+										<button class="btn btn-secondary" id="relist">Find similar</button>
 									</div>
 								</div>
+                                {% else %}
+                                    <p>You do not have any listing you bidded on but lost.</p>
 								{% endif %}
 							{% empty %}
-								<p>You do not have any ended or cancelled listings remained unsold. <a href="{% url 'auctions:create_listing' %}">Click here</a> to create new listing.</p>
-							{% endfor %}
-						</div>
-						<div class="tab-pane mt-2" id="products">
-							<div class="d-flex nowrap w-100" id="tab-header">
-								<h3 class="flex-grow-1">Manage products you offer:</h3>
-								<button class="btn btn-primary" id="create-listing-btn">
-									Add product
-								</button>
-							</div>
-                            {% for product in products_list|dictsort:"created_on" %}
-								<div class="product d-flex nowrap w-100">
-									<div class="w-25">
-										<img src="{{ product.image_set.0.img_url }}">
-									</div>
-									<div class="w-25">
-										<p>{{ product.name|capfirst }}</p>
-                                        <p>Category: {{ product.category }}</p>
-									</div>
-									<div class="w-25">
-										<p>Listed in: {{ product.listings }}</p>
-									</div>
-									<div class="w-25">
-										<button class="btn btn-secondary" id="sell">Relist</button>
-									</div>
-								</div>
-							{% empty %}
-								<p>You did not add any product yet. <a href="">Click here</a> to add one.</p>
+								<p>You did not bid on any listing yet.</p>
 							{% endfor %}
 						</div>
 					</div>

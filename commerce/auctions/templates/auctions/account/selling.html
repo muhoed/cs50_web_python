@@ -43,26 +43,26 @@
 									Create new listing
 								</button>
 							</div>
-							<div class="d-flew nowrap w-100 header-row">
-								<div class="w-15 header-item">
-									Product's image
+							<div class="d-flex nowrap w-100 header-row">
+								<div class="w-15 p-1 header-item">
+									Image
 								</div>
-								<div class="w-30 header-item">
-									Name
+								<div class="w-30 p-1 header-item">
+									Title
 								</div>
-								<div class "w-15 header-item">
+								<div class "w-15 p-1 header-item">
 									Categories
 								</div>
-								<div class="w-10 header-item">
+								<div class="w-10 p-1 header-item">
 									Bids count
 								</div>
-								<div class="w-10 header-item">
+								<div class="w-10 p-1 header-item">
 									Highest bid
 								</div>
-								<div class="w-10 header-item">
+								<div class="w-10 p-1 header-item">
 									Time left
 								</div>
-								<div class="w-10 header-item">
+								<div class="w-10 p-1 header-item">
 									<button class="btn btn-danger" id="cancel-all">
 										Cancel all
 									</button>
@@ -71,35 +71,37 @@
 							{% for listing in listings_list|dictsort:"end_time" %}
 								{% if listing.status == "active" %}
 								<div class="listing d-flex nowrap w-100">
-									<div class="w-15">
+									<div class="w-15 p-1">
 										<img src="{{ listing.product.image_set.0.img_url }}">
 									</div>
-									<div class="w-30">
+									<div class="w-30 p-1">
 										{{ listing.product.name|capfirst }}
 									</div>
-									<div class="w-15">
+									<div class="w-15 p-1">
 										{% for category in listing.product.categories %}
 											{{ category.name }}
 										{% endfor %}
 									</div>
-									<div class="w-10">
+									<div class="w-10 p-1">
 										{{ listing.bids.count }}
 									</div>
-									<div class="w-10">
+									<div class="w-10 p-1">
 										{{ listing.max_bid }}
 									</div>
-									<div class="w-10">
+									<div class="w-10 p-1">
 										{{ listing.end_time|timeuntil:now }}
 									</div>
-									<div class="w-10">
+									<div class="w-10 p-1">
 										<button class="btn btn-warning" id="cancel-{{ listing.id }}">
 											Cancel
 										</button>
 									</div>
 								</div>
+                                {% else %}
+                                    <p>You do not have active listings at the moment. <a href="{% url 'auctions:create_listing' %}">Click here</a> to create one.</p>
 								{% endif %}
 							{% empty %}
-								<p>You do not have active listings at the moment. <a href="{% url 'auctions:create_listing' %}">Click here</a> to create one.</p>
+								<p>You do not list any products for sale yet.</p>
 							{% endfor %}
 						</div>
 						<div class="tab-pane mt-2" id="sold">
@@ -109,53 +111,53 @@
 									Show stats
 								</button>
 							</div>
-							<div class="d-flew nowrap w-100 header-row">
-								<div class="w-15 header-item">
-									Product's image
+							<div class="d-flex nowrap w-100 header-row">
+								<div class="w-15 p-1 header-item">
+									Image
 								</div>
-								<div class="w-30 header-item">
-									Name
+								<div class="w-30 p-1 header-item">
+									Title
 								</div>
-								<div class "w-15 header-item">
+								<div class "w-15 p-1 header-item">
 									Categories
 								</div>
-								<div class="w-10 header-item">
+								<div class="w-10 p-1 header-item">
 									Bids count
 								</div>
-								<div class="w-10 header-item">
+								<div class="w-10 p-1 header-item">
 									Winning bid
 								</div>
-								<div class="w-10 header-item">
+								<div class="w-10 p-1 header-item">
 									Winner
 								</div>
-								<div class="w-10 header-item">
+								<div class="w-10 p-1 header-item">
 									Ended on
 								</div>			
 							</div>
                             {% for listing in listings_list|dictsort:"end_time" %}
 								{% if listing.winner %}
 								<div class="listing d-flex nowrap w-100">
-									<div class="w-15">
+									<div class="w-15 p-1">
 										<img src="{{ listing.product.image_set.0.img_url }}">
 									</div>
-									<div class="w-30">
+									<div class="w-30 p-1">
 										{{ listing.product.name|capfirst }}
 									</div>
-									<div class="w-15">
+									<div class="w-15 p-1">
 										{% for category in listing.product.categories %}
 											{{ category.name }}
 										{% endfor %}
 									</div>
-									<div class="w-10">
+									<div class="w-10 p-1">
 										{{ listing.bids.count }}
 									</div>
-									<div class="w-10">
+									<div class="w-10 p-1">
 										{{ listing.max_bid }}
 									</div>
-									<div class="w-10">
+									<div class="w-10 p-1">
 										{{ listing.winner.username }}
 									</div>
-									<div class="w-10">
+									<div class="w-10 p-1">
 										{% if listing.cancelled_on %}
 											{{ listing.cancelled_on }}
 										{% else %}
@@ -163,9 +165,11 @@
 										{% endif %}
 									</div>
 								</div>
+                                {% else %}
+                                    <p>You did not sell any items yet. <a href="{% url 'auctions:create_listing' %}">Click here</a> to sell one.</p>
 								{% endif %}
 							{% empty %}
-								<p>You did not sell any items yet. <a href="{% url 'auctions:create_listing' %}">Click here</a> to sell one.</p>
+								<p>You do not list any products for sale yet.</p>
 							{% endfor %}
 						</div>
 						<div class="tab-pane mt-2" id="unsold">
@@ -175,23 +179,23 @@
 									Show stats
 								</button>
 							</div>
-							<div class="d-flew nowrap w-100 header-row">
-								<div class="w-20 header-item">
-									Product's image
+							<div class="d-flex nowrap w-100 header-row">
+								<div class="w-20 p-1 header-item">
+									Image
 								</div>
-								<div class="w-35 header-item">
-									Name
+								<div class="w-35 p-1 header-item">
+									Title
 								</div>
-								<div class "w-15 header-item">
+								<div class "w-15 p-1 header-item">
 									Categories
 								</div>
-								<div class="w-10 header-item">
-									Num of watchers
+								<div class="w-10 p-1 header-item">
+									Followers
 								</div>
-								<div class="w-10 header-item">
+								<div class="w-10 p-1 header-item">
 									Ended on
 								</div>
-								<div class="w-10">
+								<div class="w-10 p-1 header-item">
 									<button class="btn btn-primary" id="relist-all">
 										Relist All
 									</button>
@@ -200,34 +204,36 @@
                             {% for listing in listings_list|dictsort:"end_time" %}
 								{% if listing.status != "active" and not listing.winner %}
 								<div class="listing d-flex nowrap w-100">
-									<div class="w-20">
+									<div class="w-20 p-1">
 										<img src="{{ listing.product.image_set.0.img_url }}">
 									</div>
-									<div class="w-35">
+									<div class="w-35 p-1">
 										{{ listing.product.name|capfirst }}
 									</div>
-									<div class="w-15">
+									<div class="w-15 p-1">
 										{% for category in listing.product.categories %}
 											{{ category.name }}
 										{% endfor %}
 									</div>
-									<div class="w-10">
+									<div class="w-10 p-1">
 										{{ listing.followers.count }}
 									</div>
-									<div class="w-10">
+									<div class="w-10 p-1">
 										{% if listing.cancelled_on %}
 											{{ listing.cancelled_on }}
 										{% else %}
 											{{ listing.end_time }}
 										{% endif %}
 									</div>
-									<div class="w-10">
+									<div class="w-10 p-1">
 										<button class="btn btn-secondary" id="relist">Relist</button>
 									</div>
 								</div>
+                                {% else %}
+                                    <p>You do not have any ended or cancelled listings remained unsold. <a href="{% url 'auctions:create_listing' %}">Click here</a> to create new listing.</p>
 								{% endif %}
 							{% empty %}
-								<p>You do not have any ended or cancelled listings remained unsold. <a href="{% url 'auctions:create_listing' %}">Click here</a> to create new listing.</p>
+								<p>You do not list any products for sale yet.</p>
 							{% endfor %}
 						</div>
 						<div class="tab-pane mt-2" id="products">
@@ -237,40 +243,40 @@
 									Add product
 								</button>
 							</div>
-							<div class="d-flew nowrap w-100 header-row">
-								<div class="w-20 header-item">
-									Product's image
+							<div class="d-flex nowrap w-100 header-row">
+								<div class="w-20 p-1 header-item">
+									Image
 								</div>
-								<div class="w-35 header-item">
-									Name
+								<div class="w-35 p-1 header-item">
+									Title
 								</div>
-								<div class "w-15 header-item">
+								<div class "w-15 p-1 header-item">
 									Categories
 								</div>
-								<div class="w-10 header-item">
+								<div class="w-10 p-1 header-item">
 									Status
 								</div>
-								<div class="w-10">
+								<div class="w-10 p-1 header-item">
 								    Num sold
 								</div>
-								<div class="w-10">
-										Action
+								<div class="w-10 p-1 header-item">
+                                    Action
 								</div>				
 							</div>
                             {% for product in products_list|dictsort:"created_on" %}
 								<div class="product d-flex nowrap w-100">
-									<div class="w-20">
+									<div class="w-20 p-1">
 										<img src="{{ product.image_set.0.img_url }}">
 									</div>
-									<div class="w-35">
+									<div class="w-35 p-1">
 										{{ product.name|capfirst }}
-										</div>
-										<div class="w-15">
-										    {% for category in product.categories %}
+                                    </div>
+									<div class="w-15 p-1">
+									    {% for category in product.categories %}
 											{{ category.name }}
 										{% endfor %}
 									</div>
-									<div class="w-10">
+									<div class="w-10 p-1">
 										{% if product.sold_num > 0 %}
 										Sold
 										{% elif product.listings %}
@@ -279,10 +285,10 @@
 										Not listed 
 										{% endif %}
 									</div>
-									<div class="w-10">
+									<div class="w-10 p-1">
 									    {{ product.sold_num }}
 									</div>
-									<div class="w-10">
+									<div class="w-10 p-1">
 										<button class="btn btn-secondary" id="sell">Sell</button>
 									</div>
 								</div>
