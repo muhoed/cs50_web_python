@@ -448,13 +448,13 @@ class SellActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
     def get_context_data(self, *args, **kwargs):
         # add user's products to context
         context = super().get_context_data(*args, **kwargs)
-        context['products_list'] = Product.objects.filter(seller=self.user)
+        context['products_list'] = Product.objects.annotate(sold_num=Listing.objects.filter(product.id==id, winner!=None).count()).filter(seller=self.user)
         return context
         
         
 class BuyActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
     """Summary of user's buying activities."""
-    context_object_name = "products_list"
+    context_object_name = "user_bidded_listings"
     
     def dispatch(self, *args, **kwargs):
         if 'pk' not in kwargs:
@@ -462,20 +462,14 @@ class BuyActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
                 "The URL path must contain 'pk' parameter."
             )
         self.user = User.objects.get(pk=kwargs['pk'])
-        self.queryset = Listing.objects.values('product').filter(winner=self.user)
-        
-        return super().dispatch(*args, **kwargs)
-        
-    def get_context_data(self, *args, **kwargs):
-        # add user's products to context
-        context = super().get_context_data(*args, **kwargs)
-        context['user_bids'] = Bid.objects.values(
+        self.queryset = Bid.objects.values(
                                                 'listing'
                                             ).filter(
                                                 bidder=self.request.user
                                             ).aggregate(
                                                 latest_bid=Max('value'))
-        return context
+        
+        return super().dispatch(*args, **kwargs)
         
         
 class UserWatchlistView(LoginRequiredMixin, CorrectUserTestMixin, ListView):

@@ -129,7 +129,7 @@
 									Winner
 								</div>
 								<div class="w-10 header-item">
-									Ended
+									Ended on
 								</div>			
 							</div>
                             {% for listing in listings_list|dictsort:"end_time" %}
@@ -189,7 +189,7 @@
 									Num of watchers
 								</div>
 								<div class="w-10 header-item">
-									Ended
+									Ended on
 								</div>
 								<div class="w-10">
 									<button class="btn btn-primary" id="relist-all">
@@ -198,7 +198,7 @@
 								</div>				
 							</div>
                             {% for listing in listings_list|dictsort:"end_time" %}
-								{% if listing.status == "ended" or listing.status == "cancelled" and not listing.winner %}
+								{% if listing.status != "active" and not listing.winner %}
 								<div class="listing d-flex nowrap w-100">
 									<div class="w-20">
 										<img src="{{ listing.product.image_set.0.img_url }}">
@@ -237,19 +237,52 @@
 									Add product
 								</button>
 							</div>
+							<div class="d-flew nowrap w-100 header-row">
+								<div class="w-20 header-item">
+									Product's image
+								</div>
+								<div class="w-35 header-item">
+									Name
+								</div>
+								<div class "w-15 header-item">
+									Categories
+								</div>
+								<div class="w-10 header-item">
+									Status
+								</div>
+								<div class="w-10">
+								    Num sold
+								</div>
+								<div class="w-10">
+										Action
+								</div>				
+							</div>
                             {% for product in products_list|dictsort:"created_on" %}
 								<div class="product d-flex nowrap w-100">
-									<div class="w-25">
+									<div class="w-20">
 										<img src="{{ product.image_set.0.img_url }}">
 									</div>
-									<div class="w-25">
-										<p>{{ product.name|capfirst }}</p>
-                                        <p>Category: {{ product.category }}</p>
+									<div class="w-35">
+										{{ product.name|capfirst }}
+										</div>
+										<div class="w-15">
+										    {% for category in product.categories %}
+											{{ category.name }}
+										{% endfor %}
 									</div>
-									<div class="w-25">
-										<p>Listed in: {{ product.listings }}</p>
+									<div class="w-10">
+										{% if product.sold_num > 0 %}
+										Sold
+										{% elif product.listings %}
+										Listed
+										{% else %}
+										Not listed 
+										{% endif %}
 									</div>
-									<div class="w-25">
+									<div class="w-10">
+									    {{ product.sold_num }}
+									</div>
+									<div class="w-10">
 										<button class="btn btn-secondary" id="sell">Sell</button>
 									</div>
 								</div>
