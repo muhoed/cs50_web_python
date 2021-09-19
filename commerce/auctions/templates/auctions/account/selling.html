@@ -98,7 +98,7 @@
 									</div>
 								</div>
                                 {% else %}
-                                    <p>You do not have active listings at the moment. <a href="{% url 'auctions:create_listing' %}">Click here</a> to create one.</p>
+                                    <p>You do not have active listings at the moment. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create one.</p>
 								{% endif %}
 							{% empty %}
 								<p>You do not list any products for sale yet.</p>
@@ -166,7 +166,7 @@
 									</div>
 								</div>
                                 {% else %}
-                                    <p>You did not sell any items yet. <a href="{% url 'auctions:create_listing' %}">Click here</a> to sell one.</p>
+                                    <p>You did not sell any items yet. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to sell one.</p>
 								{% endif %}
 							{% empty %}
 								<p>You do not list any products for sale yet.</p>
@@ -230,7 +230,7 @@
 									</div>
 								</div>
                                 {% else %}
-                                    <p>You do not have any ended or cancelled listings remained unsold. <a href="{% url 'auctions:create_listing' %}">Click here</a> to create new listing.</p>
+                                    <p>You do not have any ended or cancelled listings remained unsold. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create new listing.</p>
 								{% endif %}
 							{% empty %}
 								<p>You do not list any products for sale yet.</p>

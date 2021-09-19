@@ -47,7 +47,7 @@
 							<a class="nav-link" href="{% url 'auctions:watchlist' user.pk %}">Watchlist</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" href="{% url 'auctions:create_listing' %}">Sell</a>
+							<a class="nav-link" href="{% url 'auctions:create_listing' user.pk %}">Sell</a>
 						</li>
 						<li class="nav-item">
 							<a class="nav-link" href="{% url 'auctions:messenger' %}">Messages</a>

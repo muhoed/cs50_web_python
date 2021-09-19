@@ -35,7 +35,7 @@
 							</div>
 							{% endif %}
 						{% empty %}
-							<p>You do not have active listings at the moment. <a href="{% url 'auctions:create_listing' %}">Click here</a> to create one.</p>
+							<p>You do not have active listings at the moment. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create one.</p>
 						{% endfor %}
 						{% if user_listings.3 %}
 							<button class="btn btn-info" data-toggle="collapse" data-target="#more-listings">VIEW MORE</button>

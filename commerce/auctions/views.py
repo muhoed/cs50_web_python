@@ -410,12 +410,11 @@ class ActivitiesSummaryView(LoginRequiredMixin, CorrectUserTestMixin, DetailView
                                                 F('start_time')+F('duration'),
                                                 output_field=DateTimeField()
                                             )).filter(
-                                                (Q(
+                                                Q(
                                                 endtime__lt=timezone.now()
-                                                )|Q(
-                                                cancelled_on!=None)),
+                                                )|Q(cancelled_on__isnull=False),
                                                 bids__isnull=False
-                                                ).order_by('calcelled_on', '-endtime')
+                                                ).order_by('cancelled_on', '-endtime')
         return context
         
         
@@ -445,7 +444,8 @@ class SellActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
     def get_context_data(self, *args, **kwargs):
         # add user's products to context
         context = super().get_context_data(*args, **kwargs)
-        context["product_list"] = [product for listings in Listing.objects.filter(product__seller=self.user) if listing.winner != None for product in listings]
+        user_listings = Listing.objects.filter(product__seller=self.user)
+        context["product_list"] = [product for listings in user_listings if listings.winner != None for product in listings]
         return context
         
         
@@ -500,8 +500,7 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
     
 class UpdateListingView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
     """
-    Update existing listing during relist process.
-    Display details of existing listing.
+    Update existing listing for on-the-fly modifications and relisting.
     """
     model = Listing
     form_class = ListingForm
@@ -511,7 +510,7 @@ class ProductView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
     """
     Create/update product to be listed.
     """
-    model = product
+    model = Product
     form_class = ProductForm
     
     

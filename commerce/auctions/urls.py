@@ -110,7 +110,10 @@ urlpatterns = [
 			name="watchlist"),
     path("categories", views.categories, name="categories"),
     path("categories/<int:cat_id>/", views.categories, name="categories"),
-    path("create", views.create_listing, name="create_listing"),
+    path("account/<int:pk>/listing/create", views.CreateListingView.as_view(
+								extra_context={'title': _('create listing')},
+								template_name='auctions/account/create_listing.html'), 
+			name="create_listing"),
     path("messenger", views.messenger, name="messenger"),
     path("listing/<int:listing_id>/", views.listing, name="listing"),
     path("bid", views.bid, name="bid"),

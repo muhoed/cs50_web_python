@@ -139,4 +139,9 @@ class ListingForm(forms.ModelForm):
 		model = Listing
 		fields = ["product", "state", "start_time", "duration", "start_price",
 					"payment_policy", "shipment_policy", "return_policy"]
+                    
+class ProductForm(forms.ModelForm):
+	class Meta():
+		model = Product
+		fields = ["categories", "name", "description"]
 	
