@@ -134,9 +134,9 @@ class AnswerForm(forms.ModelForm):
 		model = Answer
 		fields = ["content"]
 	
-class CreateListingForm(forms.ModelForm):
+class ListingForm(forms.ModelForm):
 	class Meta():
 		model = Listing
-		fields = ["product", "start_time", "duration", "start_price",
-					"state", "payment_policy", "shipment_policy", "return_policy"]
+		fields = ["product", "state", "start_time", "duration", "start_price",
+					"payment_policy", "shipment_policy", "return_policy"]
 	

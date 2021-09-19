@@ -311,10 +311,8 @@ class ProfileView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if "email_formset" not in kwargs:
-            #data = {'emailaddress_set-TOTAL_FORMS': '2', 'emailaddress_set-INITIAL_FORMS': '0'}
             context["email_formset"] = UserEmailFormset(instance=self.object)
         if "address_formset" not in kwargs:
-            #data = {'address_set-TOTAL_FORMS': '2', 'address_set-INITIAL_FORMS': '0'}
             context["address_formset"] = UserAddressFormset(instance=self.object)
         return context
         
@@ -322,7 +320,6 @@ class ProfileView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
         self.object = self.get_object()
         if self.object.profile_completed:
             self.extra_context = {'title': 'profile'}
-            #return redirect(self.get_success_url())
         return super().dispatch(*args, **kwargs)
         
     def get_form_kwargs(self):
@@ -485,9 +482,37 @@ class UserWatchlistView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
     
     
 class ActiveListingsView(ListView):
+    """
+    Displays all active listings.
+    """
     queryset = Listing.objects.order_by('-start_time').all()
     template_name = 'auctions/index.html'
     paginate_by = 10
+    
+    
+class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
+    """
+    Create a new listing from existing or newly added product.
+    """
+    model = Listing
+    form_class = ListingForm
+    
+    
+class UpdateListingView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
+    """
+    Update existing listing during relist process.
+    Display details of existing listing.
+    """
+    model = Listing
+    form_class = ListingForm
+    
+    
+class ProductView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
+    """
+    Create/update product to be listed.
+    """
+    model = product
+    form_class = ProductForm
     
     
 @login_required    
