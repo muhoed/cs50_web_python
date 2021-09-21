@@ -114,6 +114,10 @@ urlpatterns = [
 								extra_context={'title': _('create listing')},
 								template_name='auctions/account/create_listing.html'), 
 			name="create_listing"),
+	path("account/<int:pk>/product/create/", views.ProductView.as_view(
+								extra_context={'title': _('create product')},
+								template_name="auctions/account/create_product.html"),
+			name="create_product"),
     path("messenger", views.messenger, name="messenger"),
     path("listing/<int:listing_id>/", views.listing, name="listing"),
     path("bid", views.bid, name="bid"),

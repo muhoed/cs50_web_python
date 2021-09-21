@@ -143,5 +143,14 @@ class ListingForm(forms.ModelForm):
 class ProductForm(forms.ModelForm):
 	class Meta():
 		model = Product
-		fields = ["categories", "name", "description"]
-	
+		fields = ["seller", "categories", "name", "description"]
+        
+
+class ImageForm(forms.ModelForm):
+    class Meta():
+        model = Image
+        fields = ["image_url"]
+
+ImageFormset = forms.models.inlineformset_factory(Product, Image,
+											form=ImageForm, extra=3, 
+											max_num=3, validate_max=True)	

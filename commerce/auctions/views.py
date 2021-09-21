@@ -355,7 +355,6 @@ class ProfileView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
             if not self.request.POST.get("address_set-" + str(i) + "-country") \
                     and self.request.POST.get("country" + str(i)):
                 self.post_data["address_set-" + str(i) + "-country"] = self.request.POST["country" + str(i)]
-        print(self.post_data)
         form = self.get_form()
         email_formset = UserEmailFormset(self.post_data, instance=self.object)
         address_formset = UserAddressFormset(self.post_data, instance=self.object)
@@ -506,12 +505,44 @@ class UpdateListingView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
     form_class = ListingForm
     
     
-class ProductView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
+class ProductView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
     """
-    Create/update product to be listed.
+    Create product to be listed.
     """
     model = Product
     form_class = ProductForm
+       
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if "image_formset" not in kwargs:
+            context["image_formset"] = ImageFormset(instance=self.object)
+        return context
+        
+    def dispatch(self, *args, **kwargs):
+        if 'pk' not in kwargs:
+            raise ImproperlyConfigured(
+                "The URL path must contain 'pk' parameter."
+            )
+        self.user = User.objects.get(pk=kwargs['pk'])
+        return super().dispatch(*args, **kwargs)
+        
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        form.seller = self.user
+        image_formset = ImageFormset(self.post_data, instance=self.object)
+        
+        message = "New product was successfully created."
+        
+        if form.is_valid() and image_formset.is_valid():
+            images = image_formset.save()
+            messages.success(self.request, message)
+            return self.form_valid(form)
+            
+        else:
+            return self.render_to_response(self.get_context_data(
+                                                        form=form,
+                                                        image_formset=image_formset
+                                                        ))
     
     
 @login_required    
