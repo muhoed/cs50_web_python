@@ -496,6 +496,46 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
     model = Listing
     form_class = ListingForm
     
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if "product_form" not in kwargs:
+            context["product_form"] = ProductForm(initial={'seller': self.user})
+        if "image_formset" not in kwargs:
+            context["image_formset"] = ImageFormset()
+        return context
+        
+    def dispatch(self, *args, **kwargs):
+        if 'pk' not in kwargs:
+            raise ImproperlyConfigured(
+                "The URL path must contain 'pk' parameter."
+            )
+        self.user = User.objects.get(pk=kwargs['pk'])
+        return super().dispatch(*args, **kwargs)
+        
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        product_form = ProductForm(self.request.POST)
+        
+        if not form.product and product_form.is_valid():
+            product = product_form.save()
+            image_formset = ImageFormset(self.request.POST, instance=product)
+            form.product = product
+            if image_formset.is_valid():
+                images = image_formset.save()
+            
+        message = "Listing was successfully created."
+        
+        if form.is_valid():
+            messages.success(self.request, message)
+            return self.form_valid(form)
+            
+        else:
+            return self.render_to_response(self.get_context_data(
+                                                        form=form,
+                                                        product_form=product_form,
+                                                        image_formset=image_formset
+                                                        ))
+    
     
 class UpdateListingView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
     """

@@ -290,7 +290,34 @@ var emailLinkPage = {
 		    emailLinkPage.config.messageContainer.html(message);
 		});
 	}
-}
+};
+
+var createListingPage = {
+	
+	init: function(settings) {
+		createListingPage.config = {
+			newProduct: $("#create-product"),
+			productForm: $(".new-product"),
+			productsList: $(".products-list")
+		};
+		$.extend(createListingPage.config, settings);
+		createListingPage.setup();
+	},
+	
+	setup: function() {
+		createListingPage.config.newProduct
+			.on("click", function(event){
+					createListingPage.createProduct(event);
+				});
+		createListingPage.config.productForm.hide();
+	},
+	
+	createProduct: function(trigger) {
+		createListingPage.config.productForm.show();
+		createListingPage.config.productsList.hide();
+		createListingPage.config.newProduct.hide();
+	}
+};
 
 $(document).ready(function(){
 	let pageTitle = $("title").text();
@@ -306,6 +333,9 @@ $(document).ready(function(){
 			break;
 		case "Auction$ - Confirm registration":
 		        emailLinkPage.init({topic: "regactivation"});
+		        break;
+		case "Auction$ - Create listing":
+		        createListingPage.init();
 		        break;
 		default:
 			return false;

@@ -13,13 +13,43 @@
 								<tr><td colspan="2">{{ form.product.errors }}</td></tr>
 								<tr>
 									<td>
+										Create new product
 										<button class="btn btn-secondary" id="create-product">
-											<a href="{% url 'auctions:create_product' user.pk %}">Create product</a>
+											Create
 										</button>
 									</td>
-									<td>or select one from the list below</td>
+									<td class="products-list">or select one from the list below</td>
 								</tr>
-								<tr>
+								<!-- part of the form to create new product -->
+								<tr class="new-product"><td colspan="2">{{ product_form.non_field_errors }}</td></tr>
+								<tr class="new-product"><td colspan="2">{{ product_form.name.errors }}</td></tr>
+								<tr class="new-product">
+									<th>{{ product_form.name.label_tag }}</th>
+									<td>{{ product_form.name }}</td>
+								</tr>
+								<tr class="new-product"><td colspan="2">{{ product_form.categories.errors }}</td></tr>
+								<tr class="new-product">
+									<th>{{ product_form.categories.label_tag }}</th>
+									<td>{{ product_form.categories }}</td>
+								</tr>
+								<tr class="new-product"><td colspan="2">Add links to up to three images of the product</td></tr>
+								<tr class="new-product"><td colspan="2">{{ image_formset.non_form_errors }}</td></tr>
+								{{ image_formset.management_form }}
+								{% for iform in image_formset %}
+									{{ iform.non_field_errors }}
+									<tr class="new-product"><td colspan="2">{{ iform.image_url.errors }}</td></tr>
+									<tr class="new-product">
+										<th>{{ iform.image_url.label_tag }}</th>
+										<td>{{ iform.image_url }}</td>
+									</tr>
+								{% endfor %}
+								<tr class="new-product"><td colspan="2">{{ product_form.description.errors }}</td></tr>
+								<tr class="new-product">
+									<th>{{ product_form.description.label_tag }}</th>
+									<td>{{ product_form.description }}</td>
+								</tr>
+								<!-- choose existing product if do not want to create new one -->
+								<tr class="products-list">
 									<th>List of saved products:</th>
 									<td>{{ form.product }}</td>
 								</tr>
