@@ -143,7 +143,7 @@ class ListingForm(forms.ModelForm):
 class ProductForm(forms.ModelForm):
 	class Meta():
 		model = Product
-		fields = ["categories", "name", "description"]
+		fields = ["seller", "categories", "name", "description"]
         
 
 class ImageForm(forms.ModelForm):

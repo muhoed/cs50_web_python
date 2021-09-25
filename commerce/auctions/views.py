@@ -513,19 +513,22 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
         return super().dispatch(*args, **kwargs)
         
     def post(self, request, *args, **kwargs):
+        self.object = None
         form = self.get_form()
         product_form = ProductForm(self.request.POST)
+        image_formset = ImageFormset()
         
-        if not form.product and product_form.is_valid():
+        if not form["product"].value() and product_form.is_valid():
             product = product_form.save()
             image_formset = ImageFormset(self.request.POST, instance=product)
-            form.product = product
+            form["product"] = product
             if image_formset.is_valid():
                 images = image_formset.save()
             
         message = "Listing was successfully created."
         
         if form.is_valid():
+            #self.object = form.save()
             messages.success(self.request, message)
             return self.form_valid(form)
             

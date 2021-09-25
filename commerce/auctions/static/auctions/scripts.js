@@ -314,7 +314,7 @@ var createListingPage = {
 	
 	createProduct: function(trigger) {
 		createListingPage.config.productForm.show();
-		createListingPage.config.productsList.hide();
+		createListingPage.config.productsList.find("select").attr('disabled', true); //.hide();
 		createListingPage.config.newProduct.hide();
 	}
 };
