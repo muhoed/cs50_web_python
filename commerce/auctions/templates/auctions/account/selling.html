@@ -39,9 +39,9 @@
 						<div class="tab-pane active mt-2" id="active">
 							<div class="d-flex nowrap w-100" id="tab-header">
 								<h3 class="flex-grow-1">Your active listings:</h3>
-								<button class="btn btn-primary" id="create-listing-btn">
+								<a href="{% url 'auctions:create_listing' user.pk %}"><button class="btn btn-primary" id="create-listing-btn">
 									Create new listing
-								</button>
+								</button></a>
 							</div>
 							<div class="d-flex nowrap w-100 header-row">
 								<div class="w-15 p-1 header-item">
@@ -293,7 +293,7 @@
 									</div>
 								</div>
 							{% empty %}
-								<p>You did not add any product yet. <a href="">Click here</a> to add one.</p>
+								<p>You did not add any product yet. <a href="{% url 'auctions:create_product' user.pk %}">Click here</a> to add one.</p>
 							{% endfor %}
 						</div>
 					</div>

@@ -11,26 +11,26 @@
 							{% csrf_token %}
 							<div class="create-listing-form mb-2 container border border-primary border-top-0 border-right-0 border-left-0">
 								<div class="row mb-1">
-									<div class="col-md-6">
+									<div class="col-md-4">
 										Create new product
 										<div class="btn btn-secondary" id="create-product">
 											Create
 										</div>
 									</div>
-									<div class="products-list col-md-3">or select one from the list below</div>
+									<div class="products-list col-md-5">or select one from the list below</div>
 								</div>
 								<!-- part of the form to create new product -->
-								<input type="hidden" name="seller" value="{{ user }}">
+				<!--				<input type="hidden" name="seller" value="{{ user }}">-->
 								<div class="new-product row"><div class="col-md-9">{{ product_form.non_field_errors }}</div></div>
 								<div class="new-product row"><div class="col-md-9">{{ product_form.name.errors }}</div></div>
 								<div class="new-product row">
-									<div class="col-md-3">{{ product_form.name.label_tag }}</div>
-									<div class="col-md-6">{{ product_form.name }}</div>
+									<div class="col-md-4">{{ product_form.name.label_tag }}</div>
+									<div class="col-md-5">{{ product_form.name }}</div>
 								</div>
 								<div class="new-product row"><div class="col-md-9">{{ product_form.categories.errors }}</div></div>
 								<div class="new-product mb-2 row">
-									<div class="col-md-3">{{ product_form.categories.label_tag }}</div>
-									<div class="col-md-6">{{ product_form.categories }}</div>
+									<div class="col-md-4">{{ product_form.categories.label_tag }}</div>
+									<div class="col-md-5">{{ product_form.categories }}</div>
 								</div>
 								<div class="new-product row"><div class=="col-md-9">Add links to up to three images of the product</div></div>
 								<div class="new-product row"><div class="col-md-9">{{ image_formset.non_form_errors }}</div></div>
@@ -59,54 +59,54 @@
 								<!-- endfor -->
 								<div class="new-product mt-2 row"><div class="col-md-9">{{ product_form.description.errors }}</div></div>
 								<div class="new-product mb-2 row">
-									<div class="col-md-3">{{ product_form.description.label_tag }}</div>
-									<div class="col-md-6">{{ product_form.description }}</div>
+									<div class="col-md-4">{{ product_form.description.label_tag }}</div>
+									<div class="col-md-5">{{ product_form.description }}</div>
 								</div>
 								<!-- choose existing product if do not want to create new one -->
 								<div class="row"><div class="col-md-9">{{ form.product.errors }}</div></div>
 								<div class="products-list row">
-									<div class="col-md-6">List of saved products:</div>
-									<div class="col-md-3">{{ form.product }}</div>
+									<div class="col-md-4">List of saved products:</div>
+									<div class="col-md-5">{{ form.product }}</div>
 								</div>
 								<div class="row"><div class="col-md-9">{{ form.state.errors }}</div></div>
 								<div class="row">
-									<div class="col-md-3">{{ form.state.label_tag }}</div>
-									<div class="col-md-6">{{ form.state }}</div>
+									<div class="col-md-4">{{ form.state.label_tag }}</div>
+									<div class="col-md-5">{{ form.state }}</div>
 								</div>
 								<div class="row"><div class="col-md-9">{{ form.start_time.errors }}</div></div>
 								<div class="row">
-									<div class="col-md-3">{{ form.start_time.label_tag }}</div>
-									<div class="col-md-6">{{ form.start_time }}</div>
+									<div class="col-md-4">{{ form.start_time.label_tag }}</div>
+									<div class="col-md-5">{{ form.start_time }}</div>
 								</div>
-								<div class="row"><div class="col-md-3">{{ form.duration.errors }}</div></div>
+								<div class="row"><div class="col-md-9">{{ form.duration.errors }}</div></div>
 								<div class="row">
-									<div class="col-md-3">{{ form.duration.label_tag }}</div>
-									<div class="col-md-6">{{ form.duration }}</div>
+									<div class="col-md-4">{{ form.duration.label_tag }}</div>
+									<div class="col-md-5">{{ form.duration }}</div>
 								</div>
 								<div class="row"><div class="col-md-9">{{ form.start_time.errors }}</div></div>
 								<div class="row">
-									<div class="col-md-3">{{ form.start_time.label_tag }}</div>
-									<div class="col-md-6">{{ form.start_time }}</div>
+									<div class="col-md-4">{{ form.start_time.label_tag }}</div>
+									<div class="col-md-5">{{ form.start_time }}</div>
 								</div>
 								<div class="row"><div class="col-md-9">{{ form.start_price.errors }}</div></div>
 								<div class="row">
-									<div class="col-md-3">{{ form.start_price.label_tag }}</div>
-									<div class="col-md-6">{{ form.start_price }}</div>
+									<div class="col-md-4">{{ form.start_price.label_tag }}</div>
+									<div class="col-md-5">{{ form.start_price }}</div>
 								</div>
 								<div class="row"><div class="col-md-9">{{ form.payment_policy.errors }}</div></div>
 								<div class="row">
-									<div class="col-md-3">{{ form.payment_policy.label_tag }}</div>
-									<div class="col-md-6">{{ form.payment_policy }}</div>
+									<div class="col-md-4">{{ form.payment_policy.label_tag }}</div>
+									<div class="col-md-5">{{ form.payment_policy }}</div>
 								</div>
 								<div class="row"><div class="col-md-9">{{ form.shipment_policy.errors }}</div></div>
 								<div class="row">
-									<div class="col-md-3">{{ form.shipment_policy.label_tag }}</div>
-									<div class="col-md-6">{{ form.shipment_policy }}</div>
+									<div class="col-md-4">{{ form.shipment_policy.label_tag }}</div>
+									<div class="col-md-5">{{ form.shipment_policy }}</div>
 								</div>
 								<div class="row"><div class="col-md-9">{{ form.return_policy.errors }}</div></div>
 								<div class="row">
-									<div class="col-md-3">{{ form.return_policy.label_tag }}</div>
-									<div class="col-md-6">{{ form.return_policy }}</div>
+									<div class="col-md-4">{{ form.return_policy.label_tag }}</div>
+									<div class="col-md-5">{{ form.return_policy }}</div>
 								</div>
 							</div>
 							<input class="btn btn-primary" type="submit" value="Create">

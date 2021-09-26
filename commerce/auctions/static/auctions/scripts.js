@@ -309,13 +309,22 @@ var createListingPage = {
 			.on("click", function(event){
 					createListingPage.createProduct(event);
 				});
-		createListingPage.config.productForm.hide();
+		//createListingPage.config.productForm.hide();
+		createListingPage.boundedProductForm();
 	},
 	
 	createProduct: function(trigger) {
 		createListingPage.config.productForm.show();
 		createListingPage.config.productsList.find("select").attr('disabled', true); //.hide();
 		createListingPage.config.newProduct.hide();
+	},
+	
+	boundedProductForm: function() {
+	    if (createListingPage.config.productForm.has(".errorlist").get(0)) {
+	        createListingPage.config.newProduct.click();
+	    } else {
+	        createListingPage.config.productForm.hide();
+	    }
 	}
 };
 
