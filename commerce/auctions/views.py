@@ -516,13 +516,14 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
         self.object = None
         form = self.get_form()
         product_form = ProductForm(self.request.POST)
-        product_form["seller"] = self.user
+        product_form.fields["seller"] = self.user.pk
         image_formset = ImageFormset()
         
-        if not form["product"].value() and product_form.is_valid():
+        if (form.fields["product"].disabled or not form.fields["product"]) and product_form.is_valid():
             product = product_form.save()
             image_formset = ImageFormset(self.request.POST, instance=product)
-            form["product"] = product
+            form.fields["product"].disabled = False
+            form.fields["product"] = product.id
             if image_formset.is_valid():
                 images = image_formset.save()
             
