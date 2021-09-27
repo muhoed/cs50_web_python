@@ -315,7 +315,7 @@ var createListingPage = {
 	
 	createProduct: function(trigger) {
 		createListingPage.config.productForm.show();
-		createListingPage.config.productsList.find("select").attr('disabled', true); //.hide();
+		//createListingPage.config.productsList.find("select").attr('disabled', true); //.hide();
 		createListingPage.config.newProduct.hide();
 	},
 	
@@ -323,6 +323,8 @@ var createListingPage = {
 	    if (createListingPage.config.productForm.has(".errorlist").get(0)) {
 	        createListingPage.config.newProduct.click();
 	    } else {
+	        createListingPage.config.productForm.find("input[name='name']").attr("disabled", true);
+	        createListingPage.config.productForm.find("select").attr("disabled", true)
 	        createListingPage.config.productForm.hide();
 	    }
 	}

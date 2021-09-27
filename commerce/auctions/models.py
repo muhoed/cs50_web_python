@@ -414,14 +414,14 @@ class Listing(models.Model):
     duration = models.DurationField("duration of the listing",
                 default = datetime.timedelta(days=10),
                 help_text="Duration of the listing in days. Default to 10 days.")
-    cancelled_on = models.DateTimeField()
+    cancelled_on = models.DateTimeField(null=True)
 
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
 	
     @property
     def status(self):
-        if self.cancelled:
+        if self.cancelled_on:
             return "cancelled"
         dt = timezone.now()
         if self.end_time < dt:
