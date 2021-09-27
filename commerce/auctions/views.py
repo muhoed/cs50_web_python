@@ -443,8 +443,10 @@ class SellActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
     def get_context_data(self, *args, **kwargs):
         # add user's products to context
         context = super().get_context_data(*args, **kwargs)
-        user_listings = Listing.objects.filter(product__seller=self.user)
-        context["product_list"] = [product for listings in user_listings if listings.winner != None for product in listings]
+        context["products_list"] = []
+        for listing in self.queryset:
+            if listing.product not in context["products_list"]:
+                context["products_list"].append(listing.product)
         return context
         
         

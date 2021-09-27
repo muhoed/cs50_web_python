@@ -17,20 +17,19 @@
 					<h3>Your active listings:</h3>
 						{% for listing in user_listings|slice:":3"|dictsort:"end_time" %}
 							{% if listing.status == "active" %}
-							<div class="listing d-flex nowrap w-100">
-								<div class="w-25">
+							<div class="listing row">
+								<div class="col-md-2">
 									<img src="{{ listing.product.image_set.0.img_url }}">
 								</div>
-								<div class="w-25">
+								<div class="col-md-4">
 									{{ listing.product.name|capfirst }}
 								</div>
-								<div class="w-25">
+								<div class="col-md-3">
 									<p>Highest bid: {{ listing.max_bid }}</p>
 									<p>Num.of bids: {{ listing.bids.count }}</p>
 								</div>
-								<div class="w-25">
-									<p>End time: {{ listing.end_time }}</p>
-									<p>{{ listing.end_time|timeuntil }}</p>
+								<div class="col-md-3">
+									<p>Ends in: {{ listing.end_time|timeuntil }}</p>
 								</div>
 							</div>
 							{% endif %}
