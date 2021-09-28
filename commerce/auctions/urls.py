@@ -119,7 +119,11 @@ urlpatterns = [
 								template_name="auctions/account/create_product.html"),
 			name="create_product"),
     path("messenger", views.messenger, name="messenger"),
-    path("listing/<int:listing_id>/", views.listing, name="listing"),
+    path("account/<int:pk>/listing/<int:listing_pk>/", 
+						views.UpdateListingView.as_view(
+								extra_context={'title': _('listing')},
+								template_name="auctions/account/update_listing.html"),
+							name="update_listing"),
     path("bid", views.bid, name="bid"),
     path("search", views.search, name="search")
 ]

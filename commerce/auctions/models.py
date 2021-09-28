@@ -454,7 +454,7 @@ class Listing(models.Model):
         
     @property
     def get_absolute_url(self):
-        return reverse('auctions:listing', args=[int(self.id)])
+        return reverse('auctions:listing', kwargs={'pk': self.id})
 
     def __str__(self):
         return f"Auction listing for {self.product.name}. \

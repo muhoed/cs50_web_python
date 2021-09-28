@@ -518,21 +518,19 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
         self.object = None
         form = self.get_form()
         product_form = ProductForm(self.request.POST)
-        product_form.fields["seller"] = self.user.pk
+        #product_form.fields["seller"] = self.user
         image_formset = ImageFormset()
         
-        if not form.fields["product"] and product_form.is_valid():
+        if not hasattr(form.fields, "product") and product_form.is_valid():
             product = product_form.save()
             image_formset = ImageFormset(self.request.POST, instance=product)
-            #form.fields["product"].disabled = False
-            form.fields["product"] = product.id
+            form.fields["product"].initial = product.id
             if image_formset.is_valid():
                 images = image_formset.save()
             
         message = "Listing was successfully created."
         
         if form.is_valid():
-            #self.object = form.save()
             messages.success(self.request, message)
             return self.form_valid(form)
             
@@ -542,6 +540,15 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
                                                         product_form=product_form,
                                                         image_formset=image_formset
                                                         ))
+                                                        
+    def get_success_url(self):
+        return reverse(
+                    'auctions:update_listing',
+                    kwargs={
+                        'pk': self.user.pk,
+                        'listing_pk': self.object.pk
+                        }
+                    )
     
     
 class UpdateListingView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
@@ -598,11 +605,6 @@ def messenger(request):
     
 
 def categories(request):
-    pass
-    
-
-@login_required    
-def create_listing(request):
     pass
     
     

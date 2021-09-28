@@ -251,6 +251,30 @@ var profilePage = {
 		}
 };
 
+var credentialsPage = {
+	
+	init: function(settings) {
+		credentialsPage.config = {
+			updateButton: $(".update"),
+			inputFields: $(".full_name_form").find("input")
+		};
+		$.extend(credentialsPage.config, settings);
+		credentialsPage.setup();
+	},
+	
+	setup: function() {
+		credentialsPage.config.inputFields
+			.attr("readonly", true);
+		credentialsPage.config.updateButton
+			.one("click", function(event){
+				event.preventDefault();
+				credentialsPage.config.updateButton.prop("value", "Update");
+				credentialsPage.config.inputFields
+					.attr("readonly", false);
+			});
+	}
+};
+
 var emailLinkPage = {
 	
 	init: function(settings) {
@@ -318,9 +342,9 @@ var createListingPage = {
 		//createListingPage.config.productForm.each(function(){
 		    //$(this).find("input select").attr("disabled", false);
 		//});
-		createListingPage.config.productForm.find("input[name='name']").attr("disabled", false);
-	    createListingPage.config.productForm.find("select").attr("disabled", false);
-		//createListingPage.config.productsList.find("select").attr('disabled', true); //.hide();
+		createListingPage.config.productForm.find("input[name='name']").prop("disabled", false);
+	    createListingPage.config.productForm.find("select").prop("disabled", false);
+		createListingPage.config.productsList.find("select").prop('disabled', true); //.hide();
 		createListingPage.config.newProduct.hide();
 	},
 	
@@ -329,7 +353,7 @@ var createListingPage = {
 	        createListingPage.config.newProduct.click();
 	    } else {
 	        createListingPage.config.productForm.find("input[name='name']").attr("disabled", true);
-	        createListingPage.config.productForm.find("select").attr("disabled", true);
+	        createListingPage.config.productForm.find("select").prop("disabled", true);
 	        createListingPage.config.productForm.hide();
 	    }
 	}
@@ -343,6 +367,9 @@ $(document).ready(function(){
 			break;
 		case "Auction$ - Profile":
 			profilePage.init({'action': 'update'});
+			break;
+		case "Auction$ - Credentials":
+			credentialsPage.init();
 			break;
 		case "Auction$ - Password reset link sent":
 			emailLinkPage.init({topic: "pwdreset"});
