@@ -315,6 +315,11 @@ var createListingPage = {
 	
 	createProduct: function(trigger) {
 		createListingPage.config.productForm.show();
+		//createListingPage.config.productForm.each(function(){
+		    //$(this).find("input select").attr("disabled", false);
+		//});
+		createListingPage.config.productForm.find("input[name='name']").attr("disabled", false);
+	    createListingPage.config.productForm.find("select").attr("disabled", false);
 		//createListingPage.config.productsList.find("select").attr('disabled', true); //.hide();
 		createListingPage.config.newProduct.hide();
 	},
@@ -324,7 +329,7 @@ var createListingPage = {
 	        createListingPage.config.newProduct.click();
 	    } else {
 	        createListingPage.config.productForm.find("input[name='name']").attr("disabled", true);
-	        createListingPage.config.productForm.find("select").attr("disabled", true)
+	        createListingPage.config.productForm.find("select").attr("disabled", true);
 	        createListingPage.config.productForm.hide();
 	    }
 	}
