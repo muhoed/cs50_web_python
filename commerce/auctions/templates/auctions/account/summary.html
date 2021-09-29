@@ -15,30 +15,62 @@
 				
 				<div class="container">
 					<h3>Your active listings:</h3>
+					<div class="header row">
+								<div class="col-md-2">
+								    Image
+								</div>
+								<div class="col-md-3">
+									Name
+								</div>
+								<div class="col-md-2">
+									Highest bid
+									</div>
+									<div class="col-md-2">
+									Num.of bids
+								</div>
+								<div class="col-md-3">
+									Time left
+								</div>
+							</div>
+							{% with count = 0 %}
 						{% for listing in user_listings|slice:":3"|dictsort:"end_time" %}
 							{% if listing.status == "active" %}
-							<div class="listing row">
+							{{ count|add:"1" }}
+							<div class="listing row mt-1 mb-1 bg-light">
 								<div class="col-md-2">
 									<img src="{{ listing.product.image_set.0.img_url }}">
 								</div>
-								<div class="col-md-4">
+								<div class="col-md-3">
 									{{ listing.product.name|capfirst }}
 								</div>
-								<div class="col-md-3">
-									<p>Highest bid: {{ listing.max_bid }}</p>
-									<p>Num.of bids: {{ listing.bids.count }}</p>
+								<div class="col-md-2">
+									{{ listing.max_bid }}
+									</div>
+									<div class="col-md-2">
+									{% if listing.bids.count %}
+									{{ listing.bids.count }}
+									{% else %}
+									0
+									{% endif %}
 								</div>
 								<div class="col-md-3">
-									<p>Ends in: {{ listing.end_time|timeuntil }}</p>
+									{{ listing.end_time|timeuntil }}
 								</div>
 							</div>
 							{% endif %}
 						{% empty %}
-							<p>You do not have active listings at the moment. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create one.</p>
+							<p>You do not have listings yet. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create one.</p>
 						{% endfor %}
+						
+						{% if count == 0 %}
+						<p>You do not have active listings at the moment. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create one.</p>
+						{% endif %}
+						{% endwith %}
+						
 						{% if user_listings.3 %}
 							<button class="btn btn-info" data-toggle="collapse" data-target="#more-listings">VIEW MORE</button>
 							<div class="collapse" id="more-listings">
+							
 								{% for listing in user_listings|slice:"3:" %}
 									{% if listing.status == "active" %}
 									<div class="listing d-flex nowrap w-100">
@@ -54,7 +86,7 @@
 										</div>
 										<div class="w-25">
 											<p>End time: {{ listing.end_time }}</p>
-											<p>{{ listing.end_time|timeuntil:now }}</p>
+											<p>{{ listing.end_time|timeuntil }}</p>
 										</div>
 									</div>
 									{% endif %}
@@ -79,7 +111,7 @@
 									</div>
 									<div class="w-25">
 										<p>End time: {{ listing.end_time }}</p>
-										<p>{{ listing.end_time|timeuntil:now }}</p>
+										<p>{{ listing.end_time|timeuntil }}</p>
 									</div>
 								</div>
 							{% endif %}
@@ -104,7 +136,7 @@
 											</div>
 											<div class="w-25">
 												<p>End time: {{ listing.end_time }}</p>
-												<p>{{ listing.end_time|timeuntil:now }}</p>
+												<p>{{ listing.end_time|timeuntil }}</p>
 											</div>
 										</div>
 									{% endif %}
@@ -130,7 +162,7 @@
 									</div>
 									<div class="w-25">
 										<p>End time: {{ listing.end_time }}</p>
-										<p>{{ listing.end_time|timeuntil:now }}</p>
+										<p>{{ listing.end_time|timeuntil }}</p>
 									</div>
 								</div>
 							{% endif %}
@@ -155,7 +187,7 @@
 											</div>
 											<div class="w-25">
 												<p>End time: {{ listing.end_time }}</p>
-												<p>{{ listing.end_time|timeuntil:now }}</p>
+												<p>{{ listing.end_time|timeuntil }}</p>
 											</div>
 										</div>
 									{% endif %}

@@ -68,8 +68,10 @@
 						</button>
 					</div>			
 				</div>
+				{% with count = 0 %}
 				{% for listing in listings_list|dictsort:"end_time" %}
 					{% if listing.status == "active" %}
+					{{ count|add:"1" }}
 					<div class="listing-row row mt-1 bg-light" id="{{ listing.product.id }}">
 						<div class="col-md-1 align-self-center">
 							<img src="{{ listing.product.image_set.0.img_url }}">
@@ -97,12 +99,15 @@
 							</button>
 						</div>
 					</div>
-					{% else %}
-						<p>You do not have active listings at the moment. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create one.</p>
+					
 					{% endif %}
 				{% empty %}
 					<p>You do not list any products for sale yet.</p>
 				{% endfor %}
+				{% if count == 0 %}
+						<p>You do not have active listings at the moment. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create one.</p>
+						{% endif}
+						{% endwith %}
 			</div>
 			<div class="tab-pane mt-2" id="sold">
 				<div class="d-flex nowrap w-100" id="tab-header">
@@ -111,53 +116,55 @@
 						Show stats
 					</button>
 				</div>
-				<div class="d-flex nowrap w-100 header-row">
-					<div class="w-15 p-1 header-item">
+				<div class="header-row row">
+					<div class="col-md-1">
 						Image
 					</div>
-					<div class="w-30 p-1 header-item">
+					<div class="col-md-3">
 						Title
 					</div>
-					<div class= "w-15 p-1 header-item">
+					<div class= "col-md-2">
 						Categories
 					</div>
-					<div class="w-10 p-1 header-item">
+					<div class="col-md-1">
 						Bids count
 					</div>
-					<div class="w-10 p-1 header-item">
+					<div class="col-md-1">
 						Winning bid
 					</div>
-					<div class="w-10 p-1 header-item">
+					<div class="col-md-2">
 						Winner
 					</div>
-					<div class="w-10 p-1 header-item">
+					<div class="col-md-2">
 						Ended on
 					</div>			
 				</div>
+				{% with count = 0 %}
 				{% for listing in listings_list|dictsort:"end_time" %}
 					{% if listing.winner %}
-					<div class="listing d-flex nowrap w-100">
-						<div class="w-15 p-1">
+					{{ count|add:"1" }}
+					<div class="listing row">
+						<div class="col-md-1">
 							<img src="{{ listing.product.image_set.0.img_url }}">
 						</div>
-						<div class="w-30 p-1">
+						<div class="col-md-3">
 							{{ listing.product.name|capfirst }}
 						</div>
-						<div class="w-15 p-1">
+						<div class="col-md-2">
 							{% for category in listing.product.categories.all %}
 								<p>{{ category.name }}</p>
 							{% endfor %}
 						</div>
-						<div class="w-10 p-1">
+						<div class="col-md-1">
 							{{ listing.bids.count }}
 						</div>
-						<div class="w-10 p-1">
+						<div class="col-md-1">
 							{{ listing.max_bid }}
 						</div>
-						<div class="w-10 p-1">
+						<div class="col-md-2">
 							{{ listing.winner.username }}
 						</div>
-						<div class="w-10 p-1">
+						<div class="col-md-2">
 							{% if listing.cancelled_on %}
 								{{ listing.cancelled_on }}
 							{% else %}
@@ -165,12 +172,15 @@
 							{% endif %}
 						</div>
 					</div>
-					{% else %}
-						<p>You did not sell any items yet. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to sell one.</p>
+					
 					{% endif %}
 				{% empty %}
-					<p>You do not list any products for sale yet.</p>
+					<p>You do not list any products for sale yet. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to sell one.</p>
 				{% endfor %}
+				{% if count == 0 %}
+						<p>You did not sell any items yet. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to sell one.</p>
+						{% endif %}
+						{% endwith %}
 			</div>
 			<div class="tab-pane mt-2" id="unsold">
 				<div class="d-flex nowrap w-100" id="tab-header">
@@ -201,8 +211,10 @@
 						</button>
 					</div>				
 				</div>
+				{% with count = 0 %}
 				{% for listing in listings_list|dictsort:"end_time" %}
 					{% if listing.status != "active" and not listing.winner %}
+					{{ count|add:"1" }}
 					<div class="listing d-flex nowrap w-100">
 						<div class="w-20 p-1">
 							<img src="{{ listing.product.image_set.0.img_url }}">
@@ -229,12 +241,15 @@
 							<button class="btn btn-secondary" id="relist">Relist</button>
 						</div>
 					</div>
-					{% else %}
-						<p>You do not have any ended or cancelled listings remained unsold. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create new listing.</p>
+					
 					{% endif %}
 				{% empty %}
 					<p>You do not list any products for sale yet.</p>
 				{% endfor %}
+				{% if count == 0 %}
+						<p>You do not have any ended or cancelled listings remained unsold. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create new listing.</p>
+						{% endif %}
+						{% endif %}
 			</div>
 			<div class="tab-pane mt-2" id="products">
 				<div class="d-flex nowrap w-100" id="tab-header">
