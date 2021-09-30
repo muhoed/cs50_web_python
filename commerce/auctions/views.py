@@ -392,22 +392,43 @@ class ActivitiesSummaryView(LoginRequiredMixin, CorrectUserTestMixin, DetailView
         context = super().get_context_data(**kwargs)
         
         #retrieve all listings to cache
-        all_listings = Listing.objects.all().order_by("end_time")
+        all_listings = Listing.objects.annotate(
+                                            endtime=ExpressionWrapper(
+                                                    F("start_time") + F("duration"), 
+                                                    output_field=DateTimeField()
+                                        )).order_by("endtime")
         
         # Add all active listings created by the user in a QuerySet
         context['user_active_listings'] = all_listings.filter(
-                                            product__seller=self.request.user, cancelled_on__isnull=True).annotate(endtime=ExpressionWrapper(F("start_time") + F("duration"), output_field=DateTimeField()).filter(endtime__gt=timezone.now())
-                                        )
+                                                product__seller=self.request.user, 
+                                                cancelled_on__isnull=True,
+                                                endtime__gt=timezone.now()
+                                            )
                                         
         # Add all bids placed by the user in a QuerySet  
-        bidded_listings = Bid.objects.values(
-                                                'listing'
-                                            ).filter(
-                                                bidder=self.request.user
-                                            ).aggregate(
-                                                latest_bid=Max('value'))
-                                                context["user_bidded_listings"] = bidded_listings.annotate(endtime=ExpressionWrapper(F("start_time") + F("duration"), output_field=DateTimeField()).filter(endtime__gt=timezone.now(), cancelled_on__isnull=True)
-                                        )
+        user_bids = Bid.objects.filter(
+                                    bidder=self.request.user
+                                ).order_by("-value") #.order_by("listing", "-value").distinct("listing")
+        
+        #workaround to lack of support for DISTINCT ON method in SQLite backend                        
+        bidded_listings = []
+        latest_bids = []
+        for bid in user_bids:
+            if bid.listing not in bidded_listings:
+                bidded_listings.append(bid.listing)
+                latest_bids.append(bid)
+                                                        
+        context["bids_on_active"] = [bid for bid in latest_bids if bid.listing.status == "active"]
+                                                
+        #bidded_listings = all_listings.filter(
+        #                        product__seller=self.request.user, 
+        #                        cancelled_on__isnull=True,
+        #                        endtime__gt=timezone.now()
+        #                    )
+        
+        #context["user_bidded_listings"] = [listing for listing in bidded_listings \
+        #                                    if listing.endtime > timezone.now() \
+        #                                    and not listing.cancelled_on]
                                                 
         # Add ended listings bidded by the user in context
         context["bought"] = []

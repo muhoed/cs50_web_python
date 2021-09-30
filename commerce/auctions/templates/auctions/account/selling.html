@@ -69,9 +69,7 @@
 						</button>
 					</div>			
 				</div>
-				{% for listing in listings_list|dictsort:"end_time" %}
-					{% if listing.status == "active" %}
-					{% setflag %}
+				{% for listing in active %}
 					<div class="listing-row row mt-1 bg-light" id="{{ listing.product.id }}">
 						<div class="col-md-1 align-self-center">
 							<img src="{{ listing.product.image_set.0.img_url }}">
@@ -99,14 +97,9 @@
 							</button>
 						</div>
 					</div>
-					
-					{% endif %}
 				{% empty %}
-					<p>You do not list any products for sale yet.</p>
-				{% endfor %}
-				{% if not flag %}
 					<p>You do not have active listings at the moment. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create one.</p>
-				{% endif %}
+				{% endfor %}
 			</div>
 			<div class="tab-pane mt-2" id="sold">
 				<div class="d-flex nowrap w-100" id="tab-header">
@@ -138,9 +131,7 @@
 						Ended on
 					</div>			
 				</div>
-				{% for listing in listings_list|dictsort:"end_time" %}
-					{% if listing.winner %}
-					{% setflag %}
+				{% for listing in sold %}
 					<div class="listing row mt-1 bg-light">
 						<div class="col-md-1">
 							<img src="{{ listing.product.image_set.0.img_url }}">
@@ -170,14 +161,9 @@
 							{% endif %}
 						</div>
 					</div>
-					
-					{% endif %}
 				{% empty %}
-					<p>You do not list any products for sale yet. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to sell one.</p>
-				{% endfor %}
-				{% if not flag %}
 					<p>You did not sell any items yet. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to sell one.</p>
-				{% endif %}
+				{% endfor %}
 			</div>
 			<div class="tab-pane mt-2" id="unsold">
 				<div class="d-flex nowrap w-100" id="tab-header">
@@ -208,9 +194,7 @@
 						</button>
 					</div>				
 				</div>
-				{% for listing in listings_list|dictsort:"end_time" %}
-					{% if listing.status != "active" and not listing.winner %}
-					{% setflag %}
+				{% for listing in unsold %}
 					<div class="listing row mt-1 bg-light">
 						<div class="w-20 p-1">
 							<img src="{{ listing.product.image_set.0.img_url }}">
@@ -237,14 +221,9 @@
 							<button class="btn btn-secondary" id="relist">Relist</button>
 						</div>
 					</div>
-					
-					{% endif %}
 				{% empty %}
-					<p>You do not list any products for sale yet. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to sell one.</p>
+					<p>You do not have any listings ended without winning bidder. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create new listing.</p>
 				{% endfor %}
-				{% if not flag %}
-					<p>You do not have any ended or cancelled listings remained unsold. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create new listing.</p>
-				{% endif %}
 			</div>
 			<div class="tab-pane mt-2" id="products">
 				<div class="d-flex nowrap w-100" id="tab-header">
@@ -288,11 +267,11 @@
 						</div>
 						<div class="col-md-2 align-self-center">
 							{% if product.sold_num > 0 %}
-							Sold
+								Sold
 							{% elif product.listings.first %}
-							Listed
+								Listed
 							{% else %}
-							Not listed 
+								Not listed 
 							{% endif %}
 						</div>
 						<div class="col-md-2 align-self-center">
