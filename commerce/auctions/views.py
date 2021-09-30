@@ -391,29 +391,34 @@ class ActivitiesSummaryView(LoginRequiredMixin, CorrectUserTestMixin, DetailView
         # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
         
-        # Add all listings created by the user in a QuerySet
-        context['user_listings'] = Listing.objects.filter(
-                                            product__seller=self.request.user
+        #retrieve all listings to cache
+        all_listings = Listing.objects.all().order_by("end_time")
+        
+        # Add all active listings created by the user in a QuerySet
+        context['user_active_listings'] = all_listings.filter(
+                                            product__seller=self.request.user, cancelled_on__isnull=True).annotate(endtime=ExpressionWrapper(F("start_time") + F("duration"), output_field=DateTimeField()).filter(endtime__gt=timezone.now())
                                         )
+                                        
         # Add all bids placed by the user in a QuerySet  
-        context['user_bidded_listings'] = Bid.objects.values(
+        bidded_listings = Bid.objects.values(
                                                 'listing'
                                             ).filter(
                                                 bidder=self.request.user
                                             ).aggregate(
                                                 latest_bid=Max('value'))
+                                                context["user_bidded_listings"] = bidded_listings.annotate(endtime=ExpressionWrapper(F("start_time") + F("duration"), output_field=DateTimeField()).filter(endtime__gt=timezone.now(), cancelled_on__isnull=True)
+                                        )
                                                 
-        # Add all ended listings with placed bids in a QuerySet
-        context['ended_listings'] = Listing.objects.annotate(
-                                            endtime=ExpressionWrapper(
-                                                F('start_time')+F('duration'),
-                                                output_field=DateTimeField()
-                                            )).filter(
-                                                Q(
-                                                endtime__lt=timezone.now()
-                                                )|Q(cancelled_on__isnull=False),
-                                                bids__isnull=False
-                                                ).order_by('cancelled_on', '-endtime')
+        # Add ended listings bidded by the user in context
+        context["bought"] = []
+        context["sold"] = []
+        for listing in all_listings:
+            if listing.winner:
+                if listing.winner == self.request.user:
+                    context["bought"].append(listing)
+                elif self.request.user == listing.product.seller:
+                    context["sold"].append(listing)
+                            
         return context
         
         
@@ -444,9 +449,18 @@ class SellActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
         # add user's products to context
         context = super().get_context_data(*args, **kwargs)
         context["products_list"] = []
+        context["active"] =[]
+        context["sold"] = []
+        context["unsold"] = []
         for listing in self.queryset:
             if listing.product not in context["products_list"]:
                 context["products_list"].append(listing.product)
+            if listing.status == "active":
+                context["active"].append(listing)
+            elif listing.winner:
+                context["sold"].append(listinh)
+            elif listing.status != "not started yet":
+                context["unsold"].append(listing)
         return context
         
         
