@@ -32,7 +32,7 @@
 							Time left
 						</div>
 					</div>
-					{% for listing in user_active_listings|slice:":3" %}
+					{% for listing in user_active_listings|slice:":5" %}
 						<div class="listing row mt-1 mb-1 ml-1 bg-light">
 							<div class="col-md-2">
 								<img src="{{ listing.product.image_set.0.img_url }}">
@@ -57,39 +57,14 @@
 					{% empty %}
 						<p>You do not have listings yet. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create one.</p>
 					{% endfor %}
-					{% if user_active_listings.3 %}
-						<div class="collapse" id="more-listings">
-							{% for listing in user_active_listings|slice:"3:" %}
-								<div class="listing row mt-1 mb-1 ml-1 bg-light">
-									<div class="col-md-2">
-										<img src="{{ listing.product.image_set.0.img_url }}">
-									</div>
-									<div class="col-md-3">
-										{{ listing.product.name|capfirst }}
-									</div>
-									<div class="col-md-2">
-										{{ listing.max_bid }}
-										</div>
-										<div class="col-md-2">
-										{% if listing.bids.count %}
-										{{ listing.bids.count }}
-										{% else %}
-										0
-										{% endif %}
-									</div>
-									<div class="col-md-3">
-										{{ listing.end_time|timeuntil }}
-									</div>
-								</div>
-							{% endfor %}
+					{% if user_active_listings.5 %}
+						<a href="{% url 'auctions:sell_activities' user.pk %}" class="nav-link">View more</a>
+						{% endif %}
 						</div>
-						<p class="nav-item" data-toggle="collapse" data-target="#more-listings"><a href="#more-listings" class="nav-link">View more</a></p>
-					{% endif %}
-				</div>
-				<div class="container">
+				<div class="container mt-2">
 					<h3>Your bids on active listings:</h3>
-					{% for bid in bids_on_active|slice:":3" %}
-						<div class="listing row mt-1 bg-light">
+					{% for bid in bids_on_active|slice:":5" %}
+						<div class="listing row mt-1 ml-1 bg-light">
 							<div class="col-md-2">
 								<img src="{{ bid.listing.product.image_set.0.img_url }}">
 							</div>
@@ -112,39 +87,15 @@
 					{% empty %}
 						<p>You did not place any bids yet.</p>
 					{% endfor %}
-					{% if bids_on_active.3 %}
-						<div class="collapse" id="more-latest-bids">
-							{% for bid in bids_on_active|slice:":3" %}
-								<div class="listing row mt-1 bg-light">
-									<div class="col-md-2">
-										<img src="{{ bid.listing.product.image_set.0.img_url }}">
-									</div>
-									<div class="col-md-3">
-										{{ bid.listing.product.name|capfirst }}
-									</div>
-									<div class="col-md-2">
-										{% for category in bid.listing.product.categories.all %}
-											<p>{{ category.name }}</p>
-										{% endfor %}
-									</div
-									<div class="col-md-2">
-										<p>Your bid: {{ bid.value }}</p>
-										<p>Top bid: {{ bid.listing.max_bid }}</p>
-									</div>
-									<div class="col-md-3">
-										<p>Time left: {{ bid.listing.end_time|timeuntil }}</p>
-									</div>
-								</div>
-							{% endfor %}
+					{% if bids_on_active.5 %}
+						<a class="nav-link" href="{% url 'auctions:purchase_activities' user.pk %}">View more</p>
+						{% endif %}
 						</div>
-						<p class="nav-link" data-toggle="collapse" data-target="#more-latest-bids">View more</p>
-					{% endif %}
-				</div>
-				<div class="container">
+				<div class="container mt-2">
 					<h3>Your watchlist:</h3>
 					{% with user.watchlist.all as user_watchlist %}
-						{% for listing in user_watchlist|dictsortreversed:"end_time"|slice:":3" %}
-								<div class="listing row mt-1 bg-light">
+						{% for listing in user_watchlist|dictsortreversed:"end_time"|slice:":5" %}
+								<div class="listing row mt-1 ml-1 bg-light">
 								    <div class="col-md-2">
 								        Status: {{ listing.status }}
 								    </div>
@@ -171,44 +122,16 @@
 						{% empty %}
 							<p>There are no listings added to your watchlist yet.</p>
 						{% endfor %}
-						{% if user_watchlist.3 %}
-							<div class="collapse" id="more-watchlist">
-								{% for listing in user.watchlist.all|dictsortreversed:"end_time"|slice:"3:" %}
-										<div class="listing row mt-1 bg-light">
-										    <div class="col-md-2">
-								        Status: {{ listing.status }}
-								    </div>
-											<div class="col-md-1">
-												<img src="{{ listing.product.image_set.0.img_url }}">
-											</div>
-											<div class="col-md-3">
-												{{ listing.product.name|capfirst }}
-											</div>
-											<div class="col-md-2">
-												{% for category in listing.product.categories.all %}
-													<p>{{ category.name }}</p>
-												{% endfor %}
-											</div>
-											<div class="col-md-2">
-												<p>Top bid: {{ listing.max_bid }}</p>
-												<p>Num.of bids: {{ listing.bids.count }}</p>
-											</div>
-											<div class="col-md-2">
-												<p>End time: {{ listing.end_time }}</p>
-												<p>{{ listing.end_time|timeuntil }}</p>
-											</div>
-										</div>
-								{% endfor %}
-							</div>
-							<P class="nav-link" data-toggle="collapse" data-target="#more-watchlist">View more</p>
+						{% if user_watchlist.5 %}
+							<a class="nav-link" href="{% url 'auctions:watchlist' user.pk %}">View more</a>
 						{% endif %}
-					{% endwith %}
-				</div>
-				<div class="container d-flex flex-row">
-					<div class="w-50">
+						{% endwith %}
+						</div>
+				<div class="container mt-2 d-flex flex-row">
+					<div class="w-50 mr-1">
 						<h3>Recent sales:</h3>
-							{% for listing in sold|slice:":3" %}
-								<div class="listing row mt-1 bg-light">
+							{% for listing in sold|slice:":5" %}
+								<div class="listing row mt-1 ml-1 bg-light">
 									<div class="col-md-6">
 										<img src="{{ listing.product.image_set.0.img_url }}">
 									</div>
@@ -219,26 +142,15 @@
 							{% empty %}
 								<p>You did not sell any product on Auction$ yet.</p>
 							{% endfor %}
-							{% if sold.3 %}
-								<div class="collapse" id="more-recent-sales">
-									{% for listing in sold|slice:"3:" %}
-										<div class="listing row mt-1 bg-light">
-											<div class="col-md-6">
-												<img src="{{ listing.product.image_set.0.img_url }}">
-											</div>
-											<div class="col-md-6">
-												{{ listing.product.name|capfirst }}
-											</div>
-										</div>
-									{% endfor %}
-								</div>
-								<p class="nav-link" data-toggle="collapse" data-target="#more-recent-sales">View more</p>
+							{% if sold.5 %}
+								<a class="nav-link mt-1" href="{% url 'auctions:sell_activities' user.pk %}">View more</a>
 							{% endif %}
-					</div>
-					<div class="w-50">
+							</div>
+							
+					<div class="w-50 ml-1">
 						<h3>Recent purchases:</h3>
-							{% for listing in bought|slice:":3" %}
-								<div class="listing row mt-1 bg-light">
+							{% for listing in bought|slice:":5" %}
+								<div class="listing row mt-1 ml-1 bg-light">
 									<div class="col-md-6">
 										<img src="{{ listing.product.image_set.0.img_url }}">
 									</div>
@@ -249,22 +161,10 @@
 							{% empty %}
 								<p>You did not buy any product on Auction$ yet.</p>
 							{% endfor %}
-							{% if bought.3 %}
-								<div class="collapse" id="more-recent-purchases">
-									{% for listing in bought|slice:"3:" %}
-										<div class="listing row mt-1 bg-light">
-											<div class="col-md-6">
-												<img src="{{ listing.product.image_set.0.img_url }}">
-											</div>
-											<div class="col-md-6">
-												{{ listing.product.name|capfirst }}
-											</div>
-										</div>
-									{% endfor %}
-								</div>
-								<p class="nav-link" data-toggle="collapse" data-target="#more-recent-purchases">View more</p>
+							{% if bought.5 %}
+								<a class="nav-link" href="{% url 'auctions:purchase_activities' user.pk %}">View more</a>
 							{% endif %}
-					</div>					
 				</div>
+			</div>
 	
 {% endblock %}
