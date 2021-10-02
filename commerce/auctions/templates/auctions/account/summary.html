@@ -16,46 +16,54 @@
 				<div class="container">
 					<h3>Your active listings:</h3>
 					<div class="header row ml-1">
-						<div class="col-md-2">
-							Image
+						<div class="col-md-1 text-center">
+							Picture
 						</div>
-						<div class="col-md-3">
-							Name
+						<div class="col-md-3 text-center">
+							Title
 						</div>
-						<div class="col-md-2">
+						<div class="col-md-2 text-center">
+							Category
+						</div>
+						<div class="col-md-2 text-center">
 							Highest bid
 							</div>
-							<div class="col-md-2">
+							<div class="col-md-2 text-center">
 							Num.of bids
 						</div>
-						<div class="col-md-3">
+						<div class="col-md-2 text-center">
 							Time left
 						</div>
 					</div>
 					{% for listing in user_active_listings|slice:":5" %}
 						<div class="listing row mt-1 mb-1 ml-1 bg-light">
-							<div class="col-md-2">
+							<div class="col-md-1 text-center">
 								<img src="{{ listing.product.image_set.0.img_url }}">
 							</div>
-							<div class="col-md-3">
+							<div class="col-md-3 text-center">
 								{{ listing.product.name|capfirst }}
 							</div>
-							<div class="col-md-2">
+							<div class="col-md-2 text-center">
+								{% for category in listing.product.categories.all %}
+									<p>{{ category.name }}</p>
+								{% endfor %}
+							</div>
+							<div class="col-md-2 text-center">
 								{{ listing.max_bid }}
 								</div>
-								<div class="col-md-2">
+								<div class="col-md-2 text-center">
 								{% if listing.bids.count %}
 								{{ listing.bids.count }}
 								{% else %}
 								0
 								{% endif %}
 							</div>
-							<div class="col-md-3">
+							<div class="col-md-2 text-center">
 								{{ listing.end_time|timeuntil }}
 							</div>
 						</div>
 					{% empty %}
-						<p>You do not have listings yet. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create one.</p>
+						<p class="mt-1 bg-light">You do not have listings yet. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create one.</p>
 					{% endfor %}
 					{% if user_active_listings.5 %}
 						<a href="{% url 'auctions:sell_activities' user.pk %}" class="nav-link">View more</a>
@@ -63,64 +71,110 @@
 						</div>
 				<div class="container mt-2">
 					<h3>Your bids on active listings:</h3>
+					<div class="header row ml-1">
+						<div class="col-md-2 text-center">
+							Picture
+						</div>
+						<div class="col-md-2 text-center">
+							Title
+						</div>
+						<div class="col-md-2 text-center">
+							Category
+						</div>
+						<div class="col-md-2 text-center">
+							Your bid
+						</div>
+						<div class="col-md-2 text-center">
+							Top bid
+						</div>
+						<div class="col-md-2 text-center">
+							Time left
+						</div>
+					</div>
 					{% for bid in bids_on_active|slice:":5" %}
 						<div class="listing row mt-1 ml-1 bg-light">
-							<div class="col-md-2">
+							<div class="col-md-2 text-center">
 								<img src="{{ bid.listing.product.image_set.0.img_url }}">
 							</div>
-							<div class="col-md-3">
+							<div class="col-md-2 text-center">
 								{{ bid.listing.product.name|capfirst }}
 							</div>
-							<div class="col-md-2">
+							<div class="col-md-2 text-center">
 								{% for category in bid.listing.product.categories.all %}
 									<p>{{ category.name }}</p>
 								{% endfor %}
-							</div
-							<div class="col-md-2">
-								<p>Your bid: {{ bid.value }}</p>
-								<p>Top bid: {{ bid.listing.max_bid }}</p>
 							</div>
-							<div class="col-md-3">
-								<p>Time left: {{ bid.listing.end_time|timeuntil }}</p>
+							<div class="col-md-2 text-center">
+								{{ bid.value }}
+							</div>
+							<div class="col-md-2 text-center">
+								{{ bid.listing.max_bid }}
+							</div>
+							<div class="col-md-2 text-center">
+								{{ bid.listing.end_time|timeuntil }}
 							</div>
 						</div>
 					{% empty %}
-						<p>You did not place any bids yet.</p>
+						<p class="mt-1 bg-light">You did not place any bids yet.</p>
 					{% endfor %}
 					{% if bids_on_active.5 %}
 						<a class="nav-link" href="{% url 'auctions:purchase_activities' user.pk %}">View more</p>
-						{% endif %}
-						</div>
+					{% endif %}
+					</div>
 				<div class="container mt-2">
 					<h3>Your watchlist:</h3>
 					{% with user.watchlist.all as user_watchlist %}
+						<div class="header row mt-1">
+							<div class="col-md-2 text-center">
+								Status
+							</div>
+							<div class="col-md-1 text-center">
+								Picture
+							</div>
+							<div class="col-md-3 text-center">
+								Title
+							</div>
+							<div class="col-md-2 text-center">
+								Category
+							</div>
+							<div class="col-md-1 text-center">
+								Top bid
+							</div>
+							<div class="col-md-1 text-center">
+								Num.of bids
+							</div>
+							<div class="col-md-2 text-center">
+								Left time
+							</div>
+						</div>
 						{% for listing in user_watchlist|dictsortreversed:"end_time"|slice:":5" %}
-								<div class="listing row mt-1 ml-1 bg-light">
-								    <div class="col-md-2">
-								        Status: {{ listing.status }}
-								    </div>
-									<div class="col-md-1">
-										<img src="{{ listing.product.image_set.0.img_url }}">
-									</div>
-									<div class="col-md-3">
-										{{ listing.product.name|capfirst }}
-									</div>
-									<div class="col-md-2">
-										{% for category in listing.product.categories.all %}
-											<p>{{ category.name }}</p>
-										{% endfor %}
-									</div>
-									<div class="col-md-2">
-										<p>Top bid: {{ listing.max_bid }}</p>
-										<p>Num.of bids: {{ listing.bids.count }}</p>
-									</div>
-									<div class="col-md-2">
-										<p>End time: {{ listing.end_time }}</p>
-										<p>{{ listing.end_time|timeuntil }}</p>
-									</div>
+							<div class="listing row mt-1 ml-1 bg-light">
+								<div class="col-md-2 text-center">
+									{{ listing.status }}
 								</div>
+								<div class="col-md-1 text-center">
+									<img src="{{ listing.product.image_set.0.img_url }}">
+								</div>
+								<div class="col-md-3 text-center">
+									{{ listing.product.name|capfirst }}
+								</div>
+								<div class="col-md-2 text-center">
+									{% for category in listing.product.categories.all %}
+										<p>{{ category.name }}</p>
+									{% endfor %}
+								</div>
+								<div class="col-md-1 text-center">
+									{{ listing.max_bid }}
+								</div>
+								<div class="col-md-1 text-center">
+									{{ listing.bids.count }}
+								</div>
+								<div class="col-md-2 text-center">
+									{{ listing.end_time|timeuntil }}
+								</div>
+							</div>
 						{% empty %}
-							<p>There are no listings added to your watchlist yet.</p>
+							<p class="mt-1 bg-light">There are no listings added to your watchlist yet.</p>
 						{% endfor %}
 						{% if user_watchlist.5 %}
 							<a class="nav-link" href="{% url 'auctions:watchlist' user.pk %}">View more</a>
@@ -132,15 +186,15 @@
 						<h3>Recent sales:</h3>
 							{% for listing in sold|slice:":5" %}
 								<div class="listing row mt-1 ml-1 bg-light">
-									<div class="col-md-6">
+									<div class="col-md-6 text-center">
 										<img src="{{ listing.product.image_set.0.img_url }}">
 									</div>
-									<div class="col-md-6">
+									<div class="col-md-6 text-center">
 										{{ listing.product.name|capfirst }}
 									</div>
 								</div>
 							{% empty %}
-								<p>You did not sell any product on Auction$ yet.</p>
+								<p class="mt-1 bg-light">You did not sell any product on Auction$ yet.</p>
 							{% endfor %}
 							{% if sold.5 %}
 								<a class="nav-link mt-1" href="{% url 'auctions:sell_activities' user.pk %}">View more</a>
@@ -151,15 +205,15 @@
 						<h3>Recent purchases:</h3>
 							{% for listing in bought|slice:":5" %}
 								<div class="listing row mt-1 ml-1 bg-light">
-									<div class="col-md-6">
+									<div class="col-md-6 text-center">
 										<img src="{{ listing.product.image_set.0.img_url }}">
 									</div>
-									<div class="col-md-6">
+									<div class="col-md-6 text-center">
 										{{ listing.product.name|capfirst }}
 									</div>
 								</div>
 							{% empty %}
-								<p>You did not buy any product on Auction$ yet.</p>
+								<p class="mt-1 bg-light">You did not buy any product on Auction$ yet.</p>
 							{% endfor %}
 							{% if bought.5 %}
 								<a class="nav-link" href="{% url 'auctions:purchase_activities' user.pk %}">View more</a>

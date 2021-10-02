@@ -44,7 +44,7 @@
 						Create new listing
 					</button></a>
 				</div>
-				<div class="header-row mt-2 row">
+				<div class="header-row mt-2 ml-1 row">
 					<div class="col-md-1 text-center">
 						Image
 					</div>
@@ -70,35 +70,35 @@
 					</div>			
 				</div>
 				{% for listing in active %}
-					<div class="listing-row row mt-1 bg-light" id="{{ listing.product.id }}">
+					<div class="listing-row row mt-1 ml-1 bg-light" id="{{ listing.product.id }}">
 						<div class="col-md-1 align-self-center">
 							<img src="{{ listing.product.image_set.0.img_url }}">
 						</div>
-						<div class="col-md-3 align-self-center">
+						<div class="col-md-3 text-center align-self-center">
 							{{ listing.product.name|capfirst }}
 						</div>
-						<div class="col-md-2 align-self-center">
+						<div class="col-md-2 text-center align-self-center">
 							{% for category in listing.product.categories.all %}
 								<p>{{ category.name }}</p>
 							{% endfor %}
 						</div>
-						<div class="col-md-1 align-self-center">
+						<div class="col-md-1 text-center align-self-center">
 							{{ listing.bids.count }}
 						</div>
-						<div class="col-md-2 align-self-center">
+						<div class="col-md-2 text-center align-self-center">
 							{{ listing.max_bid }}
 						</div>
-						<div class="col-md-2 align-self-center">
+						<div class="col-md-2 text-center align-self-center">
 							{{ listing.end_time|timeuntil }}
 						</div>
-						<div class="col-md-1 align-self-center">
+						<div class="col-md-1 text-center align-self-center">
 							<button class="btn btn-warning" id="cancel-{{ listing.id }}">
 								Cancel
 							</button>
 						</div>
 					</div>
 				{% empty %}
-					<p>You do not have active listings at the moment. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create one.</p>
+					<p class="mt-1 bg-light">You do not have active listings at the moment. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create one.</p>
 				{% endfor %}
 			</div>
 			<div class="tab-pane mt-2" id="sold">
@@ -108,7 +108,7 @@
 						Show stats
 					</button>
 				</div>
-				<div class="header-row mt-2 row">
+				<div class="header-row mt-2 ml-1 row">
 					<div class="col-md-1 text-center">
 						Image
 					</div>
@@ -132,28 +132,28 @@
 					</div>			
 				</div>
 				{% for listing in sold %}
-					<div class="listing row mt-1 bg-light">
-						<div class="col-md-1">
+					<div class="listing row mt-1 ml-1 bg-light">
+						<div class="col-md-1 text-center align-self-center">
 							<img src="{{ listing.product.image_set.0.img_url }}">
 						</div>
-						<div class="col-md-2">
+						<div class="col-md-2 text-center align-self-center">
 							{{ listing.product.name|capfirst }}
 						</div>
-						<div class="col-md-2">
+						<div class="col-md-2 text-center align-self-center">
 							{% for category in listing.product.categories.all %}
 								<p>{{ category.name }}</p>
 							{% endfor %}
 						</div>
-						<div class="col-md-1">
+						<div class="col-md-1 text-center align-self-center">
 							{{ listing.bids.count }}
 						</div>
-						<div class="col-md-1">
+						<div class="col-md-1 text-center align-self-center">
 							{{ listing.max_bid }}
 						</div>
-						<div class="col-md-2">
+						<div class="col-md-2 text-center align-self-center">
 							{{ listing.winner.username }}
 						</div>
-						<div class="col-md-2">
+						<div class="col-md-2 text-center align-self-center">
 							{% if listing.cancelled_on %}
 								{{ listing.cancelled_on }}
 							{% else %}
@@ -162,7 +162,7 @@
 						</div>
 					</div>
 				{% empty %}
-					<p>You did not sell any items yet. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to sell one.</p>
+					<p class="mt-1 bg-light">You did not sell any items yet. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to sell one.</p>
 				{% endfor %}
 			</div>
 			<div class="tab-pane mt-2" id="unsold">
@@ -172,68 +172,8 @@
 						Show stats
 					</button>
 				</div>
-				<div class="row header-row mt-2">
+				<div class="row header-row mt-2 ml-1">
 					<div class="col-md-1 text-center">
-						Image
-					</div>
-					<div class="col-md-3 text-center">
-						Title
-					</div>
-					<div class= "col-md-3 text-center">
-						Categories
-					</div>
-					<div class="col-md-2 text-center">
-						Followers
-					</div>
-					<div class="col-md-2 text-center">
-						Ended on
-					</div>
-					<div class="col-md-1 text-center">
-						<button class="btn btn-primary" id="relist-all">
-							Relist All
-						</button>
-					</div>				
-				</div>
-				{% for listing in unsold %}
-					<div class="listing row mt-1 bg-light">
-						<div class="w-20 p-1">
-							<img src="{{ listing.product.image_set.0.img_url }}">
-						</div>
-						<div class="col-md-3">
-							{{ listing.product.name|capfirst }}
-						</div>
-						<div class="col-md-3">
-							{% for category in listing.product.categories.all %}
-								<p>{{ category.name }}</p>
-							{% endfor %}
-						</div>
-						<div class="col-md-2">
-							{{ listing.followers.count }}
-						</div>
-						<div class="col-md-2">
-							{% if listing.cancelled_on %}
-								{{ listing.cancelled_on }}
-							{% else %}
-								{{ listing.end_time }}
-							{% endif %}
-						</div>
-						<div class="col-md-1">
-							<button class="btn btn-secondary" id="relist">Relist</button>
-						</div>
-					</div>
-				{% empty %}
-					<p>You do not have any listings ended without winning bidder. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create new listing.</p>
-				{% endfor %}
-			</div>
-			<div class="tab-pane mt-2" id="products">
-				<div class="d-flex nowrap w-100" id="tab-header">
-					<h3 class="flex-grow-1">Manage products you offer:</h3>
-					<button class="btn btn-primary" id="create-listing-btn">
-						Add product
-					</button>
-				</div>
-				<div class="row header-row mt-2">
-					<div class="col-md-2 text-center">
 						Image
 					</div>
 					<div class="col-md-3 text-center">
@@ -243,9 +183,69 @@
 						Categories
 					</div>
 					<div class="col-md-2 text-center">
-						Status
+						Followers
 					</div>
 					<div class="col-md-2 text-center">
+						Ended on
+					</div>
+					<div class="col-md-2 text-center">
+						<button class="btn btn-primary" id="relist-all">
+							Relist All
+						</button>
+					</div>				
+				</div>
+				{% for listing in unsold %}
+					<div class="listing row mt-1 ml-1 bg-light">
+						<div class="col-md-1 text-center align-self-center">
+							<img src="{{ listing.product.image_set.0.img_url }}">
+						</div>
+						<div class="col-md-3 text-center align-self-center">
+							{{ listing.product.name|capfirst }}
+						</div>
+						<div class="col-md-2 text-center align-self-center">
+							{% for category in listing.product.categories.all %}
+								<p>{{ category.name }}</p>
+							{% endfor %}
+						</div>
+						<div class="col-md-2 text-center align-self-center">
+							{{ listing.followers.count }}
+						</div>
+						<div class="col-md-2 text-center align-self-center">
+							{% if listing.cancelled_on %}
+								{{ listing.cancelled_on }}
+							{% else %}
+								{{ listing.end_time }}
+							{% endif %}
+						</div>
+						<div class="col-md-2 text-center align-self-center">
+							<button class="btn btn-secondary" id="relist">Relist</button>
+						</div>
+					</div>
+				{% empty %}
+					<p class="mt-1 bg-light">You do not have any listings ended without winning bidder. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create new listing.</p>
+				{% endfor %}
+			</div>
+			<div class="tab-pane mt-2" id="products">
+				<div class="d-flex nowrap w-100" id="tab-header">
+					<h3 class="flex-grow-1">Manage products you offer:</h3>
+					<button class="btn btn-primary" id="create-listing-btn">
+						Add product
+					</button>
+				</div>
+				<div class="row header-row mt-2 ml-1">
+					<div class="col-md-2 text-center">
+						Image
+					</div>
+					<div class="col-md-4 text-center">
+						Title
+					</div>
+					<div class= "col-md-3 text-center">
+						Categories
+					</div>
+					<div class="col-md-1 text-center">
+						Status
+					</div>
+					<div class="col-md-1 text-center">
 						Num sold
 					</div>
 					<div class="col-md-1 text-center">
@@ -253,19 +253,19 @@
 					</div>				
 				</div>
 				{% for product in products_list|dictsort:"created_on" %}
-					<div class="row product-row mt-1 bg-light" id="{{ product.id }}">
-						<div class="col-md-2 align-self-center">
+					<div class="row product-row mt-1 ml-1 bg-light" id="{{ product.id }}">
+						<div class="col-md-2 text-center align-self-center">
 							<img src="{{ product.image_set.0.img_url }}">
 						</div>
-						<div class="col-md-3 align-self-center">
+						<div class="col-md-4 text-center align-self-center">
 							{{ product.name|capfirst }}
 						</div>
-						<div class="col-md-2 align-self-center">
+						<div class="col-md-3 text-center align-self-center">
 							{% for category in product.categories.all %}
 								<p>{{ category.name }}</p>
 							{% endfor %}
 						</div>
-						<div class="col-md-2 align-self-center">
+						<div class="col-md-1 text-center align-self-center">
 							{% if product.sold_num > 0 %}
 								Sold
 							{% elif product.listings.first %}
@@ -274,15 +274,15 @@
 								Not listed 
 							{% endif %}
 						</div>
-						<div class="col-md-2 align-self-center">
+						<div class="col-md-1 text-center align-self-center">
 							{{ product.sold_num }}
 						</div>
-						<div class="col-md-1 align-self-center">
+						<div class="col-md-1 text-center align-self-center">
 							<button class="btn btn-secondary" id="sell">Sell</button>
 						</div>
 					</div>
 				{% empty %}
-					<p>You did not add any product yet. <a href="{% url 'auctions:create_product' user.pk %}">Click here</a> to add one.</p>
+					<p class="mt-1 bg-light">You did not add any product yet. <a href="{% url 'auctions:create_product' user.pk %}">Click here</a> to add one.</p>
 				{% endfor %}
 			</div>
 		</div>

@@ -420,16 +420,6 @@ class ActivitiesSummaryView(LoginRequiredMixin, CorrectUserTestMixin, DetailView
                                                         
         context["bids_on_active"] = [bid for bid in latest_bids if bid.listing.status == "active"]
                                                 
-        #bidded_listings = all_listings.filter(
-        #                        product__seller=self.request.user, 
-        #                        cancelled_on__isnull=True,
-        #                        endtime__gt=timezone.now()
-        #                    )
-        
-        #context["user_bidded_listings"] = [listing for listing in bidded_listings \
-        #                                    if listing.endtime > timezone.now() \
-        #                                    and not listing.cancelled_on]
-                                                
         # Add ended listings bidded by the user in context
         context["bought"] = []
         context["sold"] = []
@@ -479,7 +469,7 @@ class SellActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
             if listing.status == "active":
                 context["active"].append(listing)
             elif listing.winner:
-                context["sold"].append(listinh)
+                context["sold"].append(listing)
             elif listing.status != "not started yet":
                 context["unsold"].append(listing)
         return context
@@ -487,7 +477,7 @@ class SellActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
         
 class BuyActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
     """Summary of user's buying activities."""
-    context_object_name = "user_bidded_listings"
+    context_object_name = "user_bids"
     
     def dispatch(self, *args, **kwargs):
         if 'pk' not in kwargs:
@@ -495,11 +485,29 @@ class BuyActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
                 "The URL path must contain 'pk' parameter."
             )
         self.user = User.objects.get(pk=kwargs['pk'])
-        self.queryset = Bid.objects.values('listing').filter(
-                                                bidder=self.request.user
-                                            ).aggregate(latest_bid=Max('value'))
+        self.queryset = Bid.objects.filter(
+                                        bidder=self.request.user
+                                    ).order_by("-value")
         
         return super().dispatch(*args, **kwargs)
+        
+    def get_context_data(self, *args, **kwargs):
+        # add active bidded, won and lost product listings to context
+        context = super().get_context_data(*args, **kwargs)
+        temp = []
+        context["active"] = []
+        context["bought"] = []
+        context["lost"] = []
+        for bid in self.queryset:
+            if bid.listing not in temp:
+                temp.append[bid.listing]
+                if bid.listing.status == "active":
+                    context["active"].append(bid)
+                elif bid.listing.winner == self.request.user:
+                    context["bought"].append(bid)
+                else:
+                    context["lost"].append(bid)
+        return context
         
         
 class UserWatchlistView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
