@@ -3,38 +3,69 @@
 {% block body %}
 <div class="container">
     <h2>Active Listings</h2>
-	{% if listing_list %}
-		<div>
+		<div class="header row mt-1 ml-1">
+		    <div class="col-md-1 text-center">
+		        Image
+		    </div>
+		    <div class="col-md-3 text-center">
+		        Title
+		    </div>
+		    <div class="col-md-2 text-center">
+		        Category
+		    </div>
+		    <div class="col-md-1 text-center">
+		        Top bid
+		    </div>
+		    <div class="col-md-2 text-center">
+		        Time left
+		    </div>
+		    <div class="col-md-1 text-center">
+		        Watchlist
+		    </div>
+		    <div class="col-md-2 text-center">
+		        Buy
+		    </div>
+		</div>
 			{% for listing in listing_list %}
-			{% if listing.status == 'active' %}
 				<a href="{{ listing.get_absolute_url }}">
-					<div class="d-flex nowrap">
-						<div><a href="{{ listing.product.image_url }}"></a></div>
-						<div>{{ listing.product.name|capfirst }}</div> 
-						<div>{{ listing.max_bid }} EUR</div>
-						<div>{{ listing.end_time|timeuntil }}</div>
-						<div>
-							{% if listing in user.watchlist %}
-								Remove from Watchlist
-							{% else %}
-								Add to Watchlist
-							{% endif %}
+					<div class="row mt-1 ml-1 bg-light">
+						<div class="col-md-1 text-center align-self-center">
+						    <a href="{{ listing.product.image_url }}"></a>
+						    </div>
+						<div class="col-md-3 text-center align-self-center">
+						    {{ listing.product.name|capfirst }}
+						    </div> 
+						    <div class="col-md-2 text-center align-self-center">
+							{% for category in listing.product.categories.all %}
+								<p>{{ category.name }}</p>
+							{% endfor %}
 						</div>
-						<div>
-							<form id="listing_{{ listing.id }}" style="display:none" action="{% url 'auctions:bid' %}" method="POST">
+						<div class="col-md-1 text-center align-self-center">
+						    {{ listing.max_bid }}
+						    </div>
+						<div class="col-md-2 text-center align-self-center">
+						    {{ listing.end_time|timeuntil }}
+						    </div>
+						<div class="col-md-1 text-center align-self-center">
+							<form id="listing_{{ listing.id }}" action="{% url 'auctions:bid' listing.id %}" method="POST">
 							<input type="number" name="bid" value="{{ listing.max_bid|add:'1' }}">
-							<input type="submit" name="place_bid" id="place_bid_{{ listing_id }}" value="Place bid">
+							<input class="btn btn-primary" type="submit" name="place_bid" id="place_bid_{{ listing_id }}" value="BID">
 							</form>
-							<button class="btn btn-primary" name="bid_{{ listing.id }}" id="bid_{{ listing.id }}">
-								BID
-							</button>
+						</div>
+						<div class="col-md-2 text-center align-self-center">
+							{% if listing in user.watchlist %}
+								<button class="btn btn-warning unwatch" id="{{ listing.id }}">Unwatch</button>
+							{% else %}
+								<button class="btn btn-warning unwatch" id="{{ listing.id }}">Watch</button>
+							{% endif %}
 						</div>
 					</div>
 				</a>
-			{% endif %}
+			{% empty %}
+			    <p class="mt-1 ml-1 bg-light"></p>There are no active listings at the moment.</p>
 			{% endfor %}
 		</div>
-		<div">
+		<div>
 		  <nav aria-label="...">
 			<ul class="pagination">
 
@@ -75,11 +106,5 @@
 			</ul>
 		  </nav>
 		</div>
-
-	{% else %}
-		<div>
-			<p>There are no active listings at the moment.</p>
-		</div>
-	{% endif %}
 </div>
 {% endblock %}

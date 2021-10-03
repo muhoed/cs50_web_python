@@ -165,17 +165,17 @@
 								</button>
 							</div>
 							<div class="row mt-1 header-row">
-								<div class="col-md-2 text-center">
+								<div class="col-md-1 text-center">
 									Image
 								</div>
 								<div class="col-md-3 text-center">
-									Name
+									Title
 								</div>
 								<div class="col-md-2 text-center">
 								    Categories
 								</div>
-								<div class="col-md-1 text-center">
-									Num.of bids
+								<div class="col-md-2 text-center">
+									Bids count
 								</div>
 								<div class="col-md-1 text-center">
 									Your bid
@@ -189,27 +189,27 @@
 							</div>
                             {% for item in lost|dictsort:"listing__end_time" %}
 								<div class="listing row mt-1 ml-1 bg-light">
-									<div class="col-md-2 text-center">
+									<div class="col-md-1 text-center align-self-center">
 										<img src="{{ item.listing.product.image_set.0.img_url }}">
 									</div>
-									<div class="col-md-3 text-center">
+									<div class="col-md-3 text-center align-self-center">
 										{{ item.listing.product.name|capfirst }}
 									</div>
-									<div class="col-md-2 text-center">
+									<div class="col-md-2 text-center align-self-center">
 										{% for category in item.listing.product.categories.all %}
 											<p>{{ category.name }}</p>
 										{% endfor %}
 									</div>
-									<div class="col-md-1 text-center">
+									<div class="col-md-2 text-center align-self-center">
 										{{ item.listing.bids.count }}
 									</div>
-									<div class="col-md-1 text-center">
+									<div class="col-md-1 text-center align-self-center">
 										{{ item.value }}
 									</div>
-									<div class="col-md-1 text-center">
+									<div class="col-md-1 text-center align-self-center">
 										{{ item.listing.max_bid }}
 									</div>
-									<div class="col-md-2 text-center">
+									<div class="col-md-2 text-center align-self-center">
 										{% if item.listing.cancelled_on %}
 											{{ item.listing.cancelled_on }}
 										{% else %}

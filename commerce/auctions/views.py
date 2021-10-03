@@ -529,7 +529,7 @@ class ActiveListingsView(ListView):
     """
     Displays all active listings.
     """
-    queryset = Listing.objects.order_by('-start_time').all()
+    queryset = Listing.objects.annotate(endtime=ExpressionWrapper(F("start_time")+F("duration"), output_field=DateTimeField())).filter(start_time__lt=timezone.now(), endtime__gt=timezone.now(), cancelled_on__isnull=True).order_by('-start_time')
     template_name = 'auctions/index.html'
     paginate_by = 10
     

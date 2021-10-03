@@ -124,7 +124,8 @@ urlpatterns = [
 								extra_context={'title': _('listing')},
 								template_name="auctions/account/update_listing.html"),
 							name="update_listing"),
-    path("bid", views.bid, name="bid"),
+	path("listing/<int:pk>/", views.listing, name="listing"),
+    path("listing/<int:pk>/bid", views.bid, name="bid"),
     path("search", views.search, name="search")
 ]
 
