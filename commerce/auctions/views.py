@@ -578,6 +578,14 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
             return self.form_valid(form)
             
         else:
+            if product:
+                #pre-populate product form and image firmset with user input if any and delete respective objects from db
+                #product_initials = {"name": product.name, "description": product.description, "categories": product.categories.all(),}
+                #if images:
+                    #image_formset_initials = []
+                    #for image in images:
+                        #image_formset_initials.append({"image_urls": image.image_url,}
+                product.delete()
             return self.render_to_response(self.get_context_data(
                                                         form=form,
                                                         product_form=product_form,
