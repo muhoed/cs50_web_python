@@ -543,11 +543,21 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        user_products = Product.objects.filter(seller=self.user)
+        if user_products.first():
+            context["form"].fields["product"].queryset = user_products
+        else:
+            context["form"].fields["product"].disabled = True
         if "product_form" not in kwargs:
             context["product_form"] = ProductForm(initial={'seller': self.user})
         if "image_formset" not in kwargs:
             context["image_formset"] = ImageFormset()
         return context
+        
+    #def get_initial(self):
+    #    self.initial = super().get_initial()
+        #self.initial["product"] = [(product['name'], product['pk']) for product in Product.objects.filter(seller=self.user).values('name', 'pk')]
+    #    return self.initial.copy()
         
     def dispatch(self, *args, **kwargs):
         if 'pk' not in kwargs:
@@ -564,34 +574,51 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
         #product_form.fields["seller"] = self.user
         image_formset = ImageFormset()
         
-        if not hasattr(form.fields, "product") and product_form.is_valid():
+        #check if form is valid; redirect to success url
+        #in case existing product is selected and correct input data for
+        #other fields are provided
+        if form.is_valid():
+            self.success_handler(form)
+        elif not form.cleaned_data["product"] and product_form.is_valid():
+            #otherwise if new product is created reinstantiate form
             product = product_form.save()
             image_formset = ImageFormset(self.request.POST, instance=product)
-            form.fields["product"].value = product.id
             if image_formset.is_valid():
                 images = image_formset.save()
+            form_data = {
+                            "product": product,
+                            "state": form.cleaned_data["state"],
+                            "start_time": form.cleaned_data["start_time"],
+                            "duration": form.cleaned_data["duration"],
+                            "start_price": form.cleaned_data["start_price"],
+                            "payment_policy": form.cleaned_data["payment_policy"],
+                            "shipment_policy": form.cleaned_data["shipment_policy"],
+                            "return_policy": form.cleaned_data["return_policy"],
+                        }
+            form = form_class(form_data)
+            #redirect to success url if form is valid
+            if form.is_valid():
+                self.success_handler(form)
             
-        message = "Listing was successfully created."
-        
-        if form.is_valid():
-            messages.success(self.request, message)
-            return self.form_valid(form)
-            
-        else:
-            if product:
-                #pre-populate product form and image firmset with user input if any and delete respective objects from db
-                #product_initials = {"name": product.name, "description": product.description, "categories": product.categories.all(),}
-                #if images:
-                    #image_formset_initials = []
-                    #for image in images:
-                        #image_formset_initials.append({"image_urls": image.image_url,}
-                product.delete()
-            return self.render_to_response(self.get_context_data(
-                                                        form=form,
-                                                        product_form=product_form,
-                                                        image_formset=image_formset
-                                                        ))
+        if product:
+            #pre-populate product form and image firmset with user input if any and delete respective objects from db
+            #product_initials = {"name": product.name, "description": product.description, "categories": product.categories.all(),}
+            #if images:
+                #image_formset_initials = []
+                #for image in images:
+                    #image_formset_initials.append({"image_urls": image.image_url,}
+            product.delete()
+        return self.render_to_response(self.get_context_data(
+                                                    form=form,
+                                                    product_form=product_form,
+                                                    image_formset=image_formset
+                                                    ))
                                                         
+    def success_handler(self, form):
+        #redirect to success url if form is valid
+        messages.success(self.request, "Listing was successfully created.")
+        return self.form_valid(form)
+    
     def get_success_url(self):
         return reverse(
                     'auctions:update_listing',
