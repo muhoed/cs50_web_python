@@ -567,7 +567,7 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
         if not hasattr(form.fields, "product") and product_form.is_valid():
             product = product_form.save()
             image_formset = ImageFormset(self.request.POST, instance=product)
-            form.fields["product"].initial = product.id
+            form.fields["product"].value = product.id
             if image_formset.is_valid():
                 images = image_formset.save()
             
