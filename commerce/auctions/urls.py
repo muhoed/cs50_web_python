@@ -121,7 +121,7 @@ urlpatterns = [
     path("messenger", views.messenger, name="messenger"),
     path("account/<int:pk>/listing/<int:listing_pk>/", 
 						views.UpdateListingView.as_view(
-								extra_context={'title': _('listing')},
+								extra_context={'title': _('modify listing')},
 								template_name="auctions/account/update_listing.html"),
 							name="update_listing"),
 	path("listing/<int:pk>/", views.listing, name="listing"),

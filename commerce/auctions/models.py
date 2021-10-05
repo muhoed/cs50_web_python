@@ -366,26 +366,8 @@ class Image(models.Model):
 	
 class Listing(models.Model):
 	
-    PAYMENT = "The seller will send information about the payment to the winner within \
-                2 business days after the auction end. \n\
-                The winner can initiate a dispute or cancel the order if information \
-                required for payment was not received from the seller in due time. \n\
-                The seller has a right to cancel the order if the payment was not \
-                received in due	time, amount due or due order as requested. In this \
-                case the seller shall return funds received after the term / not in \
-                due order to the buyer within 3	business days after their receipt. The \
-                seller has a right to withdraw from the funds to be returned an amount \
-                required to cover reasonable actual expenses related to the funds \
-                return."
-    SHIPMENT = "The product will be shipped to the auction winner within 5 business \
-                days after the payment receipt. \n\
-                The seller may request from the winner additional information \
-                reasonably required for shipment. In this case the product will be \
-                shipped within 3 business days after receipt of the requested \
-                information.\n\
-                The winner has a right to open a dispute and request funds' return in \
-                case the product was not delivered to the winner within 45 days after \
-                the payment."
+    PAYMENT = "The seller will send information about the payment to the winner within 2 business days after the auction end. \nThe winner can initiate a dispute or cancel the order if information required for payment was not received from the seller in due time. \nThe seller has a right to cancel the order if the payment was not received in due	time, amount due or due order as requested. In this case the seller shall return funds received after the term / not in due order to the buyer within 3	business days after their receipt. The seller has a right to withdraw from the funds to be returned an amount required to cover reasonable actual expenses related to the funds return."
+    SHIPMENT = "The product will be shipped to the auction winner within 5 business days after the payment receipt. \nThe seller may request from the winner additional information reasonably required for shipment. In this case the product will be shipped within 3 business days after receipt of the requested information.\nThe winner has a right to open a dispute and request funds' return in case the product was not delivered to the winner within 45 days after the payment."
     RETURN = "Return is not accepted for this auction. The product is sold AS IS."
 
     class productState(models.IntegerChoices):

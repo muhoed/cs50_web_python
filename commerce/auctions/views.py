@@ -240,7 +240,6 @@ class UserPasswordResetView(PasswordResetView):
             self.request.session["uid"] = form.uid
         
         return HttpResponseRedirect(self.get_success_url())
-        #return super().form_valid(form)
     
     
 def get_message_content(request):
@@ -541,10 +540,10 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user_products = Product.objects.filter(seller=self.user)
-        if user_products.first():
-            context["form"].fields["product"].queryset = user_products
-        else:
+        if not user_products.first() or "product_form" in kwargs:
             context["form"].fields["product"].disabled = True
+        else:
+            context["form"].fields["product"].queryset = user_products
         if "product_form" not in kwargs:
             context["product_form"] = ProductForm(initial={'seller': self.user})
         if "image_formset" not in kwargs:
@@ -564,14 +563,13 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
         self.object = None
         form = self.get_form()
         product_form = ProductForm(self.request.POST)
-        #product_form.fields["seller"] = self.user
         image_formset = ImageFormset()
         
         #check if form is valid; redirect to success url
         #in case existing product is selected and correct input data for
         #other fields are provided
         if form.is_valid():
-            self.success_handler(form)
+            return self.success_handler(form)
         elif not "product" in form.cleaned_data.keys() and product_form.is_valid():
             #otherwise if new product is created reinstantiate form
             product = product_form.save()
@@ -580,18 +578,18 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
                 images = image_formset.save()
             form_data = {
                             "product": product,
-                            "state": form.cleaned_data["state"],
-                            "start_time": form.cleaned_data["start_time"],
-                            "duration": form.cleaned_data["duration"],
-                            "start_price": form.cleaned_data["start_price"],
-                            "payment_policy": form.cleaned_data["payment_policy"],
-                            "shipment_policy": form.cleaned_data["shipment_policy"],
-                            "return_policy": form.cleaned_data["return_policy"],
+                            "state": self.request.POST["state"],
+                            "start_time": self.request.POST["start_time"],
+                            "duration": self.request.POST["duration"],
+                            "start_price": self.request.POST["start_price"],
+                            "payment_policy": self.request.POST["payment_policy"],
+                            "shipment_policy": self.request.POST["shipment_policy"],
+                            "return_policy": self.request.POST["return_policy"]
                         }
             form = self.form_class(form_data)
             #redirect to success url if form is valid
             if form.is_valid():
-                self.success_handler(form)
+                return self.success_handler(form)
             else:
                 #pre-populate product form and image firmset with user input if any and delete respective objects from db
                 #product_initials = {"name": product.name, "description": product.description, "categories": product.categories.all(),}
@@ -610,16 +608,14 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
         #redirect to success url if form is valid
         messages.success(self.request, "Listing was successfully created.")
         return self.form_valid(form)
+        
     
     def get_success_url(self):
-        print(self.object.pk)
-        return reverse_lazy(
-                    'auctions:update_listing',
-                    kwargs={
-                        'pk': self.user.pk,
-                        'listing_pk': self.object.pk
-                        }
-                    )
+        return reverse('auctions:update_listing', kwargs={
+                                                    'pk':self.user.pk,
+                                                    'listing_pk':self.object.pk
+                                                }
+                                            )
     
     
 class UpdateListingView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
@@ -628,6 +624,28 @@ class UpdateListingView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
     """
     model = Listing
     form_class = ListingForm
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_products = Product.objects.filter(seller=self.user)
+        if user_products.first():
+            context["form"].fields["product"].queryset = user_products
+        else:
+            context["form"].fields["product"].disabled = True
+        if "product_form" not in kwargs:
+            context["product_form"] = ProductForm(initial={'seller': self.user})
+        if "image_formset" not in kwargs:
+            context["image_formset"] = ImageFormset()
+        return context
+        
+        
+    def dispatch(self, *args, **kwargs):
+        if 'pk' not in kwargs:
+            raise ImproperlyConfigured(
+                "The URL path must contain 'pk' parameter."
+            )
+        self.user = User.objects.get(pk=kwargs['pk'])
+        return super().dispatch(*args, **kwargs)
     
     
 class ProductView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):

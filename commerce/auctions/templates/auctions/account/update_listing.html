@@ -4,7 +4,9 @@
 <div class="container">
     <h2>Listing information</h2>
 	<form action="{% url 'auctions:update_listing' pk=user.pk listing_pk=object.pk %}" method="POST">
-		{{ form.as_p }}
+		<table>
+		{{ form.as_table }}
+		</table>
 		<input type="submit" class="btn btn-primary" value="Edit">
 		<button class="btn btn-danger cancel">Cancel</button>
 	</form>

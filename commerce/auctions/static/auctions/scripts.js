@@ -322,7 +322,8 @@ var createListingPage = {
 		createListingPage.config = {
 			newProduct: $("#create-product"),
 			productForm: $(".new-product"),
-			productsList: $(".products-list")
+			productsList: $(".products-list"),
+			productListError: $(".product-list-error")
 		};
 		$.extend(createListingPage.config, settings);
 		createListingPage.setup();
@@ -335,6 +336,7 @@ var createListingPage = {
 				});
 		//createListingPage.config.productForm.hide();
 		createListingPage.boundedProductForm();
+		createListingPage.handleProductListErrors();
 	},
 	
 	createProduct: function(trigger) {
@@ -356,6 +358,13 @@ var createListingPage = {
 	        createListingPage.config.productForm.find("select").prop("disabled", true);
 	        createListingPage.config.productForm.hide();
 	    }
+	},
+	
+	handleProductListErrors: function() {
+		var productListSelect = createListingPage.config.productsList.find("select");
+		if (productListSelect.prop("disabled")) {
+			createListingPage.config.productListError.hide();
+		}
 	}
 };
 
