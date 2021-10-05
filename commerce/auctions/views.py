@@ -459,13 +459,10 @@ class SellActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
     def get_context_data(self, *args, **kwargs):
         # add user's products to context
         context = super().get_context_data(*args, **kwargs)
-        context["products_list"] = []
         context["active"] =[]
         context["sold"] = []
         context["unsold"] = []
         for listing in self.queryset:
-            if listing.product not in context["products_list"]:
-                context["products_list"].append(listing.product)
             if listing.status == "active":
                 context["active"].append(listing)
             elif listing.winner:
@@ -554,10 +551,6 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
             context["image_formset"] = ImageFormset()
         return context
         
-    #def get_initial(self):
-    #    self.initial = super().get_initial()
-        #self.initial["product"] = [(product['name'], product['pk']) for product in Product.objects.filter(seller=self.user).values('name', 'pk')]
-    #    return self.initial.copy()
         
     def dispatch(self, *args, **kwargs):
         if 'pk' not in kwargs:
@@ -579,7 +572,7 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
         #other fields are provided
         if form.is_valid():
             self.success_handler(form)
-        elif not form.cleaned_data["product"] and product_form.is_valid():
+        elif not "product" in form.cleaned_data.keys() and product_form.is_valid():
             #otherwise if new product is created reinstantiate form
             product = product_form.save()
             image_formset = ImageFormset(self.request.POST, instance=product)
@@ -595,19 +588,18 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
                             "shipment_policy": form.cleaned_data["shipment_policy"],
                             "return_policy": form.cleaned_data["return_policy"],
                         }
-            form = form_class(form_data)
+            form = self.form_class(form_data)
             #redirect to success url if form is valid
             if form.is_valid():
                 self.success_handler(form)
-            
-        if product:
-            #pre-populate product form and image firmset with user input if any and delete respective objects from db
-            #product_initials = {"name": product.name, "description": product.description, "categories": product.categories.all(),}
-            #if images:
-                #image_formset_initials = []
-                #for image in images:
-                    #image_formset_initials.append({"image_urls": image.image_url,}
-            product.delete()
+            else:
+                #pre-populate product form and image firmset with user input if any and delete respective objects from db
+                #product_initials = {"name": product.name, "description": product.description, "categories": product.categories.all(),}
+                #if images:
+                    #image_formset_initials = []
+                    #for image in images:
+                        #image_formset_initials.append({"image_urls": image.image_url,}
+                product.delete()
         return self.render_to_response(self.get_context_data(
                                                     form=form,
                                                     product_form=product_form,
@@ -620,7 +612,8 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
         return self.form_valid(form)
     
     def get_success_url(self):
-        return reverse(
+        print(self.object.pk)
+        return reverse_lazy(
                     'auctions:update_listing',
                     kwargs={
                         'pk': self.user.pk,

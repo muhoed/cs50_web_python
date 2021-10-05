@@ -8,7 +8,7 @@
 				<div class="col-md-1 text-center">
 					Image
 				</div>
-				<div class="col-md-3 text-center">
+				<div class="col-md-2 text-center">
 					Title
 				</div>
 				<div class="col-md-2 text-center">
@@ -20,7 +20,7 @@
 				<div class="col-md-2 text-center">
 					Time left
 				</div>
-				<div class="col-md-1 text-center">
+				<div class="col-md-2 text-center">
 					Watchlist
 				</div>
 				<div class="col-md-2 text-center">
@@ -54,7 +54,7 @@
 						<div class="col-md-1 text-center align-self-center">
 						    <a href="{{ listing.product.image_url }}"></a>
 						    </div>
-						<div class="col-md-3 text-center align-self-center">
+						<div class="col-md-2 text-center align-self-center">
 						    {{ listing.product.name|capfirst }}
 						    </div> 
 						    <div class="col-md-2 text-center align-self-center">
@@ -68,7 +68,7 @@
 						<div class="col-md-2 text-center align-self-center">
 						    {{ listing.end_time|timeuntil }}
 						</div>
-						<div class="col-md-1 text-center align-self-center">
+						<div class="col-md-2 text-center align-self-center">
 							{% if listing in user.watchlist %}
 								<button class="btn btn-warning unwatch" id="{{ listing.id }}">Unwatch</button>
 							{% else %}
@@ -93,7 +93,7 @@
 						<div class="col-md-1 text-center align-self-center">
 						    <a href="{{ listing.product.image_url }}"></a>
 						    </div>
-						<div class="col-md-3 text-center align-self-center">
+						<div class="col-md-2 text-center align-self-center">
 						    {{ listing.product.name|capfirst }}
 						    </div> 
 						    <div class="col-md-2 text-center align-self-center">

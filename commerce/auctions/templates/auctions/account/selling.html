@@ -252,7 +252,7 @@
 						Action
 					</div>				
 				</div>
-				{% for product in products_list|dictsort:"created_on" %}
+				{% for product in user.products.all|dictsort:"created_on" %}
 					<div class="row product-row mt-1 ml-1 bg-light" id="{{ product.id }}">
 						<div class="col-md-2 text-center align-self-center">
 							<img src="{{ product.image_set.0.img_url }}">
