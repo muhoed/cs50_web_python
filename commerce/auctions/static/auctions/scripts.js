@@ -379,8 +379,8 @@ var modifyListingPage = {
 	
 	init: function(settings) {
 		modifyListingPage.config = {
-			allInput: $("label, input, select, textarea"),
-			editableInput: $("input"),
+			allInput: $("label, input, select, textarea").not("input[placeholder='Search product']"),
+			editableInput: $("input, textarea"),
 			editButton: $(".edit")
 		};
 		$.extend(modifyListingPage.config, settings);
@@ -392,13 +392,13 @@ var modifyListingPage = {
 			.one("click", function(event){
 					modifyListingPage.allowModify(event);
 				});
-		modifyListingPageconfig.allInput.attr("readonly", true);
+		modifyListingPage.config.allInput.attr("readonly", true);
 	},
 	
 	allowModify: function(trigger) {
 	    trigger.preventDefault();
 		modifyListingPage.config.editableInput.attr("readonly", false);
-		$(trigger).val("Save");
+		modifyListingPage.config.editButton.prop("value", "Save");
 	}
 };
 

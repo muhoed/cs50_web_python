@@ -455,7 +455,13 @@ class SellActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
                 "The URL path must contain 'pk' parameter."
             )
         self.user = User.objects.get(pk=kwargs['pk'])
-        self.queryset = Listing.objects.filter(product__seller=self.user)
+        self.queryset = Listing.objects.filter(
+                                            product__seller=self.user
+                                        ).annotate(
+                                            endtime=ExpressionWrapper(
+                                                    F("start_time") + F("duration"), 
+                                                    output_field=DateTimeField()
+                                        )).order_by("endtime")
         
         return super().dispatch(*args, **kwargs)
         
@@ -529,7 +535,16 @@ class ActiveListingsView(ListView):
     """
     Displays all active listings.
     """
-    queryset = Listing.objects.annotate(endtime=ExpressionWrapper(F("start_time")+F("duration"), output_field=DateTimeField())).filter(start_time__lt=timezone.now(), endtime__gt=timezone.now(), cancelled_on__isnull=True).order_by('-start_time')
+    queryset = Listing.objects.annotate(
+                                    endtime=ExpressionWrapper(
+                                                        F("start_time")+F("duration"), 
+                                                        output_field=DateTimeField()
+                                                    )
+                                ).filter(
+                                    start_time__lt=timezone.now(), 
+                                    endtime__gt=timezone.now(), 
+                                    cancelled_on__isnull=True
+                                ).order_by('endtime')
     template_name = 'auctions/index.html'
     paginate_by = 10
     
@@ -643,6 +658,14 @@ class UpdateListingView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
             )
         self.user = User.objects.get(pk=kwargs['user_pk'])
         return super().dispatch(*args, **kwargs)
+        
+    def get_success_url(self):
+        messages.success(self.request, "Listing was successfully modified.")
+        return reverse('auctions:update_listing', kwargs={
+                                                    'user_pk':self.user.pk,
+                                                    'pk':self.object.pk
+                                                }
+                                            )
     
     
 class ProductView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):

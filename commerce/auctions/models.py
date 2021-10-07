@@ -422,7 +422,7 @@ class Listing(models.Model):
         try:
             mbid = self.bids.order_by('-value')[0:1].get()
         except Bid.DoesNotExist:
-            return Decimal('0.00')
+            return self.start_price
         return mbid.value
                 
     @property

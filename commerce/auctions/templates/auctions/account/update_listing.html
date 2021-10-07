@@ -3,6 +3,7 @@
 {% block content %}
 <div class="container">
     <h2>Listing information</h2>
+    <p>You can edit listing parameters other than product details till listing starts.</p>
 	<form action="{% url 'auctions:update_listing' user.pk object.pk %}" method="POST">
 		{% csrf_token %}
 							<div class="update-listing-form mb-2 container border border-primary border-top-0 border-right-0 border-left-0">
@@ -21,14 +22,18 @@
 								    </div>
 								    <div class="col-md-3 text-center">
 								        <p>Categories:</p>
-							{% for category in object.product.categories.all %}
-								<p>{{ category.name }}</p>
-							{% endfor %}
-						</div>
-						<div class="col-md-3 text-center">
-						    <p>State:</p> 
-						    </p>{{ object.get_state_display }}</p>
-						</div>
+										{% for category in object.product.categories.all %}
+											<p>{{ category.name }}</p>
+										{% endfor %}
+									</div>
+									<div class="col-md-3 text-center">
+										<p>State:</p> 
+										</p>{{ object.get_state_display }}</p>
+									</div>
+								</div>
+								<div class="row">
+									<div class="col-md-3">Description</div>
+									<div class="col-md-6">{{ object.product.description }}</div>
 								</div>
 								<div class="row" style="visibility: hidden;">
 									<div class="col-md-4">{{ form.state.label_tag }}</div>
@@ -43,11 +48,6 @@
 								<div class="row">
 									<div class="col-md-4">{{ form.duration.label_tag }}</div>
 									<div class="col-md-5">{{ form.duration }}</div>
-								</div>
-								<div class="row"><div class="col-md-9">{{ form.start_time.errors }}</div></div>
-								<div class="row">
-									<div class="col-md-4">{{ form.start_time.label_tag }}</div>
-									<div class="col-md-5">{{ form.start_time }}</div>
 								</div>
 								<div class="row"><div class="col-md-9">{{ form.start_price.errors }}</div></div>
 								<div class="row">
@@ -70,8 +70,10 @@
 									<div class="col-md-5">{{ form.return_policy }}</div>
 								</div>
 							</div>
-		<input type="submit" class="btn btn-primary edit" value="Edit">
-		<button class="btn btn-danger cancel">Cancel</button>
+		{% if object.status == "not started yet"  %}
+			<input type="submit" class="btn btn-primary edit" value="Edit">
+		{% endif %}
+		<button class="btn btn-danger cancel" id="{{ object.pk }}">Cancel</button>
 	</form>
 </div>
 {% endblock %}
