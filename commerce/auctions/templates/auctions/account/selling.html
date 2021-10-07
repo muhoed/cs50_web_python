@@ -70,6 +70,7 @@
 					</div>			
 				</div>
 				{% for listing in active %}
+					    <a href="{% url 'auctions:update_listing' user.pk listing.pk %}">
 					<div class="listing-row row mt-1 ml-1 bg-light" id="{{ listing.product.id }}">
 						<div class="col-md-1 align-self-center">
 							<img src="{{ listing.product.image_set.0.img_url }}">
@@ -97,6 +98,7 @@
 							</button>
 						</div>
 					</div>
+					</a>
 				{% empty %}
 					<p class="mt-1 bg-light">You do not have active listings at the moment. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create one.</p>
 				{% endfor %}

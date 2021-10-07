@@ -45,7 +45,11 @@ class CorrectUserTestMixin(UserPassesTestMixin):
     """
     def test_func(self):
         """ Check user accesses her/his own profile. """
-        return (get_object_or_404(User, pk=self.kwargs['pk']) == self.request.user)
+        if "user_pk" in self.kwargs:
+            pk = self.kwargs["user_pk"]
+        else:
+            pk = self.kwargs["pk"]
+        return (get_object_or_404(User, pk=pk) == self.request.user)
         
     def handle_no_permission(self):
         """ If user attempts to get access to other user's profile redirect her/him
@@ -591,12 +595,7 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
             if form.is_valid():
                 return self.success_handler(form)
             else:
-                #pre-populate product form and image firmset with user input if any and delete respective objects from db
-                #product_initials = {"name": product.name, "description": product.description, "categories": product.categories.all(),}
-                #if images:
-                    #image_formset_initials = []
-                    #for image in images:
-                        #image_formset_initials.append({"image_urls": image.image_url,}
+                #delete created new product from db
                 product.delete()
         return self.render_to_response(self.get_context_data(
                                                     form=form,
@@ -612,39 +611,37 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
     
     def get_success_url(self):
         return reverse('auctions:update_listing', kwargs={
-                                                    'pk':self.user.pk,
-                                                    'listing_pk':self.object.pk
+                                                    'user_pk':self.user.pk,
+                                                    'pk':self.object.pk
                                                 }
                                             )
     
     
 class UpdateListingView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
     """
-    Update existing listing for on-the-fly modifications and relisting.
+    View existing listing parameters.
+    Modify parameters of active but not yet started listing except product detail.
+    Cancel active listing.
     """
     model = Listing
     form_class = ListingForm
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user_products = Product.objects.filter(seller=self.user)
-        if user_products.first():
-            context["form"].fields["product"].queryset = user_products
-        else:
-            context["form"].fields["product"].disabled = True
-        if "product_form" not in kwargs:
-            context["product_form"] = ProductForm(initial={'seller': self.user})
-        if "image_formset" not in kwargs:
-            context["image_formset"] = ImageFormset()
+        context["form"].fields["product"].queryset = Product.objects.filter(pk=self.object.product.pk)
         return context
         
         
     def dispatch(self, *args, **kwargs):
-        if 'pk' not in kwargs:
+        if 'user_pk' not in kwargs:
+            raise ImproperlyConfigured(
+                "The URL path must contain 'user_pk' parameter."
+            )
+        elif 'pk' not in kwargs:
             raise ImproperlyConfigured(
                 "The URL path must contain 'pk' parameter."
             )
-        self.user = User.objects.get(pk=kwargs['pk'])
+        self.user = User.objects.get(pk=kwargs['user_pk'])
         return super().dispatch(*args, **kwargs)
     
     

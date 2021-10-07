@@ -351,7 +351,14 @@ var createListingPage = {
 	},
 	
 	boundedProductForm: function() {
-	    if (createListingPage.config.productForm.has(".errorlist").get(0)) {
+	    var checkHasValue =false;
+	    var productFormInputs = createListingPage.config.productForm.find("input, select");
+	    productFormInputs.each(function(){
+	        if ($(this).prop("value") && $(this).prop("value") != "") {
+	            checkHasValue = true;
+	        }
+	    });
+	    if (createListingPage.config.productForm.has(".errorlist").get(0) || checkHasValue) {
 	        createListingPage.config.newProduct.click();
 	    } else {
 	        createListingPage.config.productForm.find("input[name='name']").attr("disabled", true);
@@ -365,6 +372,33 @@ var createListingPage = {
 		if (productListSelect.prop("disabled")) {
 			createListingPage.config.productListError.hide();
 		}
+	}
+};
+
+var modifyListingPage = {
+	
+	init: function(settings) {
+		modifyListingPage.config = {
+			allInput: $("label, input, select, textarea"),
+			editableInput: $("input"),
+			editButton: $(".edit")
+		};
+		$.extend(modifyListingPage.config, settings);
+		modifyListingPage.setup();
+	},
+	
+	setup: function() {
+		modifyListingPage.config.editButton
+			.one("click", function(event){
+					modifyListingPage.allowModify(event);
+				});
+		modifyListingPageconfig.allInput.attr("readonly", true);
+	},
+	
+	allowModify: function(trigger) {
+	    trigger.preventDefault();
+		modifyListingPage.config.editableInput.attr("readonly", false);
+		$(trigger).val("Save");
 	}
 };
 
@@ -388,6 +422,9 @@ $(document).ready(function(){
 		        break;
 		case "Auction$ - Create listing":
 		        createListingPage.init();
+		        break;
+		case "Auction$ - Modify listing":
+		        modifyListingPage.init();
 		        break;
 		default:
 			return false;
