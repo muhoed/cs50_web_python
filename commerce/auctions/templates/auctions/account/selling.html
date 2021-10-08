@@ -230,9 +230,9 @@
 			<div class="tab-pane mt-2" id="products">
 				<div class="d-flex nowrap w-100" id="tab-header">
 					<h3 class="flex-grow-1">Manage products you offer:</h3>
-					<button class="btn btn-primary" id="create-listing-btn">
+					<a href="{% url 'auctions:create_product'  user.pk %}"><button class="btn btn-primary" id="create-listing-btn">
 						Add product
-					</button>
+					</button></a>
 				</div>
 				<div class="row header-row mt-2 ml-1">
 					<div class="col-md-2 text-center">
@@ -247,10 +247,10 @@
 					<div class="col-md-2 text-center">
 						Status
 					</div>
-					<div class="col-md-2 text-center">
+					<div class="col-md-1 text-center">
 						Num sold
 					</div>
-					<div class="col-md-1 text-center">
+					<div class="col-md-2 text-center">
 						Action
 					</div>				
 				</div>
@@ -276,10 +276,10 @@
 								Not listed 
 							{% endif %}
 						</div>
-						<div class="col-md-2 text-center align-self-center">
+						<div class="col-md-1 text-center align-self-center">
 							{{ product.sold_num }}
 						</div>
-						<div class="col-md-1 text-center align-self-center">
+						<div class="col-md-2 text-center align-self-center">
 							<button class="btn btn-secondary" id="sell">Sell</button>
 						</div>
 					</div>
