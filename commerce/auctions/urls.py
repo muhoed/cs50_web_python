@@ -114,11 +114,6 @@ urlpatterns = [
 								extra_context={'title': _('create listing')},
 								template_name='auctions/account/create_listing.html'), 
 			name="create_listing"),
-	path("account/<int:pk>/product/create/", views.ProductView.as_view(
-								extra_context={'title': _('create product')},
-								template_name="auctions/account/create_product.html"),
-			name="create_product"),
-    path("messenger", views.messenger, name="messenger"),
     path("account/<int:user_pk>/listing/<int:pk>/", 
 						views.UpdateListingView.as_view(
 								extra_context={'title': _('modify listing')},
@@ -126,6 +121,15 @@ urlpatterns = [
 							name="update_listing"),
 	path("listing/<int:pk>/", views.listing, name="listing"),
     path("listing/<int:pk>/bid", views.bid, name="bid"),
+	path("account/<int:pk>/product/create/", views.CreateProductView.as_view(
+								extra_context={'title': _('create product')},
+								template_name="auctions/account/create_product.html"),
+			name="create_product"),
+	path("account/<int:user_pk>/product/<int:pk>/", views.UpdateProductView.as_view(
+								extra_context={'title': _('modify product')},
+								template_name="auctions/account/update_product.html"),
+			name="update_product"),
+    path("messenger", views.messenger, name="messenger"),
     path("search", views.search, name="search")
 ]
 

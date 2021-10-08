@@ -668,7 +668,7 @@ class UpdateListingView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
                                             )
     
     
-class ProductView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
+class CreateProductView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
     """
     Create product to be listed.
     """
@@ -690,22 +690,93 @@ class ProductView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
         return super().dispatch(*args, **kwargs)
         
     def post(self, request, *args, **kwargs):
+        self.object = None
+        data = {
+            "seller": self.user
+        }
+        if self.request.POST["name"]:
+            data["name"] = self.request.POST["name"]
+        if self.request.POST["description"]:
+            data["description"] = self.request.POST["description"]
+        if self.request.POST["categories"]:
+            data["categories"] = [Category.objects.get(pk=category) for category in self.request.POST["categories"]]
+        form = self.form_class(data)
+        image_formset = ImageFormset()
+        
+        if form.is_valid():
+            self.object = form.save()
+            image_formset = ImageFormset(self.request.POST, instance=self.object)
+            if image_formset.is_valid():
+                images = image_formset.save()
+                return HttpResponseRedirect(self.get_success_url())
+        
+        if self.object:
+            self.object.delete()    
+        return self.render_to_response(self.get_context_data(
+                                                    form=form,
+                                                    image_formset=image_formset
+                                                    ))
+                                                    
+    def get_success_url(self):
+        messages.success(self.request, "New product was successfully created.")
+        return reverse('auctions:update_product', kwargs={
+                                                    'user_pk':self.user.pk,
+                                                    'pk':self.object.pk
+                                                }
+                                            )
+                                            
+                                            
+class UpdateProductView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
+    """
+    View existing product parameters.
+    Modify parameters of the product that was not listed yet.
+    Delete product.
+    """
+    model = Product
+    form_class = ProductForm
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if "image_formset" not in kwargs:
+            context["image_formset"] = ImageFormset(instance=self.object)
+    #    context["form"].fields["image_set"].queryset = Image.objects.filter(pk=self.object.product.pk)
+        return context
+        
+    def dispatch(self, *args, **kwargs):
+        if 'user_pk' not in kwargs:
+            raise ImproperlyConfigured(
+                "The URL path must contain 'user_pk' parameter."
+            )
+        elif 'pk' not in kwargs:
+            raise ImproperlyConfigured(
+                "The URL path must contain 'pk' parameter."
+            )
+        self.user = User.objects.get(pk=kwargs['user_pk'])
+        return super().dispatch(*args, **kwargs)
+        
+    def post(self):
+        self.object = self.get_object()
         form = self.get_form()
-        form.seller = self.user
-        image_formset = ImageFormset(self.post_data, instance=self.object)
-        
-        message = "New product was successfully created."
-        
+        image_formset = ImageFormset(self.request.POST, instance=self.object)
         if form.is_valid() and image_formset.is_valid():
+            self.object = form.save()
             images = image_formset.save()
-            messages.success(self.request, message)
             return self.form_valid(form)
-            
         else:
-            return self.render_to_response(self.get_context_data(
-                                                        form=form,
-                                                        image_formset=image_formset
-                                                        ))
+            return self.render_to_response(
+                            self.get_context_data(
+                                            form=form, image_formset=image_formset
+                                        )
+                        )
+            
+        
+    def get_success_url(self):
+        messages.success(self.request, "Product was successfully modified.")
+        return reverse('auctions:update_product', kwargs={
+                                                    'user_pk':self.user.pk,
+                                                    'pk':self.object.pk
+                                                }
+                                            )
     
     
 @login_required    

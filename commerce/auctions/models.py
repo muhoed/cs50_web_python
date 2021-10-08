@@ -1,7 +1,9 @@
 import datetime
 from decimal import Decimal
 
+from django.conf import settings as conf_settings
 from django.contrib.auth.models import AbstractUser
+from django.templatetags.static import static
 from django.utils.translation import ugettext as _
 from django.utils import timezone
 from django.template.defaultfilters import slugify
@@ -343,7 +345,7 @@ class Product(models.Model):
                 related_name="products")
                 
     name = models.CharField("product's title", max_length=255, unique=True)
-    description = models.CharField("product's description", max_length=1000, blank=True)
+    description = models.TextField("product's description", max_length=1000, blank=True)
 
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
@@ -362,7 +364,10 @@ class Image(models.Model):
 	#image = models.ImageField("Product's image", 
 	#			upload_to=get_product_image_filename,
 	#			null=True, blank=True)
-	image_url = models.URLField("URL of product's image", null=True, blank=True)	
+	image_url = models.URLField(
+							"URL of product's image", null=False, blank=False, 
+							default=static("images/cropped-placeholder.jpg")
+						)	
 	
 class Listing(models.Model):
 	

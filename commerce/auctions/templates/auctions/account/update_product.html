@@ -3,10 +3,10 @@
 {% block content %}
 				
 				<div class="container">
-					<h3 class="">New product</h3>
+					<h3 class="">Product information</h3>
 					<div class="container mt-5 mb-2">
 						{{ form.non_field_errors }}
-						<form action="{% url 'auctions:create_product' user.id %}" method="post">
+						<form action="{% url 'auctions:update_product' user.id object.pk %}" method="post">
 							{% csrf_token %}
 							<table class="create-product-form mb-5 border border-primary border-top-0 border-right-0 border-left-0">
 					
@@ -20,7 +20,7 @@
 									<th>{{ form.categories.label_tag }}</th>
 									<td>{{ form.categories }}</td>
 								</tr>
-								<tr><td colspan="2">Add up to three images of the product (url path to the image file)</td></tr>
+								<tr><td colspan="2">Pictures of the product (url path to the image file)</td></tr>
 								{{ formset.non_form_errors }}
 								{{ image_formset.management_form }}
 								{% for iform in image_formset %}
@@ -37,7 +37,8 @@
 									<td>{{ form.description }}</td>
 								</tr>
 							</table>
-							<input class="btn btn-primary" type="submit" value="Create">
+							<input class="btn btn-primary" type="submit" value="Edit">
+							<input class="btn btn-danger" type="submit" value="Delete">
 						</form>
 					</div>					
 				</div>

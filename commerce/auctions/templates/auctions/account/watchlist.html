@@ -3,62 +3,64 @@
 {% block content %}
 						
 			<div class="container">
-							<h3 class="flex-grow-1">Your watchlist:</h3>
-									<button class="btn btn-primary" id="clear-watchlist">
-										Remove all
-									</button>
-							<div class="row mt-1 header-row">
-								<div class="col-md-1 text-center">
-									Image
-								</div>
-								<div class="col-md-2 text-center">
-									Title
-								</div>
-								<div class="col-md-2 text-center">
-									Categories
-								</div>
-								<div class="col-md-2 text-center">
-									Bids count
-								</div>
-								<div class="col-md-1 text-center">
-									Top bid
-								</div>
-								<div class="col-md-2 text-center">
-									Time left
-								</div>
-								<div class="col-md-2 text-center">
-									Actions
-								</div>			
-							</div>
-							{% for item in watched_list|dictsort:"end_time" %}
-								<div class="listing row mt-1 ml-1 bg-light" id="{{ item.id }}">
-									<div class="col-md-1 text-center align-self-center">
-										<img src="{{ item.product.image_set.0.img_url }}">
-									</div>
-									<div class="col-md-2 text-center align-self-center">
-										{{ item.product.name|capfirst }}
-									</div>
-									<div class="col-md-2 text-center align-self-center">
-										{% for category in item.product.categories %}
-											<p>{{ category.name }}</p>
-										{% endfor %}
-									<div class="col-md-2 text-center align-self-center">
-										{{ item.bids.count }}
-									</div>
-									<div class="col-md-1 text-center align-self-center">
-										{{ item.max_bid }}
-									</div>
-									<div class="col-md-2 text-center align-self-center">
-										{{ item.end_time|timeuntil:now }}
-									</div>
-									<div class="col-md-2 text-center align-self-center">
-									    <button class="btn btn-primary bid">Bid</button>
-									    <button class="btn btn-danger bid">Del</button>
-									</div>
-								</div>
-							{% empty %}
-								<p class="mt-1 bg-light">Your watchlist is empty.</p>
+				<div class="d-flex nowrap w-100">
+					<h3 class="flex-grow-1">Your watchlist:</h3>
+					<button class="btn btn-primary" id="clear-watchlist">
+						Remove all
+					</button>
+				</div>
+				<div class="row mt-1 header-row">
+					<div class="col-md-1 text-center">
+						Image
+					</div>
+					<div class="col-md-2 text-center">
+						Title
+					</div>
+					<div class="col-md-2 text-center">
+						Categories
+					</div>
+					<div class="col-md-2 text-center">
+						Bids count
+					</div>
+					<div class="col-md-1 text-center">
+						Top bid
+					</div>
+					<div class="col-md-2 text-center">
+						Time left
+					</div>
+					<div class="col-md-2 text-center">
+						Actions
+					</div>			
+				</div>
+				{% for item in watched_list|dictsort:"end_time" %}
+					<div class="listing row mt-1 ml-1 bg-light" id="{{ item.id }}">
+						<div class="col-md-1 text-center align-self-center">
+							<img src="{{ item.product.image_set.0.img_url }}">
+						</div>
+						<div class="col-md-2 text-center align-self-center">
+							{{ item.product.name|capfirst }}
+						</div>
+						<div class="col-md-2 text-center align-self-center">
+							{% for category in item.product.categories %}
+								<p>{{ category.name }}</p>
 							{% endfor %}
+						<div class="col-md-2 text-center align-self-center">
+							{{ item.bids.count }}
+						</div>
+						<div class="col-md-1 text-center align-self-center">
+							{{ item.max_bid }}
+						</div>
+						<div class="col-md-2 text-center align-self-center">
+							{{ item.end_time|timeuntil:now }}
+						</div>
+						<div class="col-md-2 text-center align-self-center">
+							<button class="btn btn-primary bid">Bid</button>
+							<button class="btn btn-danger bid">Del</button>
+						</div>
+					</div>
+				{% empty %}
+					<p class="mt-1 bg-light">Your watchlist is empty.</p>
+				{% endfor %}
 							
 			</div>
 	

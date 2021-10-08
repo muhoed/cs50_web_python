@@ -70,7 +70,7 @@
 					</div>			
 				</div>
 				{% for listing in active %}
-					    <a href="{% url 'auctions:update_listing' user.pk listing.pk %}">
+				<a href="{% url 'auctions:update_listing' user.pk listing.pk %}">
 					<div class="listing-row row mt-1 ml-1 bg-light" id="{{ listing.product.id }}">
 						<div class="col-md-1 align-self-center">
 							<img src="{{ listing.product.image_set.0.img_url }}">
@@ -98,7 +98,7 @@
 							</button>
 						</div>
 					</div>
-					</a>
+				</a>
 				{% empty %}
 					<p class="mt-1 bg-light">You do not have active listings at the moment. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create one.</p>
 				{% endfor %}
@@ -255,6 +255,7 @@
 					</div>				
 				</div>
 				{% for product in user.products.all|dictsort:"created_on" %}
+				<a href="{% url 'auctions:update_product' user.pk product.pk %}">
 					<div class="row product-row mt-1 ml-1 bg-light" id="{{ product.id }}">
 						<div class="col-md-2 text-center align-self-center">
 							<img src="{{ product.image_set.0.img_url }}">
@@ -283,6 +284,7 @@
 							<button class="btn btn-secondary" id="sell">Sell</button>
 						</div>
 					</div>
+				</a>
 				{% empty %}
 					<p class="mt-1 bg-light">You did not add any product yet. <a href="{% url 'auctions:create_product' user.pk %}">Click here</a> to add one.</p>
 				{% endfor %}
