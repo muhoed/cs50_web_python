@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
+from django.templatetags.static import static
 from django.core.mail import EmailMultiAlternatives
 from django.db import IntegrityError
 from django.db.models import (F, Q, Max, Case, When, Value, OuterRef, 
@@ -678,7 +679,17 @@ class CreateProductView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if "image_formset" not in kwargs:
-            context["image_formset"] = ImageFormset(instance=self.object)
+            protocol = 'http'
+            current_site = get_current_site(self.request)
+            domain = current_site.domain
+            default_img_url = protocol + "://" + domain
+            context["image_formset"] = ImageFormset(
+                                                instance=self.object,
+                                                initial=[
+                                                    {"image_url":default_img_url+static("auctions/images/cropped-placeholder.jpg")},
+                                                    {"image_url":default_img_url+static("auctions/images/cropped-placeholder.jpg")},
+                                                    {"image_url":default_img_url+static("auctions/images/cropped-placeholder.jpg")}
+                                                ])
         return context
         
     def dispatch(self, *args, **kwargs):
@@ -739,11 +750,16 @@ class UpdateProductView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
         context = super().get_context_data(**kwargs)
         if "image_formset" not in kwargs:
             protocol = 'http'
-            current_site = get_current_site(request)
-            site_name = current_site.name
+            current_site = get_current_site(self.request)
             domain = current_site.domain
-            default_img_url = protocol ÷ domain
-            context["image_formset"] = ImageFormset(instance=self.object)
+            default_img_url = protocol + "://" + domain
+            context["image_formset"] = ImageFormset(
+                                                instance=self.object,
+                                                initial=[
+                                                    {"image_url":default_img_url+static("auctions/images/cropped-placeholder.jpg")},
+                                                    {"image_url":default_img_url+static("auctions/images/cropped-placeholder.jpg")},
+                                                    {"image_url":default_img_url+static("auctions/images/cropped-placeholder.jpg")}
+                                                ])
     #    context["form"].fields["image_set"].queryset = Image.objects.filter(pk=self.object.product.pk)
         return context
         

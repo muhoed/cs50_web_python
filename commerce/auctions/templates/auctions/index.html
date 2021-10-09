@@ -51,14 +51,13 @@
 				<a href="{{ listing.get_absolute_url }}">
 				{% if user.is_authenticated %}
 					<div class="row mt-1 ml-1 bg-light">
-						{{ listing.product.images_set.first.image_url }}
 						<div class="col-md-1 text-center align-self-center">
-						    <img src="{{ listing.product.images_set.first.image_url }}" class="img-thumbnail" alt="{{ listing.product.name }}"/>
+						    <img src="{{ listing.product.image_set.first.image_url }}" height="50px" width="50px">
 						</div>
 						<div class="col-md-2 text-center align-self-center">
 						    {{ listing.product.name|capfirst }}
-						    </div> 
-						    <div class="col-md-2 text-center align-self-center">
+						</div> 
+						<div class="col-md-2 text-center align-self-center">
 							{% for category in listing.product.categories.all %}
 								<p>{{ category.name }}</p>
 							{% endfor %}
@@ -92,12 +91,12 @@
 				{% else %}
 					<div class="row mt-1 ml-1 bg-light">
 						<div class="col-md-1 text-center align-self-center">
-						    <a href="{{ listing.product.image_url }}"></a>
-						    </div>
+						    <img src="{{ listing.product.image_set.first.image_url }}" height="50px" width="50px">
+						</div>
 						<div class="col-md-2 text-center align-self-center">
 						    {{ listing.product.name|capfirst }}
-						    </div> 
-						    <div class="col-md-2 text-center align-self-center">
+						</div> 
+						<div class="col-md-2 text-center align-self-center">
 							{% for category in listing.product.categories.all %}
 								<p>{{ category.name }}</p>
 							{% endfor %}

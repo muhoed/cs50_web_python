@@ -73,7 +73,7 @@
 				<a href="{% url 'auctions:update_listing' user.pk listing.pk %}">
 					<div class="listing-row row mt-1 ml-1 bg-light" id="{{ listing.product.id }}">
 						<div class="col-md-1 align-self-center">
-							<img src="{{ listing.product.image_set.0.img_url }}">
+							<img src="{{ listing.product.image_set.first.image_url }}" height="50px" width="50px">
 						</div>
 						<div class="col-md-3 text-center align-self-center">
 							{{ listing.product.name|capfirst }}
@@ -136,7 +136,7 @@
 				{% for listing in sold %}
 					<div class="listing row mt-1 ml-1 bg-light">
 						<div class="col-md-1 text-center align-self-center">
-							<img src="{{ listing.product.image_set.0.img_url }}">
+							<img src="{{ listing.product.image_set.first.image_url }}" height="50px" width="50px">
 						</div>
 						<div class="col-md-2 text-center align-self-center">
 							{{ listing.product.name|capfirst }}
@@ -199,7 +199,7 @@
 				{% for listing in unsold %}
 					<div class="listing row mt-1 ml-1 bg-light">
 						<div class="col-md-1 text-center align-self-center">
-							<img src="{{ listing.product.image_set.0.img_url }}">
+							<img src="{{ listing.product.image_set.first.image_url }}" height="50px" width="50px">
 						</div>
 						<div class="col-md-3 text-center align-self-center">
 							{{ listing.product.name|capfirst }}
@@ -258,7 +258,7 @@
 				<a href="{% url 'auctions:update_product' user.pk product.pk %}">
 					<div class="row product-row mt-1 ml-1 bg-light" id="{{ product.id }}">
 						<div class="col-md-2 text-center align-self-center">
-							<img src="{% if request.is_secure %}https://{% else %}http://{% endif %}{{ request.get_host }}{{ product.image_set.0.img_url }}">
+							<img src="{{ product.image_set.first.image_url }}" height="50px" width="50px">
 						</div>
 						<div class="col-md-3 text-center align-self-center">
 							{{ product.name|capfirst }}

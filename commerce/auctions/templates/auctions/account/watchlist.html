@@ -35,7 +35,7 @@
 				{% for item in watched_list|dictsort:"end_time" %}
 					<div class="listing row mt-1 ml-1 bg-light" id="{{ item.id }}">
 						<div class="col-md-1 text-center align-self-center">
-							<img src="{{ item.product.image_set.0.img_url }}">
+							<img src="{{ item.product.image_set.first.image_url }}" height="50px" width="50px">
 						</div>
 						<div class="col-md-2 text-center align-self-center">
 							{{ item.product.name|capfirst }}

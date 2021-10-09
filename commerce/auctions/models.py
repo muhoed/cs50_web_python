@@ -3,7 +3,6 @@ from decimal import Decimal
 
 from django.conf import settings as conf_settings
 from django.contrib.auth.models import AbstractUser
-from django.templatetags.static import static
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.translation import ugettext as _
 from django.utils import timezone
