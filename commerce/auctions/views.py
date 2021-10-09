@@ -701,7 +701,7 @@ class CreateProductView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
         if self.request.POST["categories"]:
             data["categories"] = [Category.objects.get(pk=category) for category in self.request.POST["categories"]]
         form = self.form_class(data)
-        image_formset = ImageFormset()
+        image_formset = ImageFormset(initial=[{"image_url": static("auctions/images/cropped-placeholder.jpg")}, {"image_url": static("auctions/images/cropped-placeholder.jpg")}, {"image_url": static("auctions/images/cropped-placeholder.jpg")}])
         
         if form.is_valid():
             self.object = form.save()
@@ -738,6 +738,11 @@ class UpdateProductView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if "image_formset" not in kwargs:
+            protocol = 'http'
+            current_site = get_current_site(request)
+            site_name = current_site.name
+            domain = current_site.domain
+            default_img_url = protocol ÷ domain
             context["image_formset"] = ImageFormset(instance=self.object)
     #    context["form"].fields["image_set"].queryset = Image.objects.filter(pk=self.object.product.pk)
         return context

@@ -258,7 +258,7 @@
 				<a href="{% url 'auctions:update_product' user.pk product.pk %}">
 					<div class="row product-row mt-1 ml-1 bg-light" id="{{ product.id }}">
 						<div class="col-md-2 text-center align-self-center">
-							<img src="{{ product.image_set.0.img_url }}">
+							<img src="{% if request.is_secure %}https://{% else %}http://{% endif %}{{ request.get_host }}{{ product.image_set.0.img_url }}">
 						</div>
 						<div class="col-md-3 text-center align-self-center">
 							{{ product.name|capfirst }}

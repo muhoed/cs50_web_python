@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.conf import settings as conf_settings
 from django.contrib.auth.models import AbstractUser
 from django.templatetags.static import static
+from django.contrib.sites.shortcuts import get_current_site
 from django.utils.translation import ugettext as _
 from django.utils import timezone
 from django.template.defaultfilters import slugify
@@ -365,8 +366,7 @@ class Image(models.Model):
 	#			upload_to=get_product_image_filename,
 	#			null=True, blank=True)
 	image_url = models.URLField(
-							"URL of product's image", null=False, blank=False, 
-							default=static("images/cropped-placeholder.jpg")
+							"URL of product's image", null=True, blank=True
 						)	
 	
 class Listing(models.Model):
