@@ -155,7 +155,7 @@ class ProductForm(forms.ModelForm):
 class ImageForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['image_url'].widget.attrs.update(style='width:95%;')
+        self.fields['image_url'].widget.attrs.update(style='width:90%;')
     
     class Meta():
         model = Image

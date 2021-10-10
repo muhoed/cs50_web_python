@@ -3,15 +3,18 @@
 {% block content %}
 				
 				<div class="container">
-					<h3 class="">Product information</h3>
+					<div class="d-flex nowrap">
+						<h3 class="flex-grow-1">Product information</h3>
+						<button class="btn btn-secondary" id="product-list-{{ object.pk }}">Sell</button>
+					</div>
 					{% if object.listings.first %}
-					<p>You can't modify or remove products that were already listed. Please create new product if some changesare required.</p>
+						<p>You can't modify or remove products that were already listed. Please create new product if some changesare required.</p>
 					{% endif %}
-					<div class="container mt-5 mb-2">
+					<div class="container mt-5">
 						{{ form.non_field_errors }}
 						<form action="{% url 'auctions:update_product' user.id object.pk %}" method="post">
 							{% csrf_token %}
-							<div class="create-product-form container mb-5 border border-primary border-top-0 border-right-0 border-left-0">
+							<div class="update-product-form container mb-5 border border-primary border-top-0 border-right-0 border-left-0">
 					
 								<div class="row">{{ form.name.errors }}</div>
 								<div class="row">
@@ -23,8 +26,13 @@
 									<div class="col-md-4">{{ form.categories.label_tag }}</div>
 									<div class="col-md-8">{{ form.categories }}</div>
 								</div>
-								<div class="row"><h5>Product pictures</h5></div>
-								<div class="row">Modify url path to the image file and click the picture to update it</div>
+								<div class="row">{{ form.description.errors }}</div>
+								<div class="row">
+									<div class="col-md-4">{{ form.description.label_tag }}</div>
+									<div class="col-md-8">{{ form.description }}</div>
+								</div>
+								<div class="row mt-1"><h5>Product pictures</h5></div>
+								<div class="row">Modify url path to the image file and click the picture to update</div>
 								<div class="row">{{ formset.non_form_errors }}</div>
 								{{ image_formset.management_form }}
 								<div class="row">
@@ -50,42 +58,42 @@
 									</div>
 								</div>
 								<div class="row">
-									<div class="col-md-4 update-picture text-center" id="{{ object.image_set.0.pk }}">
-										<img src="{{ object.image_set.0.image_url }}" height="125px" width="125px">
+									<div class="col-md-4 update-picture text-center" id="{{ object.image_set.all.0.pk }}">
+										<img src="{{ object.image_set.all.0.image_url }}" height="150px" width="150px">
 									</div>
-									<div class="col-md-4 update-picture text-center" id="{{ object.image_set.1.pk }}">
-										<img src="{{ object.image_set.1.image_url }}" height="125px" width="125px">
+									<div class="col-md-4 update-picture text-center" id="{{ object.image_set.all.1.pk }}">
+										<img src="{{ object.image_set.all.1.image_url }}" height="150px" width="150px">
 									</div>
-									<div class="col-md-4 update-picture text-center" id="{{ object.image_set.2.pk }}">
-										<img src="{{ object.image_set.2.image_url }}" height="125px" width="125px">
-									</div>
-								</div>
-								<div class="row mt-1">
-									<div class="col-md-4 image-url text-center" id="{{ object.image_set.0.pk }}">
-										{{ image_formset.0.image_url }}
-										<span class="remove-img btn btn-danger" id="del-img-{{object.image_set.0.pk }}">Del</span>
-									</div>
-									<div class="col-md-4 image-url text-center" id="{{ object.image_set.1.pk }}">
-										{{ image_formset.1.image_url }}
-										<span class="remove-img btn btn-danger" id="del-img-{{object.image_set.1.pk }}">Del</span>
-									</div>
-									<div class="col-md-4 image-url text-center" id="{{ object.image_set.2.pk }}">
-										{{ image_formset.2.image_url }}
-										<span class="remove-img btn btn-danger" id="del-img-{{object.image_set.2.pk }}">Del</span>
+									<div class="col-md-4 update-picture text-center" id="{{ object.image_set.all.2.pk }}">
+										<img src="{{ object.image_set.all.2.image_url }}" height="150px" width="150px">
 									</div>
 								</div>
-								<div class="row">{{ form.description.errors }}</div>
-								<div class="row mt-2">
-									<div class="col-md-4">{{ form.description.label_tag }}</div>
-									<div class="col-md-8">{{ form.description }}</div>
+								<div class="row mt-1 mb-1">
+									<div class="col-md-4 image-url text-center" id="{{ object.image_set.all.0.pk }}">
+										<div class="d-flex nowrap">
+											{{ image_formset.0.image_url }}
+											<span class="remove-img border border-danger border-1 m-1 p-1 text-danger" title="Remove picture" id="del-img-{{object.image_set.all.0.pk }}">X</span>
+										</div>
+									</div>
+									<div class="col-md-4 image-url text-center" id="{{ object.image_set.all.1.pk }}">
+										<div class="d-flex nowrap">
+											{{ image_formset.1.image_url }}
+											<span class="remove-img border border-danger border-1 m-1 p-1 text-danger" title="Remove picture" id="del-img-{{object.image_set.all.1.pk }}">X</span>
+										</div>
+									</div>
+									<div class="col-md-4 image-url text-center" id="{{ object.image_set.all.2.pk }}">
+										<div class="d-flex nowrap">
+											{{ image_formset.2.image_url }}
+											<span class="remove-img border border-danger border-1 m-1 p-1 text-danger" title="Remove picture" id="del-img-{{object.image_set.all.2.pk }}">X</span>
+										</div>
+									</div>
 								</div>
 							</div>
-							<div class="d-flex nowrap">
-							    							{% if not object.listings.first %}
-								<input class="btn btn-primary" type="submit" value="Edit">
-								<button class="btn btn-danger product-delete">Delete</button>
+							<div class="d-flex nowrap justify-content-end">
+							    {% if not object.listings.first %}
+									<input class="btn btn-primary ml-1" type="submit" value="Edit">
+									<button class="btn btn-danger product-delete ml-1">Delete</button>
 								{% endif %}
-								<button class="btn btn-secondary" id="product-list-{{ object.pk }}">Sell</button>
 							</div>
 						</form>
 					</div>					

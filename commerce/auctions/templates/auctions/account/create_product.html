@@ -8,35 +8,81 @@
 						{{ form.non_field_errors }}
 						<form action="{% url 'auctions:create_product' user.id %}" method="post">
 							{% csrf_token %}
-							<table class="create-product-form mb-5 border border-primary border-top-0 border-right-0 border-left-0">
+							<div class="create-product-form container mb-5 border border-primary border-top-0 border-right-0 border-left-0">
 					
-								<tr><td colspan="2">{{ form.name.errors }}</td></tr>
-								<tr>
-									<th>{{ form.name.label_tag }}</th>
-									<td>{{ form.name }}</td>
-								</tr>
-								<tr><td colspan="2">{{ form.categories.errors }}</td></tr>
-								<tr>
-									<th>{{ form.categories.label_tag }}</th>
-									<td>{{ form.categories }}</td>
-								</tr>
-								<tr><td colspan="2">Add up to three images of the product (url path to the image file)</td></tr>
-								{{ formset.non_form_errors }}
+								<div class="row">{{ form.name.errors }}</div>
+								<div class="row">
+									<div class="col-md-4">{{ form.name.label_tag }}</div>
+									<div class="col-md-8">{{ form.name }}</div>
+								</div>
+								<div class="row">{{ form.categories.errors }}</div>
+								<div class="row">
+									<div class="col-md-4">{{ form.categories.label_tag }}</div>
+									<div class="col-md-8">{{ form.categories }}</div>
+								</div>
+								<div class="row">{{ form.description.errors }}</div>
+								<div class="row">
+									<div class="col-md-4">{{ form.description.label_tag }}</div>
+									<div class="col-md-8">{{ form.description }}</div>
+								</div>
+								<div class="row mt-1"><h5>Product pictures</h5></div>
+								<div class="row">Enter url path to the image file and click the picture to update</div>
+								<div class="row">{{ formset.non_form_errors }}</div>
 								{{ image_formset.management_form }}
-								{% for iform in image_formset %}
-									<tr><td colspan="2">{{ iform.non_field_errors }}</td></tr>
-									<tr><td colspan="2">{{ iform.image_url.errors }}</td></tr>
-									<tr>
-										<th>{{ iform.image_url.label_tag }}</th>
-										<td>{{ iform.image_url }}</td>
-									</tr>
-								{% endfor %}
-								<tr><td colspan="2">{{ form.description.errors }}</td></tr>
-								<tr>
-									<th>{{ form.description.label_tag }}</th>
-									<td>{{ form.description }}</td>
-								</tr>
-							</table>
+								<div class="row">
+									<div class="col-md-4">
+										{{ image_formset.0.non_field_errors }}
+									</div>
+									<div class="col-md-4">
+										{{ image_formset.1.non_field_errors }}
+									</div>
+									<div class="col-md-4">
+										{{ image_formset.2.non_field_errors }}
+									</div>
+								</div>
+								<div class="row">
+									<div class="col-md-4">
+										{{ image_formset.0.image_url.errors }}
+									</div>
+									<div class="col-md-4">
+										{{ image_formset.1.image_url.errors }}
+									</div>
+									<div class="col-md-4">
+										{{ image_formset.2.image_url.errors }}
+									</div>
+								</div>
+								<div class="row">
+									<div class="col-md-4 update-picture text-center" id="picture-1">
+										<img src="{{ image_formset.0.image_url.value }}" height="150px" width="150px">
+									</div>
+									<div class="col-md-4 update-picture text-center" id="picture-2">
+										<img src="{{ image_formset.1.image_url.value }}" height="150px" width="150px">
+									</div>
+									<div class="col-md-4 update-picture text-center" id="picture-3">
+										<img src="{{ image_formset.2.image_url.value }}" height="150px" width="150px">
+									</div>
+								</div>
+								<div class="row mt-1 mb-1">
+									<div class="col-md-4 image-url text-center" id="image-url-1">
+										<div class="d-flex nowrap">
+											{{ image_formset.0.image_url }}
+											<span class="remove-img border border-danger border-1 m-1 p-1 text-danger" title="Remove picture" id="del-img-1">X</span>
+										</div>
+									</div>
+									<div class="col-md-4 image-url text-center" id="image-url-2">
+										<div class="d-flex nowrap">
+											{{ image_formset.1.image_url }}
+											<span class="remove-img border border-danger border-1 m-1 p-1 text-danger" title="Remove picture" id="del-img-2">X</span>
+										</div>
+									</div>
+									<div class="col-md-4 image-url text-center" id="image-url-3">
+										<div class="d-flex nowrap">
+											{{ image_formset.2.image_url }}
+											<span class="remove-img border border-danger border-1 m-1 p-1 text-danger" title="Remove picture" id="del-img-3">X</span>
+										</div>
+									</div>
+								</div>
+							</div>
 							<input class="btn btn-primary" type="submit" value="Create">
 						</form>
 					</div>					
