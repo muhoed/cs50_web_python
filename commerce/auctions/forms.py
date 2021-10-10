@@ -141,12 +141,22 @@ class ListingForm(forms.ModelForm):
 					"payment_policy", "shipment_policy", "return_policy"]
                     
 class ProductForm(forms.ModelForm):
-	class Meta():
-		model = Product
-		fields = ["seller", "categories", "name", "description"]
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['name'].widget.attrs.update(style='width:100%; height: auto;')
+        self.fields['categories'].widget.attrs.update(style='width:100%;')
+        self.fields['description'].widget.attrs.update(rows="5", style='width:100%;')
+    
+    class Meta():
+        model = Product
+        fields = ["seller", "categories", "name", "description"]
         
 
 class ImageForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['image_url'].widget.attrs.update(style='width:95%;')
+    
     class Meta():
         model = Image
         fields = ["image_url"]
