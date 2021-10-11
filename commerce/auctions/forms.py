@@ -135,10 +135,20 @@ class AnswerForm(forms.ModelForm):
 		fields = ["content"]
 	
 class ListingForm(forms.ModelForm):
-	class Meta():
-		model = Listing
-		fields = ["product", "state", "start_time", "duration", "start_price",
-					"payment_policy", "shipment_policy", "return_policy"]
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['product'].widget.attrs.update(style='width:100%;')
+        self.fields['start_time'].widget.attrs.update(style='width:100%;')
+        self.fields['duration'].widget.attrs.update(style='width:100%;')
+        self.fields['start_price'].widget.attrs.update(style='width:100%;')
+        self.fields['payment_policy'].widget.attrs.update(rows="7", style='width:100%; font-size: 0.5em;')
+        self.fields['shipment_policy'].widget.attrs.update(rows="7", style='width:100%; font-size: 0.5em;')
+        self.fields['return_policy'].widget.attrs.update(rows="7", style='width:100%; font-size: 0.5em;')
+    
+    class Meta():
+        model = Listing
+        fields = ["product", "state", "start_time", "duration", "start_price",
+        "payment_policy", "shipment_policy", "return_policy"]
                     
 class ProductForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):

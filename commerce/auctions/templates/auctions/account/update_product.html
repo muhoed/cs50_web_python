@@ -8,7 +8,7 @@
 						<button class="btn btn-secondary" id="product-list-{{ object.pk }}">Sell</button>
 					</div>
 					{% if object.listings.first %}
-						<p>You can't modify or remove products that were already listed. Please create new product if some changesare required.</p>
+						<p>You can't modify or remove products that were already listed. Please create new product if some changes are required.</p>
 					{% endif %}
 					<div class="container mt-5">
 						{{ form.non_field_errors }}

@@ -4,13 +4,41 @@
 <div class="container">
     <h2>Listing information</h2>
     <p>You can edit listing parameters other than product details till listing starts.</p>
+    <div class="row listing-status-header">
+        <div class="col-md-3 text-center">
+            Listing status
+        </div>
+        <div class="col-md-3 text-center">
+            Num.of watchers
+        </div>
+        <div class="col-md-3 text-center">
+            Num.of bids
+        </div>
+        <div class="col-md-3 text-center">
+            Top bid
+        </div>
+    </div>
+    <div class="row listing-status-data">
+        <div class="col-md-3 text-center">
+            {{ object.status }}
+        </div>
+        <div class="col-md-3 text-center">
+            {{ object.followers.count }}
+        </div>
+        <div class="col-md-3 text-center">
+            {{ object.bids.count }}
+        </div>
+        <div class="col-md-3 text-center">
+            {{ object.max_bid }}€
+        </div>
+    </div>
 	<form action="{% url 'auctions:update_listing' user.pk object.pk %}" method="POST">
 		{% csrf_token %}
 			<div class="update-listing-form mb-2 container border border-primary border-top-0 border-right-0 border-left-0">
 				<!-- listing product is not editable but should be in POST data -->
 				<div class="products-list row">
-					<div class="col-md-4">Product:</div>
-					<div class="col-md-9" style="visibility:hidden;">{{ form.product }}</div>
+					<div class="col-md-12">Product:</div>
+					<div class="col-md-12" style="visibility:hidden;">{{ form.product }}</div>
 				</div>
 				<a href="{% url 'auctions:update_product' user.pk object.product.pk %}">
 					<div class="row product bg-light">
@@ -34,48 +62,50 @@
 					</div>
 				</a>
 				<div class="row">
-					<div class="col-md-3">Description</div>
-					<div class="col-md-6">{{ object.product.description }}</div>
+					<div class="col-md-5">Description</div>
+					<div class="col-md-7">{{ object.product.description }}</div>
 				</div>
 				<div class="row" style="visibility: hidden;">
-					<div class="col-md-4">{{ form.state.label_tag }}</div>
-					<div class="col-md-5">{{ form.state }}</div>
+					<div class="col-md-5">{{ form.state.label_tag }}</div>
+					<div class="col-md-7">{{ form.state }}</div>
 				</div>
-				<div class="row"><div class="col-md-9">{{ form.start_time.errors }}</div></div>
+				<div class="row"><div class="col-md-12">{{ form.start_time.errors }}</div></div>
 				<div class="row">
-					<div class="col-md-4">{{ form.start_time.label_tag }}</div>
-					<div class="col-md-5">{{ form.start_time }}</div>
+					<div class="col-md-5">{{ form.start_time.label_tag }}</div>
+					<div class="col-md-7">{{ form.start_time }}</div>
 				</div>
-				<div class="row"><div class="col-md-9">{{ form.duration.errors }}</div></div>
+				<div class="row"><div class="col-md-12">{{ form.duration.errors }}</div></div>
 				<div class="row">
-					<div class="col-md-4">{{ form.duration.label_tag }}</div>
-					<div class="col-md-5">{{ form.duration }}</div>
+					<div class="col-md-5">{{ form.duration.label_tag }}</div>
+					<div class="col-md-7">{{ form.duration }}</div>
 				</div>
-				<div class="row"><div class="col-md-9">{{ form.start_price.errors }}</div></div>
+				<div class="row"><div class="col-md-12">{{ form.start_price.errors }}</div></div>
 				<div class="row">
-					<div class="col-md-4">{{ form.start_price.label_tag }}</div>
-					<div class="col-md-5">{{ form.start_price }}</div>
+					<div class="col-md-5">{{ form.start_price.label_tag }}</div>
+					<div class="col-md-7">{{ form.start_price }}</div>
 				</div>
-				<div class="row"><div class="col-md-9">{{ form.payment_policy.errors }}</div></div>
+				<div class="row"><div class="col-md-12">{{ form.payment_policy.errors }}</div></div>
 				<div class="row">
-					<div class="col-md-4">{{ form.payment_policy.label_tag }}</div>
-					<div class="col-md-5">{{ form.payment_policy }}</div>
+					<div class="col-md-5">{{ form.payment_policy.label_tag }}</div>
+					<div class="col-md-7">{{ form.payment_policy }}</div>
 				</div>
-				<div class="row"><div class="col-md-9">{{ form.shipment_policy.errors }}</div></div>
+				<div class="row"><div class="col-md-12">{{ form.shipment_policy.errors }}</div></div>
 				<div class="row">
-					<div class="col-md-4">{{ form.shipment_policy.label_tag }}</div>
-					<div class="col-md-5">{{ form.shipment_policy }}</div>
+					<div class="col-md-5">{{ form.shipment_policy.label_tag }}</div>
+					<div class="col-md-7">{{ form.shipment_policy }}</div>
 				</div>
-				<div class="row"><div class="col-md-9">{{ form.return_policy.errors }}</div></div>
+				<div class="row"><div class="col-md-12">{{ form.return_policy.errors }}</div></div>
 				<div class="row">
-					<div class="col-md-4">{{ form.return_policy.label_tag }}</div>
-					<div class="col-md-5">{{ form.return_policy }}</div>
+					<div class="col-md-5">{{ form.return_policy.label_tag }}</div>
+					<div class="col-md-7">{{ form.return_policy }}</div>
 				</div>
 			</div>
 		{% if object.status == "not started yet"  %}
 			<input type="submit" class="btn btn-primary edit" value="Edit">
 		{% endif %}
-		<button class="btn btn-danger cancel" id="{{ object.pk }}">Cancel</button>
+		<a href="{% url 'auctions:cancel_listing' user.pk object.pk %}">
+		    <button class="btn btn-danger cancel" id="{{ object.pk }}">Cancel</button>
+		</a>
 	</form>
 </div>
 {% endblock %}

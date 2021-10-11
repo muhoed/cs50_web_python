@@ -667,6 +667,11 @@ class UpdateListingView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
                                                     'pk':self.object.pk
                                                 }
                                             )
+                                            
+def cancel_listing(request):
+    """
+    Helper view function fill in listing cancelled_on field on listing cancel.
+    """
     
     
 class CreateProductView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
