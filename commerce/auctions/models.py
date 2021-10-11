@@ -29,7 +29,7 @@ class User(AbstractUser):
 	def full_name(self):
 		if self.title and self.first_name and self.last_name:
 			return f'%s %s %s' % (self.get_title_display(), self.first_name, self.last_name)
-		return f'%s' % {self.username}
+		return f'%s' % (self.username)
 	
 	def get_absolute_url(self):
 		return reverse('auctions:profile', kwargs={'pk': self.pk})

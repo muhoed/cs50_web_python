@@ -141,9 +141,9 @@ class ListingForm(forms.ModelForm):
         self.fields['start_time'].widget.attrs.update(style='width:100%;')
         self.fields['duration'].widget.attrs.update(style='width:100%;')
         self.fields['start_price'].widget.attrs.update(style='width:100%;')
-        self.fields['payment_policy'].widget.attrs.update(rows="7", style='width:100%; font-size: 0.5em;')
-        self.fields['shipment_policy'].widget.attrs.update(rows="7", style='width:100%; font-size: 0.5em;')
-        self.fields['return_policy'].widget.attrs.update(rows="7", style='width:100%; font-size: 0.5em;')
+        self.fields['payment_policy'].widget.attrs.update(rows="7", style='width:100%; font-size: 0.8em;')
+        self.fields['shipment_policy'].widget.attrs.update(rows="7", style='width:100%; font-size: 0.8em;')
+        self.fields['return_policy'].widget.attrs.update(rows="7", style='width:100%; font-size: 0.8em;')
     
     class Meta():
         model = Listing

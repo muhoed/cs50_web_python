@@ -119,6 +119,10 @@ urlpatterns = [
 								extra_context={'title': _('modify listing')},
 								template_name="auctions/account/update_listing.html"),
 							name="update_listing"),
+	path(
+		"account/<int:user_pk>/listing/<int:listing_pk>/cancel/", 
+		views.cancel_listing, name="cancel_listing"
+		),
 	path("listing/<int:pk>/", views.listing, name="listing"),
     path("listing/<int:pk>/bid", views.bid, name="bid"),
 	path("account/<int:pk>/product/create/", views.CreateProductView.as_view(

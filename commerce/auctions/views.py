@@ -667,11 +667,23 @@ class UpdateListingView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
                                                     'pk':self.object.pk
                                                 }
                                             )
-                                            
-def cancel_listing(request):
+
+@login_required                                            
+def cancel_listing(request, user_pk, listing_pk):
     """
     Helper view function fill in listing cancelled_on field on listing cancel.
     """
+    req_user = get_object_or_404(User, pk=user_pk)
+    if request.user != req_user:
+        return redirect('auctions:index')
+    listing = get_object_or_404(Listing, pk=listing_pk)
+    if listing.product.seller != req_user:
+        raise ValidationError
+    listing.cancelled_on = timezone.now()
+    listing.save()
+    message_text = f"Listing for %s was cancelled" % (listing.product.name)
+    messages.success = (request, message_text)
+    return redirect(reverse('auctions:sell_activities', kwargs={'pk': user_pk}))
     
     
 class CreateProductView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):

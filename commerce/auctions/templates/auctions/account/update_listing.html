@@ -18,7 +18,7 @@
             Top bid
         </div>
     </div>
-    <div class="row listing-status-data">
+    <div class="row listing-status-data mt-1 bg-light">
         <div class="col-md-3 text-center">
             {{ object.status }}
         </div>
@@ -34,11 +34,11 @@
     </div>
 	<form action="{% url 'auctions:update_listing' user.pk object.pk %}" method="POST">
 		{% csrf_token %}
-			<div class="update-listing-form mb-2 container border border-primary border-top-0 border-right-0 border-left-0">
+			<div class="update-listing-form mt-2 mb-2 container border border-primary border-top-0 border-right-0 border-left-0">
 				<!-- listing product is not editable but should be in POST data -->
 				<div class="products-list row">
-					<div class="col-md-12">Product:</div>
-					<div class="col-md-12" style="visibility:hidden;">{{ form.product }}</div>
+					<div class="col-md-6">Product:</div>
+					<div class="col-md-6" style="visibility:hidden;">{{ form.product }}</div>
 				</div>
 				<a href="{% url 'auctions:update_product' user.pk object.product.pk %}">
 					<div class="row product bg-light">
@@ -103,9 +103,9 @@
 		{% if object.status == "not started yet"  %}
 			<input type="submit" class="btn btn-primary edit" value="Edit">
 		{% endif %}
-		<a href="{% url 'auctions:cancel_listing' user.pk object.pk %}">
-		    <button class="btn btn-danger cancel" id="{{ object.pk }}">Cancel</button>
-		</a>
 	</form>
+	<a href="{% url 'auctions:cancel_listing' user.pk object.pk %}">
+		<button class="btn btn-danger cancel" id="{{ object.pk }}">Cancel</button>
+	</a>
 </div>
 {% endblock %}

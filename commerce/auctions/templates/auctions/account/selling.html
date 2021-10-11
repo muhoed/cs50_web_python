@@ -48,7 +48,7 @@
 					<div class="col-md-1 text-center">
 						Image
 					</div>
-					<div class="col-md-3 text-center">
+					<div class="col-md-2 text-center">
 						Title
 					</div>
 					<div class="col-md-2 text-center">
@@ -63,7 +63,7 @@
 					<div class="col-md-2 text-center">
 						Time left
 					</div>
-					<div class="col-md-1 text-center">
+					<div class="col-md-2 text-center">
 						<button class="btn btn-danger" id="cancel-all">
 							Cancel all
 						</button>
@@ -75,7 +75,7 @@
 						<div class="col-md-1 align-self-center">
 							<img src="{{ listing.product.image_set.first.image_url }}" height="50px" width="50px">
 						</div>
-						<div class="col-md-3 text-center align-self-center">
+						<div class="col-md-2 text-center align-self-center">
 							{{ listing.product.name|capfirst }}
 						</div>
 						<div class="col-md-2 text-center align-self-center">
@@ -92,7 +92,7 @@
 						<div class="col-md-2 text-center align-self-center">
 							{{ listing.end_time|timeuntil }}
 						</div>
-						<div class="col-md-1 text-center align-self-center">
+						<div class="col-md-2 text-center align-self-center">
 							<button class="btn btn-warning" id="cancel-{{ listing.id }}">
 								Cancel
 							</button>
