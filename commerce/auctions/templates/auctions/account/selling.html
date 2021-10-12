@@ -93,7 +93,7 @@
 							{{ listing.end_time|timeuntil }}
 						</div>
 						<div class="col-md-2 text-center align-self-center">
-							<button class="btn btn-warning" id="cancel-{{ listing.id }}">
+							<button class="btn btn-warning cancel-listing" id="user-{{ user.pk }}-listing-{{ listing.id }}">
 								Cancel
 							</button>
 						</div>

@@ -402,6 +402,56 @@ var modifyListingPage = {
 	}
 };
 
+var sellingActivitiesPage = {
+	
+	init: function(settings) {
+		sellingActivitiesPage.config = {
+			cancelAll: $("#cancel-all"),
+			cancelOne: $(".cancel-listing")
+		};
+		$.extend(sellingActivitiesPage.config, settings);
+		sellingActivitiesPage.setup();
+	},
+	
+	setup: function() {
+		sellingActivitiesPage.config.cancelAll.on("click", function(event){
+					sellingActivitiesPage.cancelAllListings(event);
+				});
+		sellingActivitiesPage.config.cancelOne.on("click", function(event){
+		    sellingActivitiesPage.cancelOneListing(event);
+		});
+	},
+	
+	cancelAllListings: function(trigger) {
+	    var confirm = prompt("All your active listings will be cancelled. Bidders who placed the highest bids up to the moment become winners automatically. Do you want to continue?");
+	    if (confirm) {
+	        let user = $(trigger).attr("id").split("-");
+	        var url = "/account/" + user[1] + "/cancel_listings";
+		    sellingActivitiesPage.sendRequest(url);
+	    }
+	},
+	
+	cancelOneListing: function(trigger) {
+		var confirm = prompt("The listing will be cancelled. Bidder who placed the highest bid up to the moment becomes a winner automatically. Do you want to continue?");
+	    if (confirm) {
+	        let pks = $(trigger).attr("id").split("-");
+		    var url = "/account/" + pks[1] + "/listing/" + pks[3] + "/cancel/";
+		    sellingActivitiesPage.sendRequest(url);
+	    }
+	},
+	
+	sendRequest: function(targetUrl) {
+	    $.ajax({
+			    url: targetUrl,
+			    type: "POST",
+			    cache: false
+			
+		    }).done(function(json){
+		        document.refreshPage();
+		    });
+	}
+};
+
 $(document).ready(function(){
 	let pageTitle = $("title").text();
 	switch(pageTitle) {
@@ -425,6 +475,9 @@ $(document).ready(function(){
 		        break;
 		case "Auction$ - Modify listing":
 		        modifyListingPage.init();
+		        break;
+		case "Auction$ - Selling activities":
+		        sellingActivitiesPage.init();
 		        break;
 		default:
 			return false;
