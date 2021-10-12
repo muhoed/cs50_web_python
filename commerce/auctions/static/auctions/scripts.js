@@ -406,8 +406,11 @@ var sellingActivitiesPage = {
 	
 	init: function(settings) {
 		sellingActivitiesPage.config = {
-			cancelAll: $("#cancel-all"),
-			cancelOne: $(".cancel-listing")
+			cancelAll: $(".cancel-all"),
+			cancelOne: $(".cancel-listing"),
+			relistAll: $(".relist-all"),
+			relistOne: $(".relist-product"),
+			sellOne: $(".sell-product")
 		};
 		$.extend(sellingActivitiesPage.config, settings);
 		sellingActivitiesPage.setup();
@@ -420,34 +423,72 @@ var sellingActivitiesPage = {
 		sellingActivitiesPage.config.cancelOne.on("click", function(event){
 		    sellingActivitiesPage.cancelOneListing(event);
 		});
+		sellingActivitiesPage.config.relistAll.on("click", function(event){
+		    sellingActivitiesPage.relistAllListings(event);
+		});
+		sellingActivitiesPage.config.relistOne.on("click", function(event){
+		    sellingActivitiesPage.relistOneListing(event);
+		});
+		sellingActivitiesPage.config.sellOne.on("click", function(event){
+		    sellingActivitiesPage.sellOneProduct(event);
+		});
 	},
 	
 	cancelAllListings: function(trigger) {
-	    var confirm = prompt("All your active listings will be cancelled. Bidders who placed the highest bids up to the moment become winners automatically. Do you want to continue?");
-	    if (confirm) {
-	        let user = $(trigger).attr("id").split("-");
-	        var url = "/account/" + user[1] + "/cancel_listings";
+		trigger.preventDefault();
+	    var confirmation = confirm("All your active listings will be cancelled. Bidders who placed the highest bids up to the moment become winners automatically. Do you want to continue?");
+	    if (confirmation) {
+	        let user = trigger.target.id.split("-");
+	        var url = "/account/" + user[2] + "/cancel_listings";
 		    sellingActivitiesPage.sendRequest(url);
 	    }
 	},
 	
 	cancelOneListing: function(trigger) {
-		var confirm = prompt("The listing will be cancelled. Bidder who placed the highest bid up to the moment becomes a winner automatically. Do you want to continue?");
-	    if (confirm) {
-	        let pks = $(trigger).attr("id").split("-");
-		    var url = "/account/" + pks[1] + "/listing/" + pks[3] + "/cancel/";
+		trigger.preventDefault();
+		var confirmation = confirm("The listing will be cancelled. Bidder who placed the highest bid up to the moment becomes a winner automatically. Do you want to continue?");
+	    if (confirmation) {
+	        let pks = trigger.target.id.split("-");
+		    var url = "/account/" + pks[1] + "/listing/" + pks[2] + "/cancel/";
 		    sellingActivitiesPage.sendRequest(url);
 	    }
 	},
 	
+	relistAllListings: function(trigger) {
+		trigger.preventDefault();
+	    var confirmation = confirm("All your unsold produsts will be relisted. Do you want to continue?");
+	    if (confirmation) {
+	        let user = trigger.target.id.split("-");
+	        var url = "/account/" + user[2] + "/relist_listings";
+		    sellingActivitiesPage.sendRequest(url);
+	    }
+	},
+	
+	relistOneListing: function(trigger) {
+		trigger.preventDefault();
+		var confirmation = confirm("The product will be relisted. Do you want to continue?");
+	    if (confirmation) {
+	        let pks = trigger.target.id.split("-");
+		    var url = "/account/" + pks[1] + "/listing/" + pks[2] + "/relist/";
+		    sellingActivitiesPage.sendRequest(url);
+	    }
+	},
+	
+	sellOne: function(trigger) {
+		trigger.preventDefault();
+		var confirmation = confirm("The product will be listed. Do you want to proceed with the listing creation?");
+	    if (confirm) {
+	        let pks = trigger.target.id.split("-");
+		    var url = "/account/" + pks[1] + "/product/" + pks[2] + "/sell/";
+		    sellingActivitiesPage.sendRequest(url);
+	    } 
+	},
+	
 	sendRequest: function(targetUrl) {
 	    $.ajax({
-			    url: targetUrl,
-			    type: "POST",
-			    cache: false
-			
+			    url: targetUrl
 		    }).done(function(json){
-		        document.refreshPage();
+		        location.reload(true);
 		    });
 	}
 };

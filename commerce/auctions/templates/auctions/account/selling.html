@@ -64,7 +64,7 @@
 						Time left
 					</div>
 					<div class="col-md-2 text-center">
-						<button class="btn btn-danger" id="cancel-all">
+						<button class="btn btn-danger cancel-all" id="cancel-all-{{ user.pk }}">
 							Cancel all
 						</button>
 					</div>			
@@ -93,7 +93,7 @@
 							{{ listing.end_time|timeuntil }}
 						</div>
 						<div class="col-md-2 text-center align-self-center">
-							<button class="btn btn-warning cancel-listing" id="user-{{ user.pk }}-listing-{{ listing.id }}">
+							<button class="btn btn-warning cancel-listing" id="cancel-{{ user.pk }}-{{ listing.id }}">
 								Cancel
 							</button>
 						</div>
@@ -191,7 +191,7 @@
 						Ended on
 					</div>
 					<div class="col-md-2 text-center">
-						<button class="btn btn-primary" id="relist-all">
+						<button class="btn btn-primary relist-all" id="relist-all-{{ user.pk }}">
 							Relist All
 						</button>
 					</div>				
@@ -220,7 +220,7 @@
 							{% endif %}
 						</div>
 						<div class="col-md-2 text-center align-self-center">
-							<button class="btn btn-secondary" id="relist">Relist</button>
+							<button class="btn btn-secondary relist-product" id="relist-{{ user.pk }}-{{ listing.pk }}">Relist</button>
 						</div>
 					</div>
 				{% empty %}
@@ -281,7 +281,7 @@
 							{{ product.sold_num }}
 						</div>
 						<div class="col-md-2 text-center align-self-center">
-							<button class="btn btn-secondary" id="sell">Sell</button>
+							<button class="btn btn-secondary sell-product" id="sell-{{ user.pk }}-{{ product.pk }}">Sell</button>
 						</div>
 					</div>
 				</a>
