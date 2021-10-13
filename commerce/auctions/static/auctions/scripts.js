@@ -402,6 +402,47 @@ var modifyListingPage = {
 	}
 };
 
+var createOrUpdateProductPage = {
+	
+	init: function(settings) {
+		createOrUpdateProductPage.config = {
+			updatePictures: $(".update-picture"),
+			imageUrl: updatePictures.find("input"),
+			removePictures: $(".remove-img")
+		};
+		$.extend(createOrUpdateProductPage.config, settings);
+		createOrUpdateProductPage.setup();
+	},
+	
+	setup: function() {
+		createOrUpdateProductPage.config.updatePictures
+			.on("click", function(event){
+					createOrUpdateProductPage.updatePicture(event);
+				});
+		createOrUpdateProductPage.config.imgUrl.on("change", function(event){
+		    createOrUpdateProductPage.reactivatePicture(event);
+		});
+		createOrUpdateProductPage.config.removePictures.on("click", function(event){
+		    createOrUpdateProductPage.removePicture(event);
+		});
+	},
+	
+	updatePicture: function(trigger) {
+	    trigger.find("img").attr("src", trigger.find("input[type='text']").val()):
+	},
+	
+	reactivatePicture: function(trigger){
+	    trigger.find("input[type='checkbox']").prop("checked", false);
+	},
+	
+	removePicture: function(trigger){
+	    let imgForm = trigger.parents(",update-picture");
+	    let image = imgForm.find("img");
+	    image.attr("src", imgForm.find("input[type='text']").val(""));
+	    imgForm.find("input[type='checkbox']").prop("checked", true);
+	}
+};
+
 var sellingActivitiesPage = {
 	
 	init: function(settings) {
@@ -439,7 +480,7 @@ var sellingActivitiesPage = {
 	    var confirmation = confirm("All your active listings will be cancelled. Bidders who placed the highest bids up to the moment become winners automatically. Do you want to continue?");
 	    if (confirmation) {
 	        let user = trigger.target.id.split("-");
-	        var url = "/account/" + user[2] + "/cancel_listings";
+	        var url = "/account/" + user[2] + "/cancel_listings/";
 		    sellingActivitiesPage.sendRequest(url);
 	    }
 	},
@@ -459,7 +500,7 @@ var sellingActivitiesPage = {
 	    var confirmation = confirm("All your unsold produsts will be relisted. Do you want to continue?");
 	    if (confirmation) {
 	        let user = trigger.target.id.split("-");
-	        var url = "/account/" + user[2] + "/relist_listings";
+	        var url = "/account/" + user[2] + "/relist_listings/";
 		    sellingActivitiesPage.sendRequest(url);
 	    }
 	},
@@ -516,6 +557,12 @@ $(document).ready(function(){
 		        break;
 		case "Auction$ - Modify listing":
 		        modifyListingPage.init();
+		        break;
+		case "Auction$ - Create product":
+		        createOrUpdateProductPage.init();
+		        break;
+		case "Auction$ - Update product":
+		        createOrUpdateProductPage.init();
 		        break;
 		case "Auction$ - Selling activities":
 		        sellingActivitiesPage.init();

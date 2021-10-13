@@ -686,6 +686,24 @@ def cancel_listing(request, user_pk, listing_pk):
     return redirect(reverse('auctions:sell_activities', kwargs={'pk': user_pk}))
     
     
+def cancel_listings(request, user_pk):
+    """
+    Helper view function to cancel all active listings of user at once. Cancellation is implemented through filling of cancelled_on field of listing object.
+    """
+    req_user = get_object_or_404(User, pk=user_pk)
+    if request.user != req_user:
+        return redirect('auctions:index')
+    listings = Listing.objects.filter(product__seller=req_user)
+    cancelled_on = timezone.now()
+    message_text = "Listings for the following products were cancelled: : "
+    for listing in listings:
+        listing.cancelled_on = timezone.now()
+        listing.save()
+        message_text = message_text + listing.product.name + ", "
+    messages.success = (request, message_text)
+    return redirect(reverse('auctions:sell_activities', kwargs={'pk': user_pk}))
+    
+    
 class CreateProductView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
     """
     Create product to be listed.

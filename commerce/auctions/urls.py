@@ -123,6 +123,10 @@ urlpatterns = [
 		"account/<int:user_pk>/listing/<int:listing_pk>/cancel/", 
 		views.cancel_listing, name="cancel_listing"
 		),
+	path(
+		"account/<int:user_pk>/cancel_listings/", 
+		views.cancel_listings, name="cancel_listings"
+		),
 	path("listing/<int:pk>/", views.listing, name="listing"),
     path("listing/<int:pk>/bid", views.bid, name="bid"),
 	path("account/<int:pk>/product/create/", views.CreateProductView.as_view(
