@@ -20,7 +20,8 @@ body {
 .edit-button:hover,
 .remove:hover,
 #addEmail:hover,
-#addAddress:hover {
+#addAddress:hover,
+.remove-img:hover {
 	opacity: 0.8;
 	cursor: pointer;
 }

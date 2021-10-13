@@ -407,7 +407,7 @@ var createOrUpdateProductPage = {
 	init: function(settings) {
 		createOrUpdateProductPage.config = {
 			updatePictures: $(".update-picture"),
-			imageUrl: updatePictures.find("input"),
+			imageUrl: $(".update-picture").find("input"),
 			removePictures: $(".remove-img")
 		};
 		$.extend(createOrUpdateProductPage.config, settings);
@@ -419,7 +419,7 @@ var createOrUpdateProductPage = {
 			.on("click", function(event){
 					createOrUpdateProductPage.updatePicture(event);
 				});
-		createOrUpdateProductPage.config.imgUrl.on("change", function(event){
+		createOrUpdateProductPage.config.imageUrl.on("change", function(event){
 		    createOrUpdateProductPage.reactivatePicture(event);
 		});
 		createOrUpdateProductPage.config.removePictures.on("click", function(event){
@@ -428,17 +428,18 @@ var createOrUpdateProductPage = {
 	},
 	
 	updatePicture: function(trigger) {
-	    trigger.find("img").attr("src", trigger.find("input[type='text']").val()):
+	    trigger.find("img").attr("src", $(trigger.target).find("input[type='url']").val());
 	},
 	
 	reactivatePicture: function(trigger){
-	    trigger.find("input[type='checkbox']").prop("checked", false);
+	    $(trigger.target).find("input[type='checkbox']").prop("checked", false);
 	},
 	
 	removePicture: function(trigger){
-	    let imgForm = trigger.parents(",update-picture");
+	    let imgForm = $(trigger.target).parents(".update-picture");
 	    let image = imgForm.find("img");
-	    image.attr("src", imgForm.find("input[type='text']").val(""));
+	    console.log(trigger.target);
+	    image.attr("src", imgForm.find("input[type='url']").val(""));
 	    imgForm.find("input[type='checkbox']").prop("checked", true);
 	}
 };
@@ -561,7 +562,7 @@ $(document).ready(function(){
 		case "Auction$ - Create product":
 		        createOrUpdateProductPage.init();
 		        break;
-		case "Auction$ - Update product":
+		case "Auction$ - Modify product":
 		        createOrUpdateProductPage.init();
 		        break;
 		case "Auction$ - Selling activities":
