@@ -436,10 +436,11 @@ var createOrUpdateProductPage = {
 	},
 	
 	removePicture: function(trigger){
-	    let imgForm = $(trigger.target).parents(".update-picture");
-	    let image = imgForm.find("img");
-	    console.log(trigger.target);
-	    image.attr("src", imgForm.find("input[type='url']").val(""));
+	    let delId = trigger.target.id;
+	    let imgUrlContainerId = "#image-url-" + delId.split("-")[2];
+	    let imgContainerId = "#picture-" + delId.split("-")[2];
+	    $(imgContainerId).find("img").attr("src", "");
+	    $(imgUrlContainerId).find("input[type='url']").val("");
 	    imgForm.find("input[type='checkbox']").prop("checked", true);
 	}
 };
