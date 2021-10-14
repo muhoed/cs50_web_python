@@ -428,7 +428,7 @@ var createOrUpdateProductPage = {
 	},
 	
 	updatePicture: function(trigger) {
-	    trigger.find("img").attr("src", $(trigger.target).find("input[type='url']").val());
+	    $(trigger.target).find("img").attr("src", $(trigger.target).find("input[type='url']").val());
 	},
 	
 	reactivatePicture: function(trigger){
@@ -436,12 +436,16 @@ var createOrUpdateProductPage = {
 	},
 	
 	removePicture: function(trigger){
-	    let delId = trigger.target.id;
-	    let imgUrlContainerId = "#image-url-" + delId.split("-")[2];
-	    let imgContainerId = "#picture-" + delId.split("-")[2];
+	    let imgId = trigger.target.id.split("-")[2];
+	    let imgUrlContainerId = "#image-url-" + imgId;
+	    let imgContainerId = "#picture-" + imgId;
 	    $(imgContainerId).find("img").attr("src", "");
 	    $(imgUrlContainerId).find("input[type='url']").val("");
-	    imgForm.find("input[type='checkbox']").prop("checked", true);
+	    $(trigger.target.id).parents(".row")[0]
+								.next()
+								.find("input[type='checkbox']")
+								.prop("checked", true);
+	    //$("#id_image_set-"+(imgId-10)+"-DELETE").prop("checked", true);
 	}
 };
 

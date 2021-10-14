@@ -173,4 +173,5 @@ class ImageForm(forms.ModelForm):
 
 ImageFormset = forms.models.inlineformset_factory(Product, Image,
 											form=ImageForm, extra=3, 
-											max_num=3, validate_max=True)	
+											max_num=3, validate_max=True,
+                                            can_delete=True)	
