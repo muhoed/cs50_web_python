@@ -428,11 +428,13 @@ var createOrUpdateProductPage = {
 	},
 	
 	updatePicture: function(trigger) {
-	    trigger.find("img").attr("src", $(trigger.target).find("input[type='url']").val());
+	    let imgUrlId = "#image-url-" + trigger.target.id.split("-")[1];
+	    trigger.target.find("img").attr("src", $(imgUrlId).find("input[type='url']").val());
 	},
 	
 	reactivatePicture: function(trigger){
-	    $(trigger.target).find("input[type='checkbox']").prop("checked", false);
+	    let delId = "#id_image_set-" + $(trigger.target).parent().id.split("-")[2] - 1) + "-DELETE";
+	    $(delId).prop("checked", false);
 	},
 	
 	removePicture: function(trigger){
@@ -441,7 +443,7 @@ var createOrUpdateProductPage = {
 	    let imgContainerId = "#picture-" + delId.split("-")[2];
 	    $(imgContainerId).find("img").attr("src", "");
 	    $(imgUrlContainerId).find("input[type='url']").val("");
-	    imgForm.find("input[type='checkbox']").prop("checked", true);
+	    $("#id_image_set-"+ (delId.split("-")[2]- 1) + "-DELETE").prop("checked", true);
 	}
 };
 

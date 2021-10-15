@@ -58,35 +58,46 @@
 									</div>
 								</div>
 								<div class="row">
-									<div class="col-md-4 update-picture text-center" id="{{ object.image_set.all.0.pk }}">
+									<div class="col-md-4 update-picture text-center" id="picture-1">
 										<img src="{{ object.image_set.all.0.image_url }}" height="150px" width="150px">
 									</div>
-									<div class="col-md-4 update-picture text-center" id="{{ object.image_set.all.1.pk }}">
+									<div class="col-md-4 update-picture text-center" id="picture-2">
 										<img src="{{ object.image_set.all.1.image_url }}" height="150px" width="150px">
 									</div>
-									<div class="col-md-4 update-picture text-center" id="{{ object.image_set.all.2.pk }}">
+									<div class="col-md-4 update-picture text-center" id="picture-3">
 										<img src="{{ object.image_set.all.2.image_url }}" height="150px" width="150px">
 									</div>
 								</div>
 								<div class="row mt-1 mb-1">
-									<div class="col-md-4 image-url text-center" id="{{ object.image_set.all.0.pk }}">
+									<div class="col-md-4 image-url text-center" id="image-url-1">
 										<div class="d-flex nowrap">
 											{{ image_formset.0.image_url }}
-											<span class="remove-img border border-danger border-1 m-1 p-1 text-danger" title="Remove picture" id="del-img-{{object.image_set.all.0.pk }}">X</span>
+											<span class="remove-img border border-danger border-1 m-1 p-1 text-danger" title="Remove picture" id="del-img-1">X</span>
 										</div>
 									</div>
-									<div class="col-md-4 image-url text-center" id="{{ object.image_set.all.1.pk }}">
+									<div class="col-md-4 image-url text-center" id="image-url-2">
 										<div class="d-flex nowrap">
 											{{ image_formset.1.image_url }}
-											<span class="remove-img border border-danger border-1 m-1 p-1 text-danger" title="Remove picture" id="del-img-{{object.image_set.all.1.pk }}">X</span>
+											<span class="remove-img border border-danger border-1 m-1 p-1 text-danger" title="Remove picture" id="del-img-2">X</span>
 										</div>
 									</div>
-									<div class="col-md-4 image-url text-center" id="{{ object.image_set.all.2.pk }}">
+									<div class="col-md-4 image-url text-center" id="image-url-3">
 										<div class="d-flex nowrap">
 											{{ image_formset.2.image_url }}
-											<span class="remove-img border border-danger border-1 m-1 p-1 text-danger" title="Remove picture" id="del-img-{{object.image_set.all.2.pk }}">X</span>
+											<span class="remove-img border border-danger border-1 m-1 p-1 text-danger" title="Remove picture" id="del-img-3">X</span>
 										</div>
 									</div>
+								</div>
+								<div class="row">
+								    <div class="col-4">
+								        {{ image_formset.0.can_delete }}
+								    </div>
+								    <div class="col-4">
+								        {{ image_formset.1.can_delete }}
+								    </div>
+								    <div class="col-4">
+								        {{ image_formset.2.can_delete }}
+								    </div>
 								</div>
 							</div>
 							<div class="d-flex nowrap justify-content-end">
