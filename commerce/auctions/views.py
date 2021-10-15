@@ -788,14 +788,7 @@ class UpdateProductView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
             current_site = get_current_site(self.request)
             domain = current_site.domain
             default_img_url = protocol + "://" + domain
-            context["image_formset"] = ImageFormset(
-                                                instance=self.object,
-                                                initial=[
-                                                    {"image_url":default_img_url+static("auctions/images/cropped-placeholder.jpg")},
-                                                    {"image_url":default_img_url+static("auctions/images/cropped-placeholder.jpg")},
-                                                    {"image_url":default_img_url+static("auctions/images/cropped-placeholder.jpg")}
-                                                ])
-    #    context["form"].fields["image_set"].queryset = Image.objects.filter(pk=self.object.product.pk)
+            context["image_formset"] = ImageFormset(instance=self.object)
         return context
         
     def dispatch(self, *args, **kwargs):
@@ -810,12 +803,14 @@ class UpdateProductView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
         self.user = User.objects.get(pk=kwargs['user_pk'])
         return super().dispatch(*args, **kwargs)
         
-    def post(self):
+    def post(self, *args, **kwargs):
         self.object = self.get_object()
         form = self.get_form()
         image_formset = ImageFormset(self.request.POST, instance=self.object)
+        print(form.is_valid())
+        print(image_formset.is_valid())
         if form.is_valid() and image_formset.is_valid():
-            self.object = form.save()
+            #self.object = form.save()
             images = image_formset.save()
             return self.form_valid(form)
         else:

@@ -12,7 +12,7 @@
 					{% endif %}
 					<div class="container mt-5">
 						{{ form.non_field_errors }}
-						<form action="{% url 'auctions:update_product' user.id object.pk %}" method="post">
+						<form action="{% url 'auctions:update_product' user_pk=user.id pk=object.pk %}" method="post">
 							{% csrf_token %}
 							<div class="update-product-form container mb-5 border border-primary border-top-0 border-right-0 border-left-0">
 					
@@ -32,7 +32,7 @@
 									<div class="col-md-8">{{ form.description }}</div>
 								</div>
 								<div class="row mt-1"><h5>Product pictures</h5></div>
-								<div class="row">Modify url path to the image file and click the picture to update</div>
+								<div class="row">Modify url path of the image file and click the picture to update</div>
 								<div class="row">{{ formset.non_form_errors }}</div>
 								{{ image_formset.management_form }}
 								<div class="row">
@@ -58,15 +58,6 @@
 									</div>
 								</div>
 								<div class="row">
-<<<<<<< HEAD
-									<div class="col-md-4 update-picture text-center" id="picture-{{ object.image_set.all.0.pk }}">
-										<img src="{{ object.image_set.all.0.image_url }}" height="150px" width="150px">
-									</div>
-									<div class="col-md-4 update-picture text-center" id="picture-{{ object.image_set.all.1.pk }}">
-										<img src="{{ object.image_set.all.1.image_url }}" height="150px" width="150px">
-									</div>
-									<div class="col-md-4 update-picture text-center" id="picture-{{ object.image_set.all.2.pk }}">
-=======
 									<div class="col-md-4 update-picture text-center" id="picture-1">
 										<img src="{{ object.image_set.all.0.image_url }}" height="150px" width="150px">
 									</div>
@@ -74,43 +65,29 @@
 										<img src="{{ object.image_set.all.1.image_url }}" height="150px" width="150px">
 									</div>
 									<div class="col-md-4 update-picture text-center" id="picture-3">
->>>>>>> 7f805563e555fe605f2a602e10ce6f6a34068426
 										<img src="{{ object.image_set.all.2.image_url }}" height="150px" width="150px">
 									</div>
 								</div>
 								<div class="row mt-1 mb-1">
-<<<<<<< HEAD
-									<div class="col-md-4 image-url text-center" id="image-url-{{ object.image_set.all.0.pk }}">
-=======
 									<div class="col-md-4 image-url text-center" id="image-url-1">
->>>>>>> 7f805563e555fe605f2a602e10ce6f6a34068426
 										<div class="d-flex nowrap">
 											{{ image_formset.0.image_url }}
 											<span class="remove-img border border-danger border-1 m-1 p-1 text-danger" title="Remove picture" id="del-img-1">X</span>
 										</div>
 									</div>
-<<<<<<< HEAD
-									<div class="col-md-4 image-url text-center" id="image-url-{{ object.image_set.all.1.pk }}">
-=======
 									<div class="col-md-4 image-url text-center" id="image-url-2">
->>>>>>> 7f805563e555fe605f2a602e10ce6f6a34068426
 										<div class="d-flex nowrap">
 											{{ image_formset.1.image_url }}
 											<span class="remove-img border border-danger border-1 m-1 p-1 text-danger" title="Remove picture" id="del-img-2">X</span>
 										</div>
 									</div>
-<<<<<<< HEAD
-									<div class="col-md-4 image-url text-center" id="{image-url-{ object.image_set.all.2.pk }}">
-=======
 									<div class="col-md-4 image-url text-center" id="image-url-3">
->>>>>>> 7f805563e555fe605f2a602e10ce6f6a34068426
 										<div class="d-flex nowrap">
 											{{ image_formset.2.image_url }}
 											<span class="remove-img border border-danger border-1 m-1 p-1 text-danger" title="Remove picture" id="del-img-3">X</span>
 										</div>
 									</div>
 								</div>
-<<<<<<< HEAD
 								<div class="row h-1 hidden">
 								    <div class="col-4">
 								        {{ image_formset.0.DELETE }}
@@ -120,23 +97,12 @@
 								    </div>
 								    <div class="col-4">
 								        {{ image_formset.2.DELETE }}
-=======
-								<div class="row">
-								    <div class="col-4">
-								        {{ image_formset.0.can_delete }}
-								    </div>
-								    <div class="col-4">
-								        {{ image_formset.1.can_delete }}
-								    </div>
-								    <div class="col-4">
-								        {{ image_formset.2.can_delete }}
->>>>>>> 7f805563e555fe605f2a602e10ce6f6a34068426
 								    </div>
 								</div>
 							</div>
 							<div class="d-flex nowrap justify-content-end">
 							    {% if not object.listings.first %}
-									<input class="btn btn-primary ml-1" type="submit" value="Edit">
+									<input class="btn btn-primary ml-1" type="submit" value="Update">
 									<button class="btn btn-danger product-delete ml-1">Delete</button>
 								{% endif %}
 							</div>

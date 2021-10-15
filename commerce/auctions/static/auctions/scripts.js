@@ -407,7 +407,7 @@ var createOrUpdateProductPage = {
 	init: function(settings) {
 		createOrUpdateProductPage.config = {
 			updatePictures: $(".update-picture"),
-			imageUrl: $(".update-picture").find("input"),
+			imageUrl: $(".image-url").find("input"),
 			removePictures: $(".remove-img")
 		};
 		$.extend(createOrUpdateProductPage.config, settings);
@@ -428,12 +428,17 @@ var createOrUpdateProductPage = {
 	},
 	
 	updatePicture: function(trigger) {
-	    let imgUrlId = "#image-url-" + trigger.target.id.split("-")[1];
-	    trigger.target.find("img").attr("src", $(imgUrlId).find("input[type='url']").val());
+	    let imgId = $(trigger.target).parent().get(0).id;
+	    let imgUrlId = "#image-url-" + imgId.split("-")[1];
+	    $(trigger.target).attr("src", $(imgUrlId).find("input[type='url']").val());
 	},
 	
 	reactivatePicture: function(trigger){
-	    let delId = "#id_image_set-" + $(trigger.target).parent().id.split("-")[2] - 1) + "-DELETE";
+		let imgUrlId = $(trigger.target).parents(".image-url").get(0).id;
+		let num = imgUrlId.split("-")[2];
+	    let delId = "#id_image_set-" + (num - 1) + "-DELETE";
+	    let imgId = "#picture-" + num;
+	    $(imgId).find("img").attr("src", $("#" + imgUrlId).find("input[type='url']").val());
 	    $(delId).prop("checked", false);
 	},
 	

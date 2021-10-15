@@ -25,3 +25,8 @@ body {
 	opacity: 0.8;
 	cursor: pointer;
 }
+
+.hidden {
+	height: 1px;
+	visibility: hidden;
+}
