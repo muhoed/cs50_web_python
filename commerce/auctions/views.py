@@ -803,11 +803,12 @@ class UpdateProductView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
         self.user = User.objects.get(pk=kwargs['user_pk'])
         return super().dispatch(*args, **kwargs)
         
-    def post(self, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = self.get_form()
-        image_formset = ImageFormset(self.request.POST, instance=self.object)
-        print(form.is_valid())
+        image_formset = ImageFormset(request.POST, instance=self.object)
+        print(self.object)
+        print(image_formset)
         print(image_formset.is_valid())
         if form.is_valid() and image_formset.is_valid():
             #self.object = form.save()
