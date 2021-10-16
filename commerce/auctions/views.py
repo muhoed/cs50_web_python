@@ -783,11 +783,10 @@ class UpdateProductView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if "image_formset" not in kwargs:
-            protocol = 'http'
-            current_site = get_current_site(self.request)
-            domain = current_site.domain
-            default_img_url = protocol + "://" + domain
+        if self.request.POST:
+            context["image_formset"] = ImageFormset(self.request.POST, instance=self.object)
+        #if "image_formset" not in kwargs:
+        else:
             context["image_formset"] = ImageFormset(instance=self.object)
         return context
         
@@ -806,7 +805,7 @@ class UpdateProductView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = self.get_form()
-        image_formset = ImageFormset(request.POST, instance=self.object)
+        image_formset = ImageFormset(self.request.POST, instance=self.object)
         print(self.object)
         print(image_formset)
         print(image_formset.is_valid())
