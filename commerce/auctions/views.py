@@ -741,23 +741,20 @@ class CreateProductView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
             "seller": self.user
         }
         if request.POST["name"]:
-            data["name"] = self.request.POST["name"]
+            data["name"] = request.POST["name"]
         if request.POST["description"]:
-            data["description"] = self.request.POST["description"]
+            data["description"] = request.POST["description"]
         if request.POST["categories"]:
-            data["categories"] = [Category.objects.get(pk=category) for category in self.request.POST["categories"]]
+            data["categories"] = [Category.objects.get(pk=category) for category in request.POST["categories"]]
         form = self.form_class(data)
-        image_formset = ImageFormset(
-            request.POST
-            #initial=[{"image_url": static("auctions/images/cropped-placeholder.jpg")}, {"image_url": static("auctions/images/cropped-placeholder.jpg")}, {"image_url": static("auctions/images/cropped-placeholder.jpg")}]
-            )
+        image_formset = ImageFormset(request.POST)
         
         if form.is_valid():
             self.object = form.save()
             image_formset = ImageFormset(request.POST, instance=self.object)
             if image_formset.is_valid():
                 images = image_formset.save()
-                messages.success(request, "New product was successfully created.")
+                messages.success = (request, "New product was successfully created.")
                 return redirect(reverse('auctions:update_product', kwargs={
                                                     'user_pk':self.user.pk,
                                                     'pk':self.object.pk
@@ -806,9 +803,6 @@ class UpdateProductView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
         self.object = self.get_object()
         form = self.get_form()
         image_formset = ImageFormset(self.request.POST, instance=self.object)
-        print(self.object)
-        print(image_formset)
-        print(image_formset.is_valid())
         if form.is_valid() and image_formset.is_valid():
             #self.object = form.save()
             images = image_formset.save()
@@ -844,13 +838,14 @@ def delete_product(request, user_pk, product_pk):
     if product.listings.first():
         for listing in product.listings:
             if listing.status != "not started yet":
-                messages.failure(request, "The product can not be deleted since it is already (or was) listed")
-                return redirect(reverse('auctions:update_product', kwargs={"user_pk": user_pk, "pk": product_pk}))
+                messages.failure = (request, "The product can not be deleted since it is already (or was) listed")
+                raise ValidationError
+                #return redirect(reverse('auctions:update_product', kwargs={"user_pk": user_pk, "pk": product_pk}))
                 
-    message_text = f"Product %s was deleted" % (product)
+    message_text = f"Product %s was deleted" % product
     product.delete()
     messages.success = (request, message_text)
-    return redirect(reverse('auctions:sell_activities', kwargs={'pk': user_pk}))
+    return reverse('auctions:sell_activities', kwargs={'pk': user_pk})
     
     
 @login_required    

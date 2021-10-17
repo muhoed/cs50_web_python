@@ -1,9 +1,15 @@
-function sendRequest(targetUrl) {
+function sendRequest(targetUrl, onDone) {
 	    $.ajax({
 			    url: targetUrl
 		    }).done(function(json){
-		        location.reload(true);
-		    });
+				if (onDone == "reload") {
+					location.reload();
+				} else {
+					window.location.href = json;
+				}
+		    }).fail(function(json){
+				location.reload();
+			});
 };
 
 var profilePage = {
@@ -464,14 +470,12 @@ var createOrUpdateProductPage = {
 	},
 	
 	deleteProduct: function(trigger) {
-	    confirm("Do you really want to delete the product? The deletion is unrevertable.");
-	    if (!confirm) {
-	        trigger.preventDefault();
+	    trigger.preventDefault();
+	    let confirmation = confirm("Do you really want to delete the product? The deletion is unrevertable.");
+	    if (confirmation) {
 	        let pks = trigger.target.id.split("-");
-	        let url = "/account/" + pks[1] + "/delete_product/" + pks[2] + "/";
-		    sendRequest(url);
-	    } else {
-	        document.reload(true);
+	        let url = "/account/" + pks[1] + "/delete_product/" + pks[3] + "/";
+		    sendRequest(url, "url");
 	    }
 	}
 };
