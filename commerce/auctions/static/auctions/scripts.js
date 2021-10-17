@@ -1,3 +1,11 @@
+function sendRequest(targetUrl) {
+	    $.ajax({
+			    url: targetUrl
+		    }).done(function(json){
+		        location.reload(true);
+		    });
+};
+
 var profilePage = {
 	
 	init: function(settings) {
@@ -408,7 +416,8 @@ var createOrUpdateProductPage = {
 		createOrUpdateProductPage.config = {
 			updatePictures: $(".update-picture"),
 			imageUrl: $(".image-url").find("input"),
-			removePictures: $(".remove-img")
+			removePictures: $(".remove-img"),
+			deleteProductBtn: $(".product-delete")
 		};
 		$.extend(createOrUpdateProductPage.config, settings);
 		createOrUpdateProductPage.setup();
@@ -425,6 +434,9 @@ var createOrUpdateProductPage = {
 		createOrUpdateProductPage.config.removePictures.on("click", function(event){
 		    createOrUpdateProductPage.removePicture(event);
 		});
+		createOrUpdateProductPage.config.deleteProductBtn.on("click", function(event){
+		    createOrUpdateProductPage.deleteProduct(event);
+		})
 	},
 	
 	updatePicture: function(trigger) {
@@ -449,8 +461,21 @@ var createOrUpdateProductPage = {
 	    $(imgContainerId).find("img").attr("src", "");
 	    $(imgUrlContainerId).find("input[type='url']").val("");
 	    $("#id_image_set-"+(imgId-1)+"-DELETE").prop("checked", true);
+	},
+	
+	deleteProduct: function(trigger) {
+	    confirm("Do you really want to delete the product? The deletion is unrevertable.");
+	    if (!confirm) {
+	        trigger.preventDefault();
+	        let pks = trigger.target.id.split("-");
+	        let url = "/account/" + pks[1] + "/delete_product/" + pks[2] + "/";
+		    sendRequest(url);
+	    } else {
+	        document.reload(true);
+	    }
 	}
 };
+
 
 var sellingActivitiesPage = {
 	

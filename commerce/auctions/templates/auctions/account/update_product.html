@@ -47,6 +47,11 @@
 										{{ image_formset.2.non_field_errors }}
 									</div>
 								</div>
+								{% for f in image_formset %}
+								{% for hidden in f.hidden_fields %}
+           {{ hidden }}
+ {% endfor %}
+ {% endfor %}
 								<div class="row">
 									<div class="col-md-4">
 										{{ image_formset.0.image_url.errors }}
@@ -104,7 +109,7 @@
 							<div class="d-flex nowrap justify-content-end">
 							    {% if not object.listings.first %}
 									<input class="btn btn-primary ml-1" type="submit" value="Update">
-									<button class="btn btn-danger product-delete ml-1">Delete</button>
+									<button class="btn btn-danger product-delete ml-1"id="user-{{ user.pk }}-product-{{ object.pk }}">Delete</button>
 								{% endif %}
 							</div>
 						</form>

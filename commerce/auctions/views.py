@@ -740,21 +740,29 @@ class CreateProductView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
         data = {
             "seller": self.user
         }
-        if self.request.POST["name"]:
+        if request.POST["name"]:
             data["name"] = self.request.POST["name"]
-        if self.request.POST["description"]:
+        if request.POST["description"]:
             data["description"] = self.request.POST["description"]
-        if self.request.POST["categories"]:
+        if request.POST["categories"]:
             data["categories"] = [Category.objects.get(pk=category) for category in self.request.POST["categories"]]
         form = self.form_class(data)
-        image_formset = ImageFormset(initial=[{"image_url": static("auctions/images/cropped-placeholder.jpg")}, {"image_url": static("auctions/images/cropped-placeholder.jpg")}, {"image_url": static("auctions/images/cropped-placeholder.jpg")}])
+        image_formset = ImageFormset(
+            request.POST
+            #initial=[{"image_url": static("auctions/images/cropped-placeholder.jpg")}, {"image_url": static("auctions/images/cropped-placeholder.jpg")}, {"image_url": static("auctions/images/cropped-placeholder.jpg")}]
+            )
         
         if form.is_valid():
             self.object = form.save()
-            image_formset = ImageFormset(self.request.POST, instance=self.object)
+            image_formset = ImageFormset(request.POST, instance=self.object)
             if image_formset.is_valid():
                 images = image_formset.save()
-                return HttpResponseRedirect(self.get_success_url())
+                messages.success(request, "New product was successfully created.")
+                return redirect(reverse('auctions:update_product', kwargs={
+                                                    'user_pk':self.user.pk,
+                                                    'pk':self.object.pk
+                                                }
+                                            ))
         
         if self.object:
             self.object.delete()    
@@ -762,14 +770,6 @@ class CreateProductView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
                                                     form=form,
                                                     image_formset=image_formset
                                                     ))
-                                                    
-    def get_success_url(self):
-        messages.success(self.request, "New product was successfully created.")
-        return reverse('auctions:update_product', kwargs={
-                                                    'user_pk':self.user.pk,
-                                                    'pk':self.object.pk
-                                                }
-                                            )
                                             
                                             
 class UpdateProductView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
@@ -828,6 +828,29 @@ class UpdateProductView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
                                                     'pk':self.object.pk
                                                 }
                                             )
+    
+    
+@login_required                                            
+def delete_product(request, user_pk, product_pk):
+    """
+    Helper view function to delete not listed product..
+    """
+    req_user = get_object_or_404(User, pk=user_pk)
+    if request.user != req_user:
+        return redirect('auctions:index')
+    product = get_object_or_404(Product, pk=product_pk)
+    if product.seller != req_user:
+        raise ValidationError
+    if product.listings.first():
+        for listing in product.listings:
+            if listing.status != "not started yet":
+                messages.failure(request, "The product can not be deleted since it is already (or was) listed")
+                return redirect(reverse('auctions:update_product', kwargs={"user_pk": user_pk, "pk": product_pk}))
+                
+    message_text = f"Product %s was deleted" % (product)
+    product.delete()
+    messages.success = (request, message_text)
+    return redirect(reverse('auctions:sell_activities', kwargs={'pk': user_pk}))
     
     
 @login_required    
