@@ -11,14 +11,14 @@
 							{% csrf_token %}
 							<div class="create-listing-form mb-2 container border border-primary border-top-0 border-right-0 border-left-0">
 								<div class="row mb-1">
-									<div class="col-md-5">
+									<div class="col-md-5 font-weight-bold">
 										Create new product
 										<div class="btn btn-secondary" id="create-product">
 											Create
 										</div>
 									</div>
-									<div class="products-list col-md-7">or select one from the list below</div>
 								</div>
+								<div class="products-list row ml-1 mt-1 select-text font-weight-bold">or select one from the list below</div>
 								<!-- part of the form to create new product -->
 								<input type="hidden" name="seller" value="{{ user.id }}">
 								<div class="new-product row"><div class="col-md-12">{{ product_form.non_field_errors }}</div></div>
@@ -32,39 +32,83 @@
 									<div class="col-md-5">{{ product_form.categories.label_tag }}</div>
 									<div class="col-md-7">{{ product_form.categories }}</div>
 								</div>
-								<div class="new-product row"><div class=="col-md-12">Add links to up to three images of the product</div></div>
-								<div class="new-product row"><div class="col-md-12">{{ image_formset.non_form_errors }}</div></div>
-								{{ image_formset.management_form }}
-								<!-- for iform in image_formset -->
-									<div class="new-product row">
-										<div class="col-md-4">{{ image_formset.0.non_field_errors }}</div>
-										<div class="col-md-4">{{ image_formset.1.non_field_errors }}</div>
-										<div class="col-md-4">{{ image_formset.2.non_field_errors }}</div>
-									</div>
-									<div class="new-product row">
-										<div class="col-md-4">{{ image_formset.0.image_url.errors }}</div>
-										<div class="col-md-4">{{ image_formset.1.image_url.errors }}</div>
-										<div class="col-md-4">{{ image_formset.2.image_url.errors }}</div>
-									</div>
-									<div class="new-product row">
-										<div class="col-md-4">{{ image_formset.0.image_url.label_tag }}</div>
-										<div class="col-md-4">{{ image_formset.1.image_url.label_tag }}</div>
-										<div class="col-md-4">{{ image_formset.2.image_url.label_tag }}</div>
-									</div>
-									<div class="new-product row">
-										<div class="col-md-4">{{ image_formset.0.image_url }}</div>
-										<div class="col-md-4">{{ image_formset.1.image_url }}</div>
-										<div class="col-md-4">{{ image_formset.2.image_url }}</div>
-									</div>
-								<!-- endfor -->
-								<div class="new-product mt-2 row"><div class="col-md-9">{{ product_form.description.errors }}</div></div>
-								<div class="new-product mb-2 row">
+								<div class="new-product row"><div class="col-md-9">{{ product_form.description.errors }}</div></div>
+								<div class="new-product mb-1 row">
 									<div class="col-md-5">{{ product_form.description.label_tag }}</div>
 									<div class="col-md-7">{{ product_form.description }}</div>
 								</div>
+								<div class="new-product row mt-2"><div class=="col-md-12 font-weight-bold">Add links to up to three pictures of the product</div></div>
+								<div class="new-product row"><div class="col-md-12">{{ image_formset.non_form_errors }}</div></div>
+								{{ image_formset.management_form }}
+								<!-- for iform in image_formset -->
+								<div class="new-product row">
+									<div class="col-md-4">
+										{{ image_formset.0.non_field_errors }}
+									</div>
+									<div class="col-md-4">
+										{{ image_formset.1.non_field_errors }}
+									</div>
+									<div class="col-md-4">
+										{{ image_formset.2.non_field_errors }}
+									</div>
+								</div>
+								<div class="new-product row">
+									<div class="col-md-4">
+										{{ image_formset.0.image_url.errors }}
+									</div>
+									<div class="col-md-4">
+										{{ image_formset.1.image_url.errors }}
+									</div>
+									<div class="col-md-4">
+										{{ image_formset.2.image_url.errors }}
+									</div>
+								</div>
+								<div class="new-product row">
+									<div class="col-md-4 update-picture text-center" id="picture-1">
+										<img src="{{ image_formset.0.image_url.value }}" height="150px" width="150px">
+									</div>
+									<div class="col-md-4 update-picture text-center" id="picture-2">
+										<img src="{{ image_formset.1.image_url.value }}" height="150px" width="150px">
+									</div>
+									<div class="col-md-4 update-picture text-center" id="picture-3">
+										<img src="{{ image_formset.2.image_url.value }}" height="150px" width="150px">
+									</div>
+								</div>
+								<div class="new-product row mt-1 mb-1">
+									<div class="col-md-4 image-url text-center" id="image-url-1">
+										<div class="d-flex nowrap">
+											{{ image_formset.0.image_url }}
+											<span class="remove-img border border-danger border-1 m-1 p-1 text-danger" title="Remove picture" id="del-img-1">X</span>
+										</div>
+									</div>
+									<div class="col-md-4 image-url text-center" id="image-url-2">
+										<div class="d-flex nowrap">
+											{{ image_formset.1.image_url }}
+											<span class="remove-img border border-danger border-1 m-1 p-1 text-danger" title="Remove picture" id="del-img-2">X</span>
+										</div>
+									</div>
+									<div class="col-md-4 image-url text-center" id="image-url-3">
+										<div class="d-flex nowrap">
+											{{ image_formset.2.image_url }}
+											<span class="remove-img border border-danger border-1 m-1 p-1 text-danger" title="Remove picture" id="del-img-3">X</span>
+										</div>
+									</div>
+								</div>
+								<div class="new-product row h-1 hidden">
+								    <div class="col-4">
+								        {{ image_formset.0.DELETE }}
+								    </div>
+								    <div class="col-4">
+								        {{ image_formset.1.DELETE }}
+								    </div>
+								    <div class="col-4">
+								        {{ image_formset.2.DELETE }}
+								    </div>
+								</div>
+								<!-- endfor -->
 								<!-- choose existing product if do not want to create new one -->
-								<div class="row product-list-error"><div class="col-md-12">{{ form.product.errors }}</div></div>
-								<div class="products-list row">
+								<div class="row mt-2 product-list-error"><div class="col-md-12">{{ form.product.errors }}</div></div>
+								<div class="products-list row mt-2">
 									<div class="col-md-5">List of saved products:</div>
 									<div class="col-md-7">{{ form.product }}</div>
 								</div>

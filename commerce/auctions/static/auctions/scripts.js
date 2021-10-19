@@ -362,11 +362,15 @@ var createListingPage = {
 	    createListingPage.config.productForm.find("select").prop("disabled", false);
 		createListingPage.config.productsList.find("select").prop('disabled', true); //.hide();
 		createListingPage.config.newProduct.hide();
+		$(".select-text").hide();
+		createOrUpdateProductPage.init();
 	},
 	
 	boundedProductForm: function() {
-	    var checkHasValue =false;
-	    var productFormInputs = createListingPage.config.productForm.find("input, select");
+	    var checkHasValue = false;
+	    var productFormInputs = createListingPage.config
+												.productForm.find("input, select")
+												.not("input[type='checkbox']");
 	    productFormInputs.each(function(){
 	        if ($(this).prop("value") && $(this).prop("value") != "") {
 	            checkHasValue = true;
@@ -454,9 +458,10 @@ var createOrUpdateProductPage = {
 	reactivatePicture: function(trigger){
 		let imgUrlId = $(trigger.target).parents(".image-url").get(0).id;
 		let num = imgUrlId.split("-")[2];
+		let urlId = "#" + imgUrlId
 	    let delId = "#id_image_set-" + (num - 1) + "-DELETE";
 	    let imgId = "#picture-" + num;
-	    $(imgId).find("img").attr("src", $("#" + imgUrlId).find("input[type='url']").val());
+	    $(imgId).find("img").attr("src", $(urlId).find("input[type='url']").val());
 	    $(delId).prop("checked", false);
 	},
 	
