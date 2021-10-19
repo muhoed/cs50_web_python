@@ -109,10 +109,14 @@
 							<div class="d-flex nowrap justify-content-end">
 							    {% if not object.listings.first %}
 									<input class="btn btn-primary ml-1" type="submit" value="Update">
-									<button class="btn btn-danger product-delete ml-1"id="user-{{ user.pk }}-product-{{ object.pk }}">Delete</button>
 								{% endif %}
 							</div>
 						</form>
+						{% if not object.listings.first %}
+						<div class="d-flex nowrap mt-1">
+									<a href="{% url 'auctions:delete_product' user_pk=user.pk pk=object.pk %}" class="flex-grow-1 text-right"><button class="btn btn-danger product-delete ml-1"id="user-{{ user.pk }}-product-{{ object.pk }}">Delete</button></a>
+									</div>
+								{% endif %}
 					</div>					
 				</div>
 	

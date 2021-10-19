@@ -24,7 +24,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.decorators import method_decorator
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic import TemplateView, ListView, DetailView
-from django.views.generic.edit import CreateView, UpdateView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.decorators.cache import never_cache
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.template import loader
@@ -667,8 +667,9 @@ class UpdateListingView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
                                                     'pk':self.object.pk
                                                 }
                                             )
+                                            
 
-@login_required                                            
+@login_required
 def cancel_listing(request, user_pk, listing_pk):
     """
     Helper view function fill in listing cancelled_on field on listing cancel.
@@ -686,6 +687,7 @@ def cancel_listing(request, user_pk, listing_pk):
     return redirect(reverse('auctions:sell_activities', kwargs={'pk': user_pk}))
     
     
+@login_required
 def cancel_listings(request, user_pk):
     """
     Helper view function to cancel all active listings of user at once. Cancellation is implemented through filling of cancelled_on field of listing object.
@@ -822,30 +824,56 @@ class UpdateProductView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
                                                     'pk':self.object.pk
                                                 }
                                             )
+                                            
+                                            
+@login_required
+def sell_product(request, user_pk, product_pk):
+    pass
     
     
-@login_required                                            
-def delete_product(request, user_pk, product_pk):
-    """
-    Helper view function to delete not listed product..
-    """
-    req_user = get_object_or_404(User, pk=user_pk)
-    if request.user != req_user:
-        return redirect('auctions:index')
-    product = get_object_or_404(Product, pk=product_pk)
-    if product.seller != req_user:
-        raise ValidationError
-    if product.listings.first():
-        for listing in product.listings:
-            if listing.status != "not started yet":
-                messages.failure = (request, "The product can not be deleted since it is already (or was) listed")
-                raise ValidationError
+#product delete function view to use with JS.
+#currently use built-in DeleteView instead
+#@login_required
+#def delete_product(request, user_pk, product_pk):
+#    """
+#    Helper view function to delete not listed product..
+#    """
+#    req_user = get_object_or_404(User, pk=user_pk)
+#    if request.user != req_user:
+#        return redirect('auctions:index')
+#    product = get_object_or_404(Product, pk=product_pk)
+#    if product.seller != req_user:
+#        raise ValidationError
+#    if product.listings.first():
+#        for listing in product.listings:
+#            if listing.status != "not started yet":
+#                messages.failure = (request, "The product can not be deleted since it is already (or was) listed")
+#                raise ValidationError
                 #return redirect(reverse('auctions:update_product', kwargs={"user_pk": user_pk, "pk": product_pk}))
                 
-    message_text = f"Product %s was deleted" % product
-    product.delete()
-    messages.success = (request, message_text)
-    return reverse('auctions:sell_activities', kwargs={'pk': user_pk})
+#    message_text = f"Product %s was deleted" % product
+#    product.delete()
+#    messages.success = (request, message_text)
+#    return reverse('auctions:sell_activities', kwargs={'pk': user_pk})
+    
+    
+class DeleteProductView(LoginRequiredMixin, CorrectUserTestMixin, DeleteView):
+    model = Product
+    
+    def dispatch(self, *args, **kwargs):
+        if 'user_pk' not in kwargs:
+            raise ImproperlyConfigured(
+                "The URL path must contain 'user_pk' parameter."
+            )
+        self.user = User.objects.get(pk=kwargs['user_pk'])
+        return super().dispatch(*args, **kwargs)
+    
+    def get_success_url(self):
+        messages.success(self.request, "Product was deleted.")
+        return reverse('auctions:sell_activities', kwargs={
+                                                    'pk':self.user.pk,
+                                                    }
+                                            )
     
     
 @login_required    

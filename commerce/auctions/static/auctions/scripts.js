@@ -1,16 +1,16 @@
-function sendRequest(targetUrl, onDone) {
-	    $.ajax({
-			    url: targetUrl
-		    }).done(function(json){
-				if (onDone == "reload") {
-					location.reload();
-				} else {
-					window.location.href = json;
-				}
-		    }).fail(function(json){
-				location.reload();
-			});
-};
+//function sendRequest(targetUrl, onDone) {
+//	    $.ajax({
+//			    url: targetUrl
+//		    }).done(function(json){
+//				if (onDone == "reload") {
+//					location.reload();
+//				} else {
+//					window.location.href = json;
+//				}
+//		    }).fail(function(json){
+//				location.reload();
+//			});
+//};
 
 var profilePage = {
 	
@@ -440,9 +440,9 @@ var createOrUpdateProductPage = {
 		createOrUpdateProductPage.config.removePictures.on("click", function(event){
 		    createOrUpdateProductPage.removePicture(event);
 		});
-		createOrUpdateProductPage.config.deleteProductBtn.on("click", function(event){
-		    createOrUpdateProductPage.deleteProduct(event);
-		})
+//		createOrUpdateProductPage.config.deleteProductBtn.on("click", function(event){
+//		    createOrUpdateProductPage.deleteProduct(event);
+//		});
 	},
 	
 	updatePicture: function(trigger) {
