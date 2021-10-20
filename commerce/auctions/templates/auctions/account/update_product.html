@@ -5,7 +5,7 @@
 				<div class="container">
 					<div class="d-flex nowrap">
 						<h3 class="flex-grow-1">Product information</h3>
-						<button class="btn btn-secondary" id="product-list-{{ object.pk }}">Sell</button>
+						<a href="{% url 'auctions:create_listing' user.pk %}?product={{ object.pk }}"><button class="btn btn-secondary" id="product-list-{{ object.pk }}">Sell</button></a>
 					</div>
 					{% if object.listings.first %}
 						<p>You can't modify or remove products that were already listed. Please create new product if some changes are required.</p>

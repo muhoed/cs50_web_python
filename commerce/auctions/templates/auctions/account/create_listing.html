@@ -10,6 +10,35 @@
 						<form action="{% url 'auctions:create_listing' user.id %}" method="post">
 							{% csrf_token %}
 							<div class="create-listing-form mb-2 container border border-primary border-top-0 border-right-0 border-left-0">
+							    {% if from_product %}
+							    <!-- Display only information of the product to be listed -->
+							    <div class="products-list row">
+					<div class="col-md-6">Product:</div>
+					<div class="col-md-6" style="visibility:hidden;">{{ form.product }}</div>
+				</div>
+				<a href="{% url 'auctions:update_product' user.pk from_product.pk %}">
+					<div class="row product bg-light">
+						<div class="col-md-2 text-center align-self-center">
+							<img src="{{ from_product.image_set.first.image_url }}" height="50px" width="50px">
+						</div>
+						<div class="col-md-4 text-center">
+							<p>Title:</p>
+							<P>{{ from_product.name|capfirst }}</p>
+						</div>
+						<div class="col-md-3 text-center">
+							<p>Categories:</p>
+							{% for category in from_product.categories.all %}
+								<p>{{ category.name }}</p>
+							{% endfor %}
+						</div>
+						<div class="col-md-3 text-center">
+							<p>Listed before:</p> 
+							</p>{% if from_product.listings.first %}Yes{% else %}No{% endif %}</p>
+						</div>
+					</div>
+				</a>
+				{% else %}
+				<!-- Normal listing create from scratch flow -->
 								<div class="row mb-1">
 									<div class="col-md-5 font-weight-bold">
 										Create new product
@@ -112,6 +141,7 @@
 									<div class="col-md-5">List of saved products:</div>
 									<div class="col-md-7">{{ form.product }}</div>
 								</div>
+								{% endif %}
 								<div class="row"><div class="col-md-12">{{ form.state.errors }}</div></div>
 								<div class="row">
 									<div class="col-md-5">{{ form.state.label_tag }}</div>

@@ -559,7 +559,16 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user_products = Product.objects.filter(seller=self.user)
+        product = None
+        context["from_product"] = None
+        if "product" in self.request.GET:
+            product = Product.objects.filter(pk=self.request.GET["product"])
+        if product.first():
+                user_products = product
+                context["form"].fields["product"].initial = product.first()
+                context["from_product"] = product.first()
+        else:
+            user_products = Product.objects.filter(seller=self.user)
         if not user_products.first() or "product_form" in kwargs:
             context["form"].fields["product"].disabled = True
         else:
