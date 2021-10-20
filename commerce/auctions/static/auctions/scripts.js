@@ -558,14 +558,11 @@ var sellingActivitiesPage = {
 	    }
 	},
 	
-	sellOne: function(trigger) {
+	sellOneProduct: function(trigger) {
 		trigger.preventDefault();
-		var confirmation = confirm("The product will be listed. Do you want to proceed with the listing creation?");
-	    if (confirm) {
-	        let pks = trigger.target.id.split("-");
-		    var url = "/account/" + pks[1] + "/product/" + pks[2] + "/sell/";
-		    sellingActivitiesPage.sendRequest(url);
-	    } 
+		let pks = trigger.target.id.split("-");
+		var url = "/account/" + pks[1] + "/listing/create?product=" + pks[2];
+		location.href = window.location.protocol + "//" + window.location.host + url;
 	},
 	
 	sendRequest: function(targetUrl) {
