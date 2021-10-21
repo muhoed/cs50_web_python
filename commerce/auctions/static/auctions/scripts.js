@@ -536,7 +536,6 @@ var sellingActivitiesPage = {
 	
 	relistOneListing: function(trigger) {
 		trigger.preventDefault();
-		var confirmation = confirm("The product will be relisted. Do you want to continue?");
 	    let pks = trigger.target.id.split("-");
 		var url = "/account/" + pks[1] + "/listing/create?listing=" + pks[2];
 		location.href = window.location.protocol + "//" + window.location.host + url;
@@ -557,6 +556,43 @@ var sellingActivitiesPage = {
 		    });
 	}
 };
+
+
+var homePage = {
+	
+	init: function(settings) {
+		homePage.config = {
+			cancelOne: $(".cancel-listing")
+		};
+		$.extend(homePage.config, settings);
+		homePage.setup();
+	},
+	
+	setup: function() {
+		homePage.config.cancelOne.on("click", function(event){
+		    homePage.cancelOneListing(event);
+		});
+	},
+	
+	cancelOneListing: function(trigger) {
+		trigger.preventDefault();
+		var confirmation = confirm("The listing will be cancelled. Bidder who placed the highest bid up to the moment becomes a winner automatically. Do you want to continue?");
+	    if (confirmation) {
+	        let pks = trigger.target.id.split("-");
+		    var url = "/account/" + pks[1] + "/listing/" + pks[2] + "/cancel/";
+		    homePage.sendRequest(url);
+	    }
+	},
+	
+	sendRequest: function(targetUrl) {
+	    $.ajax({
+			    url: targetUrl
+		    }).done(function(json){
+		        location.reload(true);
+		    });
+	}
+};
+
 
 $(document).ready(function(){
 	let pageTitle = $("title").text();
@@ -590,6 +626,9 @@ $(document).ready(function(){
 		        break;
 		case "Auction$ - Selling activities":
 		        sellingActivitiesPage.init();
+		        break;
+		case "Auction$ - Home":
+		        homePage.init();
 		        break;
 		default:
 			return false;

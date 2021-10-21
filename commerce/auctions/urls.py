@@ -127,7 +127,10 @@ urlpatterns = [
 		"account/<int:user_pk>/cancel_listings/", 
 		views.cancel_listings, name="cancel_listings"
 		),
-	path("listing/<int:pk>/", views.listing, name="listing"),
+	path("listing/<int:pk>/", views.ListingView.as_view(
+								extra_context={'title': _('listing details')}
+								), 
+							name="listing"),
     path("listing/<int:pk>/bid", views.bid, name="bid"),
 	path("account/<int:pk>/product/create/", views.CreateProductView.as_view(
 								extra_context={'title': _('create product')},

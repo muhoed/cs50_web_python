@@ -651,7 +651,7 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
                                                         
     def success_handler(self, form):
         #redirect to success url if form is valid
-        messages.success(self.request, "Listing was successfully created.")
+        messages.success = (self.request, "Listing was successfully created.")
         return self.form_valid(form)
         
     
@@ -690,7 +690,7 @@ class UpdateListingView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
         return super().dispatch(*args, **kwargs)
         
     def get_success_url(self):
-        messages.success(self.request, "Listing was successfully modified.")
+        messages.success = (self.request, "Listing was successfully modified.")
         return reverse('auctions:update_listing', kwargs={
                                                     'user_pk':self.user.pk,
                                                     'pk':self.object.pk
@@ -846,7 +846,7 @@ class UpdateProductView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
             
         
     def get_success_url(self):
-        messages.success(self.request, "Product was successfully modified.")
+        messages.success = (self.request, "Product was successfully modified.")
         return reverse('auctions:update_product', kwargs={
                                                     'user_pk':self.user.pk,
                                                     'pk':self.object.pk
@@ -900,7 +900,7 @@ class DeleteProductView(LoginRequiredMixin, CorrectUserTestMixin, DeleteView):
         return super().dispatch(*args, **kwargs)
     
     def get_success_url(self):
-        messages.success(self.request, "Product was deleted.")
+        messages.success = (self.request, "Product was deleted.")
         return reverse('auctions:sell_activities', kwargs={
                                                     'pk':self.user.pk,
                                                     }
@@ -914,10 +914,9 @@ def messenger(request):
 
 def categories(request):
     pass
-    
-    
-def listing(request, listing_id):
-    pass
+
+class ListingView(DetailView):
+    model = Listing
     
 
 @login_required
