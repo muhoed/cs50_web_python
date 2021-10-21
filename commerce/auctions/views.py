@@ -560,10 +560,31 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         product = None
+        listing = None
         context["from_product"] = None
+        if "listing" in self.request.GET:
+            try:
+                listing = Listing.objects.get(pk=self.request.GET["listing"])
+            except:
+                listing = None
         if "product" in self.request.GET:
-            product = Product.objects.filter(pk=self.request.GET["product"])
-        if product.first():
+            try:
+                product = Product.objects.filter(pk=self.request.GET["product"])
+            except:
+                product = None
+        if listing:
+            #context["form"].fields["product"].initial = listing.product
+            context["form"].initial = {
+                "product": listing.product,
+                "state": listing.state,
+                "start_price": listing.start_price,
+                "payment_policy": listing.payment_policy,
+                "shipment_policy": listing.shipment_policy,
+                "return_policy": listing.return_policy
+            }
+            context["from_product"] = listing.product
+            user_products = Product.objects.filter(pk=listing.product.pk)
+        elif product and product.first():
                 user_products = product
                 context["form"].fields["product"].initial = product.first()
                 context["from_product"] = product.first()
@@ -646,7 +667,6 @@ class UpdateListingView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
     """
     View existing listing parameters.
     Modify parameters of active but not yet started listing except product detail.
-    Cancel active listing.
     """
     model = Listing
     form_class = ListingForm
@@ -784,7 +804,6 @@ class UpdateProductView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
     """
     View existing product parameters.
     Modify parameters of the product that was not listed yet.
-    Delete product.
     """
     model = Product
     form_class = ProductForm
@@ -867,6 +886,9 @@ def sell_product(request, user_pk, product_pk):
     
     
 class DeleteProductView(LoginRequiredMixin, CorrectUserTestMixin, DeleteView):
+    """
+    Delete product that was not listed yet.
+    """
     model = Product
     
     def dispatch(self, *args, **kwargs):

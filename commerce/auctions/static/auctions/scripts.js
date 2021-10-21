@@ -492,7 +492,6 @@ var sellingActivitiesPage = {
 		sellingActivitiesPage.config = {
 			cancelAll: $(".cancel-all"),
 			cancelOne: $(".cancel-listing"),
-			relistAll: $(".relist-all"),
 			relistOne: $(".relist-product"),
 			sellOne: $(".sell-product")
 		};
@@ -506,9 +505,6 @@ var sellingActivitiesPage = {
 				});
 		sellingActivitiesPage.config.cancelOne.on("click", function(event){
 		    sellingActivitiesPage.cancelOneListing(event);
-		});
-		sellingActivitiesPage.config.relistAll.on("click", function(event){
-		    sellingActivitiesPage.relistAllListings(event);
 		});
 		sellingActivitiesPage.config.relistOne.on("click", function(event){
 		    sellingActivitiesPage.relistOneListing(event);
@@ -538,24 +534,12 @@ var sellingActivitiesPage = {
 	    }
 	},
 	
-	relistAllListings: function(trigger) {
-		trigger.preventDefault();
-	    var confirmation = confirm("All your unsold produsts will be relisted. Do you want to continue?");
-	    if (confirmation) {
-	        let user = trigger.target.id.split("-");
-	        var url = "/account/" + user[2] + "/relist_listings/";
-		    sellingActivitiesPage.sendRequest(url);
-	    }
-	},
-	
 	relistOneListing: function(trigger) {
 		trigger.preventDefault();
 		var confirmation = confirm("The product will be relisted. Do you want to continue?");
-	    if (confirmation) {
-	        let pks = trigger.target.id.split("-");
-		    var url = "/account/" + pks[1] + "/listing/" + pks[2] + "/relist/";
-		    sellingActivitiesPage.sendRequest(url);
-	    }
+	    let pks = trigger.target.id.split("-");
+		var url = "/account/" + pks[1] + "/listing/create?listing=" + pks[2];
+		location.href = window.location.protocol + "//" + window.location.host + url;
 	},
 	
 	sellOneProduct: function(trigger) {
