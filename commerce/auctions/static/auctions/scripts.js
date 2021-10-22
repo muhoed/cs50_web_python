@@ -617,6 +617,39 @@ var homePage = {
 };
 
 
+var watchlistPage = {
+	
+	init: function(settings) {
+		watchlistPage.config = {
+			unwatch: $(".unwatch")
+		};
+		$.extend(watchlistPage.config, settings);
+		watchlistPage.setup();
+	},
+	
+	setup: function() {
+		watchlistPage.config.unwatch.on("click", function(event) {
+		    watchlistPage.removeFromWatchlist(event);
+		});
+	},
+	
+	removeFromWatchlist: function(trigger) {
+	    trigger.preventDefault();
+	    let id = trigger.target.id;
+	    let url = "/watchlist/" + id.split("-")[1] + "/remove/";
+	    watchlistPage.sendRequest(url);
+	},
+	
+	sendRequest: function(targetUrl) {
+	    $.ajax({
+			    url: targetUrl
+		    }).done(function(json){
+		        location.reload(true);
+		    });
+	}
+};
+
+
 $(document).ready(function(){
 	let pageTitle = $("title").text();
 	switch(pageTitle) {
@@ -652,6 +685,9 @@ $(document).ready(function(){
 		        break;
 		case "Auction$ - Home":
 		        homePage.init();
+		        break;
+		case "Auction$ - Watchlist":
+		        watchlistPage.init();
 		        break;
 		default:
 			return false;

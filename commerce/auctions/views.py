@@ -928,15 +928,15 @@ def change_watchlist(request, listing_pk, action):
         listing = Listing.objects.get(pk=listing_pk)
     except:
         message.failure = (request, "The listing was not found.")
-        return
+        return HttpResponse("Failed")
     if action == "add":
         request.user.watchlist.add(listing)
-        message.success = (request, "Listing was added to your watchlist")
+        messages.success = (request, "Listing was added to your watchlist")
     elif action == "remove":
-        if listing in request.user.watchlist:
+        if listing in request.user.watchlist.all():
             request.user.watchlist.remove(listing)
-            message.success = (request, "Listing was removed from your watchlist.")
-            return
+            messages.success = (request, "Listing was removed from your watchlist.")
+    return HttpResponse("Completed")
         
     
 @login_required

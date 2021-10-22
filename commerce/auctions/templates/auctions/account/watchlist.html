@@ -19,7 +19,7 @@
 					<div class="col-md-2 text-center">
 						Categories
 					</div>
-					<div class="col-md-2 text-center">
+					<div class="col-md-1 text-center">
 						Bids count
 					</div>
 					<div class="col-md-1 text-center">
@@ -28,12 +28,12 @@
 					<div class="col-md-2 text-center">
 						Time left
 					</div>
-					<div class="col-md-2 text-center">
+					<div class="col-md-3 text-center">
 						Actions
 					</div>			
 				</div>
 				{% for item in watched_list|dictsort:"end_time" %}
-					<div class="listing row mt-1 ml-1 bg-light" id="{{ item.id }}">
+					<div class="listing row mt-1 bg-light" id="{{ item.id }}">
 						<div class="col-md-1 text-center align-self-center">
 							<img src="{{ item.product.image_set.first.image_url }}" height="50px" width="50px">
 						</div>
@@ -41,21 +41,22 @@
 							{{ item.product.name|capfirst }}
 						</div>
 						<div class="col-md-2 text-center align-self-center">
-							{% for category in item.product.categories %}
+							{% for category in item.product.categories.all %}
 								<p>{{ category.name }}</p>
 							{% endfor %}
-						<div class="col-md-2 text-center align-self-center">
+						</div>
+						<div class="col-md-1 text-center align-self-center">
 							{{ item.bids.count }}
 						</div>
 						<div class="col-md-1 text-center align-self-center">
 							{{ item.max_bid }}
 						</div>
 						<div class="col-md-2 text-center align-self-center">
-							{{ item.end_time|timeuntil:now }}
+							{{ item.end_time|timeuntil }}
 						</div>
-						<div class="col-md-2 text-center align-self-center">
+						<div class="col-md-3 text-center align-self-center">
 							<button class="btn btn-primary bid">Bid</button>
-							<button class="btn btn-danger bid">Del</button>
+							<button class="btn btn-danger  unwatch" id="unwatch-{{ item.id }}">Unwatch</button>
 						</div>
 					</div>
 				{% empty %}

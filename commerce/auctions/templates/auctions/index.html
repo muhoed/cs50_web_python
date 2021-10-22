@@ -76,10 +76,10 @@
 							{% if listing.product.seller == user %}
 								<button class="bnt btn-danger cancel-listing" id="cancel-{{ user.pk }}-{{ listing.pk }}">Cancel</button>
 							{% else %}
-								{% if listing in user.watchlist %}
-									<button class="btn btn-warning unwatch" id="unwatch-{{ listing.id }} {% if listing.product.seller == user %}disabled{% endif %}">Unwatch</button>
+								{% if listing in user.watchlist.all %}
+									<button class="btn btn-warning unwatch" id="unwatch-{{ listing.id }}">Unwatch</button>
 								{% else %}
-									<button class="btn btn-primary watch" id="watch-{{ listing.id }} {% if listing.product.seller == user %}disabled{% endif %}">Watch</button>
+									<button class="btn btn-primary watch" id="watch-{{ listing.id }}">Watch</button>
 								{% endif %}
 							{% endif %}
 						</div>
