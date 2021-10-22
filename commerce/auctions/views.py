@@ -920,8 +920,24 @@ class ListingView(DetailView):
     
 
 @login_required
-def watchlist(request):
-    pass
+def change_watchlist(request, listing_pk, action):
+    """
+    Helper view function to add/remove listing from user's watchlist.
+    """
+    try:
+        listing = Listing.objects.get(pk=listing_pk)
+    except:
+        message.failure = (request, "The listing was not found.")
+        return
+    if action == "add":
+        request.user.watchlist.add(listing)
+        message.success = (request, "Listing was added to your watchlist")
+    elif action == "remove":
+        if listing in request.user.watchlist:
+            request.user.watchlist.remove(listing)
+            message.success = (request, "Listing was removed from your watchlist.")
+            return
+        
     
 @login_required
 def bid(request):

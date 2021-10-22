@@ -562,7 +562,9 @@ var homePage = {
 	
 	init: function(settings) {
 		homePage.config = {
-			cancelOne: $(".cancel-listing")
+			cancelOne: $(".cancel-listing"),
+			watch: $(".watch"),
+			unwatch: $(".unwatch")
 		};
 		$.extend(homePage.config, settings);
 		homePage.setup();
@@ -571,6 +573,13 @@ var homePage = {
 	setup: function() {
 		homePage.config.cancelOne.on("click", function(event){
 		    homePage.cancelOneListing(event);
+		});
+		homePage.config.watch.on("click", function(event) {
+		    homePage.addToWatchlist(event);
+		    
+		});
+		homePage.config.unwatch.on("click", function(event) {
+		    homePage.removeFromWatchlist(event);
 		});
 	},
 	
@@ -582,6 +591,20 @@ var homePage = {
 		    var url = "/account/" + pks[1] + "/listing/" + pks[2] + "/cancel/";
 		    homePage.sendRequest(url);
 	    }
+	},
+	
+	addToWatchlist: function(trigger) {
+	    trigger.preventDefault();
+	    let id = trigger.target.id;
+	    let url = "/watchlist/" + id.split("-")[1] + "/add/";
+	    homePage.sendRequest(url);
+	},
+	
+	removeFromWatchlist: function(trigger) {
+	    trigger.preventDefault();
+	    let id = trigger.target.id;
+	    let url = "/watchlist/" + id.split("-")[1] + "/remove/";
+	    homePage.sendRequest(url);
 	},
 	
 	sendRequest: function(targetUrl) {

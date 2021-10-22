@@ -108,6 +108,7 @@ urlpatterns = [
 								extra_context={'title': _('watchlist')},
 								template_name="auctions/account/watchlist.html"),
 			name="watchlist"),
+	path("watchlist/<int:listing_pk>/<str:action>/", views.change_watchlist, name="change_watchlist"),
     path("categories", views.categories, name="categories"),
     path("categories/<int:cat_id>/", views.categories, name="categories"),
     path("account/<int:pk>/listing/create", views.CreateListingView.as_view(
