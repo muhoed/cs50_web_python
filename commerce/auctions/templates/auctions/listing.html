@@ -9,23 +9,26 @@
 		<div class="col-8">
 			<div class="row">
 				<div class="col-6">
-					<div class="row">
-						<img src="{% if object.product.image_set.o.image_url %}{{ object.product.image_set.0.image_url }}{% else %}{% static 'auctions/images/cropped-placeholder.jpg'%}{% endif %}" width="150px" height="auto"/>
+					<div class="row justify-content-center">
+						<img src="{% if object.product.image_set.0.image_url %}{{ object.product.image_set.0.image_url }}{% else %}{% static 'auctions/images/cropped-placeholder.jpg'%}{% endif %}" width="200px" height="auto"/>
 					</div>
-					<div class="row mt-2">
-						<div class="col-3 mr-1">
-							<img src="{% if object.product.image_set.o.image_url %}{{ object.product.image_set.1.image_url }}{% else %}{% static 'auctions/images/cropped-placeholder.jpg'%}{% endif %}" width="70px" height="auto"/>
+					<div class="row mt-2 justify-content-center">
+						<div class="col-6 text-center">
+							<img src="{% if object.product.image_set.1.image_url %}{{ object.product.image_set.1.image_url }}{% else %}{% static 'auctions/images/cropped-placeholder.jpg'%}{% endif %}" width="80px" height="auto"/>
 						</div>
-						<div class="col-3">
-							<img src="{% if object.product.image_set.o.image_url %}{{ object.product.image_set.2.image_url }}{% else %}{% static 'auctions/images/cropped-placeholder.jpg'%}{% endif %}" width="70px" height="auto"/>
+						<div class="col-6 text-center">
+							<img src="{% if object.product.image_set.2.image_url %}{{ object.product.image_set.2.image_url }}{% else %}{% static 'auctions/images/cropped-placeholder.jpg'%}{% endif %}" width="80px" height="auto"/>
 						</div>
 					</div>
 				</div>
-				<div class="col-4">
-					<div class="row">Ends in:</div>
-					<div class="row"><h3>{{ object.end_time|timeuntil }}</h3></div>
+				<div class="col-6">
 					<div class="row">
-						Seller: {{ object.product.seller.username }}
+						<div class="col-3">Ends in:</div>
+						<div class="col-3"><h3>{{ object.end_time|timeuntil }}</h3></div>
+					</div>
+					<div class="row">
+						<div class="col-3">Seller:</div>
+						<div class="col-3">{{ object.product.seller.username }}</div>
 					</div>
 				</div>
 			</div>
