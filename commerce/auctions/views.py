@@ -918,6 +918,11 @@ def categories(request):
 class ListingView(DetailView):
     model = Listing
     
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["form"] = PlaceBidForm(initial={"value": self.object.max_bid+Decimal(1.00)})
+        return context
+    
 
 @login_required
 def change_watchlist(request, listing_pk, action):
