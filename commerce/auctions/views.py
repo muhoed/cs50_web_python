@@ -945,7 +945,11 @@ def change_watchlist(request, listing_pk, action):
         
     
 @login_required
-def bid(request):
+def comment(request, listing_pk):
+    pass
+
+@login_required
+def bid(request, listing_pk):
     pass
     
 

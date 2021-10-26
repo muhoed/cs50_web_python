@@ -10,66 +10,85 @@
 			<div class="row">
 				<div class="col-6">
 					<div class="row justify-content-center">
-						<img src="{% if object.product.image_set.0.image_url %}{{ object.product.image_set.0.image_url }}{% else %}{% static 'auctions/images/cropped-placeholder.jpg'%}{% endif %}" width="200px" height="auto"/>
+						<img src="{% if object.product.image_set.0.image_url %}{{ object.product.image_set.0.image_url }}{% else %}{% static 'auctions/images/cropped-placeholder.jpg'%}{% endif %}" width="90%" height="auto"/>
 					</div>
 					<div class="row mt-2 justify-content-center">
 						<div class="col-6 text-center">
-							<img src="{% if object.product.image_set.1.image_url %}{{ object.product.image_set.1.image_url }}{% else %}{% static 'auctions/images/cropped-placeholder.jpg'%}{% endif %}" width="80px" height="auto"/>
+							<img src="{% if object.product.image_set.1.image_url %}{{ object.product.image_set.1.image_url }}{% else %}{% static 'auctions/images/cropped-placeholder.jpg'%}{% endif %}" width="98%" height="auto"/>
 						</div>
 						<div class="col-6 text-center">
-							<img src="{% if object.product.image_set.2.image_url %}{{ object.product.image_set.2.image_url }}{% else %}{% static 'auctions/images/cropped-placeholder.jpg'%}{% endif %}" width="80px" height="auto"/>
+							<img src="{% if object.product.image_set.2.image_url %}{{ object.product.image_set.2.image_url }}{% else %}{% static 'auctions/images/cropped-placeholder.jpg'%}{% endif %}" width="98%" height="auto"/>
 						</div>
 					</div>
 				</div>
 				<div class="col-6">
+					<div class="row justify-content-end">
+						{% if listing.product.seller == user %}
+							<button class="bnt btn-danger cancel-listing" id="cancel-{{ user.pk }}-{{ object.pk }}">Cancel</button>
+						{% else %}
+							{% if listing in user.watchlist.all %}
+								<button class="btn btn-warning unwatch" id="unwatch-{{ object.id }}">Remove from watchlist</button>
+							{% else %}
+								<button class="btn btn-primary watch" id="watch-{{ object.id }}">Add to watchlist</button>
+							{% endif %}
+						{% endif %}
+					</div>
 					<div class="row justify-content-end">
 					    Ends in:
 					    </div>
 						<div class="row justify-content-end">
 						    <h3>{{ object.end_time|timeuntil }}</h3>
 						    </div>
-					<div class="row justify-content-end">
-					    Seller: <b>{{ object.product.seller.username }}</b>
-						    </div>
-					<div class="row justify-content-end">
-					    Highest bid: <b>{{ object.max_bid }}</b>
+					<div class="row">
+						<div class="col-8 text-right">
+							Seller:
+						</div>
+						<div class="col-4">
+							<b>{{ object.product.seller.username }}</b>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-8 text-right">
+							Highest bid:
+						</div>
+						<div class="col-4">
+							<b>{{ object.max_bid }}</b>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-8 text-right">
+							Bids count:
+						</div>
+						<div class="col-4">
+							<b>{{ object.bids.count }}</b>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-8 text-right">
+							Number of watchers:
+						</div>
+						<div class="col-4">
+							<b>{{ object.followers.count }}</b>
+						</div>
+					</div>
+					<div class="row mt-2">
+						<div class="col-8 text-right">
+							Number of comments:
+						</div>
+						<div class="col-4">
+							<b>{{ object.comment_set.count }}</b>
+						</div>
 					</div>
 					<div class="row justify-content-end">
-					    Bids count: <b>{{ object.bids.count }}</b>
+						<button class="btn btn-secondary comment" id="comment-{{ object.pk }}">See/Leave comment(s)</button>
 					</div>
-					<div class="row justify-content-end">
-					    Number of watchers: <b>{{ object.followers.count }}</b>
-					</div>
-					
-			<div class="row mt-2 justify-content-end">
-			    Number of comments: <b>{{ object.comment_set.count }}</b>
-			</div>
-			<div class="row">
-			    <div class="col-6 text-right">
-			        <a href="#comments" class="btn btn=secondary">See comments</a>
-			    </div>
-			    <div class="col-6 text-right">
-			        <button class="btn btn-secondary comment" id="comment-{{ object.pk }}">Leave comment</button>
-			    </div>
-			</div>
 				</div>
 			</div>
 		</div>
 		<div class="col-4">
-			<div class="row mt-3 ml-3 justify-content-center">
-			    {% if listing.product.seller == user %}
-								<button class="bnt btn-danger cancel-listing" id="cancel-{{ user.pk }}-{{ object.pk }}">Cancel</button>
-							{% else %}
-								{% if listing in user.watchlist.all %}
-									<button class="btn btn-warning unwatch" id="unwatch-{{ object.id }}">Remove from watchlist</button>
-								{% else %}
-									<button class="btn btn-primary watch" id="watch-{{ object.id }}">Add to watchlist</button>
-								{% endif %}
-							{% endif %}
-			</div>
-			<div class="container mt-3">
+			<div class="container">
 			    <h4>Place a bid:</h4>
-			    						{{ form.non_field_errors }}
+			    {{ form.non_field_errors }}
 			    <form action="{% url 'auctions:bid' object.id %}" method="POST">
 			        {% csrf_token %}
 			        <div class="row pl-5">
@@ -81,10 +100,41 @@
 			        <div class="row pl-5">
 			            {{ form.value }}
 			        </div>
-			        <div class="row pl-5"><input type="submit" name="place_bid" value="Place bid" class="btn btn-success"></div>
+			        <div class="row pl-5">
+						<input type="submit" name="place_bid" value="Place bid" class="btn btn-success">
+					</div>
 			    </form>
 			</div>
 		</div>
+    </div>
+    <div class="row mt-5">
+		<h5>Product's state: {% if object.state == 0 %}used{% else %}new{% endif %}</h5>
+    </div>
+    <div class="row">
+		<h5>Description: </h5>
+		<p>{{ object.description }}</p>
+    </div>
+    <div class="row">
+		<h5>Payment policy: </h5>
+		<p>{{ object.payment_policy }}</p>
+    </div>
+    <div class="row">
+		<h5>Shipment policy: </h5>
+		<p>{{ object.shipment_policy }}</p>
+    </div>
+    <div class="row">
+		<h5>Return policy: </h5>
+		<p>{{ object.return_policy }}</p>
+    </div>
+    <div class="row mt-5">
+		<h4>Leave a comment:</h4>
+		{{ comment_form.non_field_errors }}
+		<form action="{% url 'auctions:comment' object.pk %}">
+			{% csrf_token %}
+			{{ comment_form.content.error }}
+			<div>{{ comment_form.content }}</div>
+			<input type="submit" name="comment" value="Leave comment">
+		</form>
     </div>
 </div>
 {% endblock %}
