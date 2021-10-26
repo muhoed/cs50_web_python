@@ -29,58 +29,60 @@
 						    <h3>{{ object.end_time|timeuntil }}</h3>
 						    </div>
 					<div class="row justify-content-end">
-					    Seller:</div>
-						<div class="row justify-content-end">
-						    {{ object.product.seller.username }}
+					    Seller: <b>{{ object.product.seller.username }}</b>
 						    </div>
 					<div class="row justify-content-end">
-					    Highest bid:
+					    Highest bid: <b>{{ object.max_bid }}</b>
 					</div>
 					<div class="row justify-content-end">
-					    {{ object.max_bid }}
+					    Bids count: <b>{{ object.bids.count }}</b>
 					</div>
 					<div class="row justify-content-end">
-					    Bids count:
+					    Number of watchers: <b>{{ object.followers.count }}</b>
 					</div>
-					<div class="row justify-content-end">
-					    {{ object.bids.count }}
-					</div>
-					<div class="row justify-content-end">
-					    Number of watchers:
-					</div>
-					<div class="row justify-content-end">
-					    {{ object.followers.count }}
-					</div>
+					
+			<div class="row mt-2 justify-content-end">
+			    Number of comments: <b>{{ object.comment_set.count }}</b>
+			</div>
+			<div class="row">
+			    <div class="col-6 text-right">
+			        <a href="#comments" class="btn btn=secondary">See comments</a>
+			    </div>
+			    <div class="col-6 text-right">
+			        <button class="btn btn-secondary comment" id="comment-{{ object.pk }}">Leave comment</button>
+			    </div>
+			</div>
 				</div>
 			</div>
 		</div>
 		<div class="col-4">
-			<div class="container">
-			    <h4>Place a bid:</h4>
-			    						{{ form.non_field_errors }}
-			    <form action="{% url 'auctions:bid' object.id %}" method="POST">
-			        {% csrf_token %}
-			        <div class="row">
-			            {{ form.value.error }}
-			        </div>
-			        <div class="row">
-			            {{ form.value.label_tag }}
-			        </div>
-			        <div class="row">
-			            {{ form.value }}
-			        </div>
-			    </form>
-			</div>
-			<div class="row mt-2 justify-content-end">
+			<div class="row mt-3 ml-3 justify-content-center">
 			    {% if listing.product.seller == user %}
 								<button class="bnt btn-danger cancel-listing" id="cancel-{{ user.pk }}-{{ object.pk }}">Cancel</button>
 							{% else %}
 								{% if listing in user.watchlist.all %}
-									<button class="btn btn-warning unwatch" id="unwatch-{{ object.id }}">Unwatch</button>
+									<button class="btn btn-warning unwatch" id="unwatch-{{ object.id }}">Remove from watchlist</button>
 								{% else %}
-									<button class="btn btn-primary watch" id="watch-{{ object.id }}">Watch</button>
+									<button class="btn btn-primary watch" id="watch-{{ object.id }}">Add to watchlist</button>
 								{% endif %}
 							{% endif %}
+			</div>
+			<div class="container mt-3">
+			    <h4>Place a bid:</h4>
+			    						{{ form.non_field_errors }}
+			    <form action="{% url 'auctions:bid' object.id %}" method="POST">
+			        {% csrf_token %}
+			        <div class="row pl-5">
+			            {{ form.value.error }}
+			        </div>
+			        <div class="row pl-5">
+			            {{ form.value.label_tag }}
+			        </div>
+			        <div class="row pl-5">
+			            {{ form.value }}
+			        </div>
+			        <div class="row pl-5"><input type="submit" name="place_bid" value="Place bid" class="btn btn-success"></div>
+			    </form>
 			</div>
 		</div>
     </div>
