@@ -43,7 +43,7 @@
 						<div class="col-8 text-right">
 							Seller:
 						</div>
-						<div class="col-4">
+						<div class="col-4 text-right">
 							<b>{{ object.product.seller.username }}</b>
 						</div>
 					</div>
@@ -51,7 +51,7 @@
 						<div class="col-8 text-right">
 							Highest bid:
 						</div>
-						<div class="col-4">
+						<div class="col-4 text-right">
 							<b>{{ object.max_bid }}</b>
 						</div>
 					</div>
@@ -59,7 +59,7 @@
 						<div class="col-8 text-right">
 							Bids count:
 						</div>
-						<div class="col-4">
+						<div class="col-4 text-right">
 							<b>{{ object.bids.count }}</b>
 						</div>
 					</div>
@@ -67,7 +67,7 @@
 						<div class="col-8 text-right">
 							Number of watchers:
 						</div>
-						<div class="col-4">
+						<div class="col-4 text-right">
 							<b>{{ object.followers.count }}</b>
 						</div>
 					</div>
@@ -75,19 +75,19 @@
 						<div class="col-8 text-right">
 							Number of comments:
 						</div>
-						<div class="col-4">
+						<div class="col-4 text-right">
 							<b>{{ object.comment_set.count }}</b>
 						</div>
 					</div>
 					<div class="row justify-content-end">
-						<button class="btn btn-secondary comment" id="comment-{{ object.pk }}">See/Leave comment(s)</button>
+						<a href="#comments"><button class="btn btn-secondary comment" id="comment-{{ object.pk }}">See/Leave comment(s)</button></a>
 					</div>
 				</div>
 			</div>
 		</div>
 		<div class="col-4">
 			<div class="container">
-			    <h4>Place a bid:</h4>
+			    <h4 style="margin-top:50%">Place a bid:</h4>
 			    {{ form.non_field_errors }}
 			    <form action="{% url 'auctions:bid' object.id %}" method="POST">
 			        {% csrf_token %}
@@ -126,7 +126,7 @@
 		<h5>Return policy: </h5>
 		<p>{{ object.return_policy }}</p>
     </div>
-    <div class="row mt-5">
+    <div class="row mt-5" id="comments">
 		<h4>Leave a comment:</h4>
 		{{ comment_form.non_field_errors }}
 		<form action="{% url 'auctions:comment' object.pk %}">
@@ -136,5 +136,40 @@
 			<input type="submit" name="comment" value="Leave comment">
 		</form>
     </div>
+    <div class="row">
+        {% for comment in listing.comment_set.all %}
+        <div class="row border border-bottom-1">
+            <div class="flex-grow-1">
+                Commented by: {{ comment.author }}
+            </div>
+            <div>
+                Commented on: {{ comment.time }}
+            </div>
+            <div>
+                Status: {{ comment.status }}
+            </div>
+        </div>
+        <div class="row border border-bottom-1">
+            {{ comment.content }}
+        </div>
+        {% if comment.answer %}
+            <div class="row border border-bottom-1">
+                <div class="flex-grow-1">
+                    Answered by: {{ comment.answer.respondent }}
+                </div>
+                <div>
+                    Answeted on: {{ comment.answer.time }}
+                </div>
+            </div>
+            <div class="row">
+                {{ comment.answer.content }}
+            </div>
+        {% endif %}
+    </div>
+    {% empty %}
+    <div class="row">
+        <h5>No comments yet. Fill the form above to leave one.</h5>
+    </div>
+    {% endfor %}
 </div>
 {% endblock %}

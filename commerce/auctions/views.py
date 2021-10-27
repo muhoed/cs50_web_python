@@ -921,7 +921,12 @@ class ListingView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["form"] = PlaceBidForm(initial={"value": self.object.max_bid+Decimal(1.00)})
+        context["comment_form"] = CommentForm()
         return context
+        
+    def post(self, request, *args, **kwargs):
+        if "value" in request.POST:
+            bid = PlaceBidForm(request.POST, listing=)
     
 
 @login_required

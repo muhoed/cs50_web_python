@@ -474,7 +474,7 @@ class Comment(models.Model):
 				verbose_name="user placed the comment")
 	listing = models.ForeignKey(Listing, on_delete=models.CASCADE,
 				verbose_name="listing on which the comment was left")
-	content = models.CharField("comment's text", max_length=1000)
+	content = models.TextField("comment's text")
 	time = models.DateTimeField(auto_now_add=True)
 	
 	@property
