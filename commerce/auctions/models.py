@@ -484,7 +484,7 @@ class Comment(models.Model):
 		return "answered"
 	
 	def __str__(self):
-		return f"User {self.author.name} comments on \
+		return f"User {self.author.username} comments on \
 				auction for {self.listing.product.name} \
 				at {self.time}."
 				

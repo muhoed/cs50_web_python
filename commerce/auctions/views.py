@@ -24,7 +24,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.decorators import method_decorator
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic import TemplateView, ListView, DetailView
-from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormMixin
 from django.views.decorators.cache import never_cache
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.template import loader
@@ -507,7 +507,7 @@ class BuyActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
         context["lost"] = []
         for bid in self.queryset:
             if bid.listing not in temp:
-                temp.append[bid.listing]
+                temp.append(bid.listing)
                 if bid.listing.status == "active":
                     context["active"].append(bid)
                 elif bid.listing.winner == self.request.user:
@@ -920,13 +920,38 @@ class ListingView(DetailView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["form"] = PlaceBidForm(initial={"value": self.object.max_bid+Decimal(1.00)})
-        context["comment_form"] = CommentForm()
+        if "form" not in context:
+            context["form"] = PlaceBidForm(initial={"value": self.object.max_bid+Decimal(1.00)})
+        if "comment_form" not in context:
+            context["comment_form"] = CommentForm()
         return context
         
     def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        data = {"listing": self.object}
+        if "content" in request.POST:
+            data["author"] = request.user
+            data["content"] = request.POST["content"]
+            comment = CommentForm(data)
+            if comment.is_valid():
+                new_comment = comment.save()
+                messages.success = (request, "Comment was sent and published.")
+                return HttpResponseRedirect(self.get_success_url())
+            else:
+                return self.render_to_response(self.get_context_data(comment_form=comment))
         if "value" in request.POST:
-            bid = PlaceBidForm(request.POST, listing=)
+            data["bidder"] = request.user
+            data["value"] = request.POST["value"]
+            bid = PlaceBidForm(data)
+            if bid.is_valid():
+                new_bid = bid.save()
+                messages.success = (request, "Bid was placed.")
+                return HttpResponseRedirect(self.get_success_url())
+            else:
+                return self.render_to_response(self.get_context_data(form=bid))
+                
+    def get_success_url(self):
+        return reverse('auctions:listing', kwargs={'pk':self.object.pk})
     
 
 @login_required

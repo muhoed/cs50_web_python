@@ -89,7 +89,7 @@
 			<div class="container">
 			    <h4 style="margin-top:50%">Place a bid:</h4>
 			    {{ form.non_field_errors }}
-			    <form action="{% url 'auctions:bid' object.id %}" method="POST">
+			    <form action="{% url 'auctions:listing' object.id %}" method="POST">
 			        {% csrf_token %}
 			        <div class="row pl-5">
 			            {{ form.value.error }}
@@ -127,25 +127,25 @@
 		<p>{{ object.return_policy }}</p>
     </div>
     <div class="row mt-5" id="comments">
-		<h4>Leave a comment:</h4>
 		{{ comment_form.non_field_errors }}
-		<form action="{% url 'auctions:comment' object.pk %}">
+		<form action="{% url 'auctions:listing' object.pk %}" method="POST" class="flex-grow-1">
 			{% csrf_token %}
 			{{ comment_form.content.error }}
 			<div>{{ comment_form.content }}</div>
 			<input type="submit" name="comment" value="Leave comment">
 		</form>
     </div>
-    <div class="row">
+    <div class="col-12 mt-5">
+		<h5>Comments:</h5>
         {% for comment in listing.comment_set.all %}
         <div class="row border border-bottom-1">
             <div class="flex-grow-1">
-                Commented by: {{ comment.author }}
+                Commented by: {{ comment.author.username }}
             </div>
             <div>
                 Commented on: {{ comment.time }}
             </div>
-            <div>
+            <div class="ml-5">
                 Status: {{ comment.status }}
             </div>
         </div>
@@ -155,10 +155,10 @@
         {% if comment.answer %}
             <div class="row border border-bottom-1">
                 <div class="flex-grow-1">
-                    Answered by: {{ comment.answer.respondent }}
+                    Answered by: {{ comment.answer.respondent.username }}
                 </div>
                 <div>
-                    Answeted on: {{ comment.answer.time }}
+                    Answered on: {{ comment.answer.time }}
                 </div>
             </div>
             <div class="row">
@@ -167,7 +167,7 @@
         {% endif %}
     </div>
     {% empty %}
-    <div class="row">
+    <div class="row mt-5">
         <h5>No comments yet. Fill the form above to leave one.</h5>
     </div>
     {% endfor %}

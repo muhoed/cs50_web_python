@@ -122,12 +122,16 @@ class SearchForm(forms.Form):
 class PlaceBidForm(forms.ModelForm):
 	class Meta():
 		model = Bid
-		fields = ["value"]
+		fields = ["bidder", "listing", "value"]
 	
 class CommentForm(forms.ModelForm):
-	class Meta():
-		model = Comment
-		fields = ["content"]
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['content'].widget.attrs.update(rows="5", style='width:100%;')
+        
+    class Meta():
+        model = Comment
+        fields = ["author", "listing", "content"]
 	
 class AnswerForm(forms.ModelForm):
 	class Meta():
