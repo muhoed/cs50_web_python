@@ -493,7 +493,7 @@ class BuyActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
             )
         self.user = User.objects.get(pk=kwargs['pk'])
         self.queryset = Bid.objects.filter(
-                                        bidder=self.request.user
+                                        bidder=self.user
                                     ).order_by("-value")
         
         return super().dispatch(*args, **kwargs)
@@ -510,7 +510,7 @@ class BuyActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
                 temp.append(bid.listing)
                 if bid.listing.status == "active":
                     context["active"].append(bid)
-                elif bid.listing.winner == self.request.user:
+                elif bid.listing.winner == self.user:
                     context["bought"].append(bid)
                 else:
                     context["lost"].append(bid)

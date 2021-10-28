@@ -689,6 +689,9 @@ $(document).ready(function(){
 		case "Auction$ - Watchlist":
 		        watchlistPage.init();
 		        break;
+		case "Auction$ - Listing":
+		        homePage.init();
+		        break;
 		default:
 			return false;
 	}
