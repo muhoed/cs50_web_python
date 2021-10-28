@@ -36,6 +36,7 @@
 						</div>
 					</div>
 					{% for listing in user_active_listings|slice:":5" %}
+					<a href="{% url 'auctions:update_listing' user.pk listing.pk %}">
 						<div class="listing row mt-1 mb-1 ml-1 bg-light">
 							<div class="col-md-1 text-center">
 								<img src="{{ listing.product.image_set.first.image_url }}" height="50px" width="50px">
@@ -62,13 +63,14 @@
 								{{ listing.end_time|timeuntil }}
 							</div>
 						</div>
+					</a>
 					{% empty %}
 						<p class="mt-1 bg-light">You do not have listings yet. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create one.</p>
 					{% endfor %}
 					{% if user_active_listings.5 %}
 						<a href="{% url 'auctions:sell_activities' user.pk %}" class="nav-link">View more</a>
-						{% endif %}
-						</div>
+					{% endif %}
+				</div>
 				<div class="container mt-2">
 					<h3>Your bids on active listings:</h3>
 					<div class="header row ml-1">
@@ -92,6 +94,7 @@
 						</div>
 					</div>
 					{% for bid in bids_on_active|slice:":5" %}
+					<a href="{% url 'auctions:listing' bid.listing.pk %}">
 						<div class="listing row mt-1 ml-1 bg-light">
 							<div class="col-md-2 text-center">
 								<img src="{{ bid.listing.product.image_set.first.image_url }}" height="50px" width="50px">
@@ -114,13 +117,14 @@
 								{{ bid.listing.end_time|timeuntil }}
 							</div>
 						</div>
+					</a>
 					{% empty %}
 						<p class="mt-1 bg-light">You did not place any bids yet.</p>
 					{% endfor %}
 					{% if bids_on_active.5 %}
 						<a class="nav-link" href="{% url 'auctions:purchase_activities' user.pk %}">View more</p>
 					{% endif %}
-					</div>
+				</div>
 				<div class="container mt-2">
 					<h3>Your watchlist:</h3>
 					{% with user.watchlist.all as user_watchlist %}
@@ -148,6 +152,7 @@
 							</div>
 						</div>
 						{% for listing in user_watchlist|dictsortreversed:"end_time"|slice:":5" %}
+						<a href="{% url 'auctions:listing' listing.pk %}">
 							<div class="listing row mt-1 ml-1 bg-light">
 								<div class="col-md-2 text-center">
 									{{ listing.status }}
@@ -173,18 +178,20 @@
 									{{ listing.end_time|timeuntil }}
 								</div>
 							</div>
+						</a>
 						{% empty %}
 							<p class="mt-1 bg-light">There are no listings added to your watchlist yet.</p>
 						{% endfor %}
 						{% if user_watchlist.5 %}
 							<a class="nav-link" href="{% url 'auctions:watchlist' user.pk %}">View more</a>
 						{% endif %}
-						{% endwith %}
-						</div>
+					{% endwith %}
+				</div>
 				<div class="container mt-2 d-flex flex-row">
 					<div class="w-50 mr-1">
 						<h3>Recent sales:</h3>
 							{% for listing in sold|slice:":5" %}
+							<a href="{% url 'auctions:update_listing' user.pk listing.pk">
 								<div class="listing row mt-1 ml-1 bg-light">
 									<div class="col-md-6 text-center">
 										<img src="{{ listing.product.image_set.first.image_url }}" height="50px" width="50px">
@@ -193,6 +200,7 @@
 										{{ listing.product.name|capfirst }}
 									</div>
 								</div>
+							</a>
 							{% empty %}
 								<p class="mt-1 bg-light">You did not sell any product on Auction$ yet.</p>
 							{% endfor %}
@@ -204,6 +212,7 @@
 					<div class="w-50 ml-1">
 						<h3>Recent purchases:</h3>
 							{% for listing in bought|slice:":5" %}
+							<a href="{% url 'auctiong:listing' listing.pk %}">
 								<div class="listing row mt-1 ml-1 bg-light">
 									<div class="col-md-6 text-center">
 										<img src="{{ listing.product.image_set.first.image_url }}" height="50px" width="50px">
@@ -212,6 +221,7 @@
 										{{ listing.product.name|capfirst }}
 									</div>
 								</div>
+							</a>
 							{% empty %}
 								<p class="mt-1 bg-light">You did not buy any product on Auction$ yet.</p>
 							{% endfor %}

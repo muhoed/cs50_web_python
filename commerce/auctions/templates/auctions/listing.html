@@ -22,25 +22,27 @@
 					</div>
 				</div>
 				<div class="col-6">
-					<div class="row justify-content-end">
-						{% if listing.product.seller == user %}
-							<button class="bnt btn-danger cancel-listing" id="cancel-{{ user.pk }}-{{ object.pk }}">Cancel</button>
-						{% else %}
-							{% if listing in user.watchlist.all %}
-								<button class="btn btn-warning unwatch" id="unwatch-{{ object.id }}">Remove from watchlist</button>
-							{% else %}
-								<button class="btn btn-primary watch" id="watch-{{ object.id }}">Add to watchlist</button>
-							{% endif %}
-						{% endif %}
-					</div>
-					<div class="row justify-content-end">
-					    Ends in:
-					    </div>
-						<div class="row justify-content-end">
-						    <h3>{{ object.end_time|timeuntil }}</h3>
-						    </div>
 					<div class="row">
-						<div class="col-8 text-right">
+						<h4>Place a bid:</h4>
+						{{ form.non_field_errors }}
+						<form action="{% url 'auctions:listing' object.id %}" method="POST">
+							{% csrf_token %}
+							<div class="row pl-5">
+								{{ form.value.error }}
+							</div>
+							<div class="row pl-5">
+								{{ form.value.label_tag }}
+							</div>
+							<div class="row pl-5">
+								{{ form.value }}
+							</div>
+							<div class="row pl-5">
+								<input type="submit" name="place_bid" value="Place bid" class="btn btn-success">
+							</div>
+						</form>
+					</div>
+					<div class="row mt-5">
+						<div class="col-8">
 							Seller:
 						</div>
 						<div class="col-4 text-right">
@@ -48,7 +50,7 @@
 						</div>
 					</div>
 					<div class="row">
-						<div class="col-8 text-right">
+						<div class="col-8">
 							Highest bid:
 						</div>
 						<div class="col-4 text-right">
@@ -56,7 +58,7 @@
 						</div>
 					</div>
 					<div class="row">
-						<div class="col-8 text-right">
+						<div class="col-8">
 							Bids count:
 						</div>
 						<div class="col-4 text-right">
@@ -64,7 +66,7 @@
 						</div>
 					</div>
 					<div class="row">
-						<div class="col-8 text-right">
+						<div class="col-8">
 							Number of watchers:
 						</div>
 						<div class="col-4 text-right">
@@ -72,38 +74,36 @@
 						</div>
 					</div>
 					<div class="row mt-2">
-						<div class="col-8 text-right">
+						<div class="col-8">
 							Number of comments:
 						</div>
 						<div class="col-4 text-right">
 							<b>{{ object.comment_set.count }}</b>
 						</div>
 					</div>
-					<div class="row justify-content-end">
-						<a href="#comments"><button class="btn btn-secondary comment" id="comment-{{ object.pk }}">See/Leave comment(s)</button></a>
-					</div>
 				</div>
 			</div>
 		</div>
-		<div class="col-4">
-			<div class="container">
-			    <h4 style="margin-top:50%">Place a bid:</h4>
-			    {{ form.non_field_errors }}
-			    <form action="{% url 'auctions:listing' object.id %}" method="POST">
-			        {% csrf_token %}
-			        <div class="row pl-5">
-			            {{ form.value.error }}
-			        </div>
-			        <div class="row pl-5">
-			            {{ form.value.label_tag }}
-			        </div>
-			        <div class="row pl-5">
-			            {{ form.value }}
-			        </div>
-			        <div class="row pl-5">
-						<input type="submit" name="place_bid" value="Place bid" class="btn btn-success">
-					</div>
-			    </form>
+		<div class="col-4 pl-5">
+			<div class="row justify-content-start">
+				Ends in:
+			</div>
+			<div class="row justify-content-start">
+				<h3>{{ object.end_time|timeuntil }}</h3>
+			</div>
+			<div class="row justify-content-start mt-5">
+				{% if listing.product.seller == user %}
+					<button class="bnt btn-danger cancel-listing" id="cancel-{{ user.pk }}-{{ object.pk }}">Cancel</button>
+				{% else %}
+					{% if listing in user.watchlist.all %}
+						<button class="btn btn-warning unwatch" id="unwatch-{{ object.id }}">Remove from watchlist</button>
+					{% else %}
+						<button class="btn btn-primary watch" id="watch-{{ object.id }}">Add to watchlist</button>
+					{% endif %}
+				{% endif %}
+			</div>
+			<div class="row justify-content-start mt-2">
+				<a href="#comments"><button class="btn btn-secondary comment" id="comment-{{ object.pk }}">See/Leave comment(s)</button></a>
 			</div>
 		</div>
     </div>

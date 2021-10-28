@@ -505,7 +505,7 @@ class BuyActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
         context["active"] = []
         context["bought"] = []
         context["lost"] = []
-        for bid in self.queryset:
+        for bid in self.queryset.all():
             if bid.listing not in temp:
                 temp.append(bid.listing)
                 if bid.listing.status == "active":

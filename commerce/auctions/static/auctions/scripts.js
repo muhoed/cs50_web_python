@@ -689,7 +689,7 @@ $(document).ready(function(){
 		case "Auction$ - Watchlist":
 		        watchlistPage.init();
 		        break;
-		case "Auction$ - Listing":
+		case "Auction$ - Listing details":
 		        homePage.init();
 		        break;
 		default:

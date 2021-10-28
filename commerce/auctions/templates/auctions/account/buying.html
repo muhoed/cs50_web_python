@@ -64,7 +64,8 @@
                                     Action
                                 </div>				
                             </div>
-							{% for item in active|dictsort:"listing__end_time" %}
+							{% for item in active|dictsort:"listing.end_time" %}
+							<a href="{% url 'auctions:listing' item.listing.pk %}">
 								<div class="listing row mt-1 ml-1 bg-light">
 									<div class="col-md-1 text-center">
 										<img src="{{ item.listing.product.image_set.first.image_url }}" height="50px" width="50px">
@@ -84,7 +85,7 @@
 										{{ item.listing.bids.count }}
 									</div>
 									<div class="col-md-2 text-center">
-										{{ item.listing.end_time|timeuntil:now }}
+										{{ item.listing.end_time|timeuntil }}
 									</div>
                                     <div class="col-md-1 text-center">
 										{{ item.value }}
@@ -93,6 +94,7 @@
 										<button class="btn btn-primary" id="bid">Bid again</button>
 									</div>
 								</div>
+							</a>
 							{% empty %}
 								<p class="mt-1 bg-light">There are no any active listing you bidded on.</p>
 							{% endfor %}
@@ -127,7 +129,8 @@
 									Status
 								</div>
 							</div>
-                            {% for item in bought|dictsort:"listing__end_time" %}
+                            {% for item in bought|dictsort:"listing.end_time" %}
+                            <a href="{% url 'auctions:listing' item.listing.pk %}">
 								<div class="listing row mt-1 ml-1 bg-light">
 									<div class="col-md-1 text-center">
 										<img src="{{ item.product.image_set.first.image_url }}" height="50px" width="50px">
@@ -153,6 +156,7 @@
 										Not paid
 									</div>
 								</div>
+							</a>
 							{% empty %}
 								<p class="mt-1 bg-light">You did not win any auction yet.</p>
 							{% endfor %}
@@ -187,7 +191,8 @@
 									Ended on
 								</div>
 							</div>
-                            {% for item in lost|dictsort:"listing__end_time" %}
+                            {% for item in lost|dictsort:"listing.end_time" %}
+                            <a href="{% url 'auctions:listing' item.listing.pk %}">
 								<div class="listing row mt-1 ml-1 bg-light">
 									<div class="col-md-1 text-center align-self-center">
 										<img src="{{ item.product.image_set.first.image_url }}" height="50px" width="50px">
@@ -217,6 +222,7 @@
 										{% endif %}
 									</div>
 								</div>
+							</a>
 							{% empty %}
 								<p class="mt-1 bg-light">You do not have any listing you bidded on but lost.</p>
 							{% endfor %}
