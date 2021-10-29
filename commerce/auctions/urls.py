@@ -150,7 +150,7 @@ urlpatterns = [
 								template_name="auctions/account/product_delete_confirm.html"),
 			name="delete_product"),
     path("listing/<int:listing_pk>/comment/", views.comment, name="comment"),
-    path("listing/<int:listing_pk>/bid/", views.bid, name="bid"),
+    path("bid/<int:listing_pk>/<val>/", views.bid, name="bid"),
     path("messenger", views.messenger, name="messenger"),
     path("search", views.search, name="search")
 ]

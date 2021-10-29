@@ -87,16 +87,14 @@
 							{% if listing.product.seller == user %}
 								Your listing
 							{% else %}
-								<form id="listing_{{ listing.id }}" action="{% url 'auctions:bid' listing.id %}" method="POST">
-									<div class="d-flex nowrap">
-										<div class="w-50">
-											<input class="form-control" type="number" name="bid" value="{{ listing.max_bid|add:'1' }}">
-										</div>
-										<div class="w-25">
-											<button class="btn btn-success" type="submit" id="place_bid_{{ listing_id }}">Bid</button>
-										</div>
+								<div class="d-flex nowrap">
+									<div class="w-50">
+										<input class="form-control" type="number" name="bid" value="{{ listing.max_bid|add:'1' }}">
 									</div>
-								</form>
+									<div class="w-25">
+										<button class="btn btn-success place-bid" id="bid-{{ listing.id }}">Bid</button>
+									</div>
+								</div>
 							{% endif %}
 						</div>
 					</div>

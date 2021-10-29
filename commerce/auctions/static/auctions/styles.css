@@ -17,11 +17,18 @@ body {
 	display: none;
 }
 */
+
+.text-toggle {
+	color: blue;
+	cursor: pointer;
+}
+
 .edit-button:hover,
 .remove:hover,
 #addEmail:hover,
 #addAddress:hover,
-.remove-img:hover {
+.remove-img:hover,
+.text-toggle:hover {
 	opacity: 0.8;
 	cursor: pointer;
 }

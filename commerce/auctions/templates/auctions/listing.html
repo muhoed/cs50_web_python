@@ -110,38 +110,38 @@
     <div class="row mt-5">
 		<h5>Product's state: {% if object.state == 0 %}used{% else %}new{% endif %}</h5>
     </div>
-    <div class="row">
+    <div class="container mt-5">
 		<h5>Description: </h5>
 		<p>{{ object.description }}</p>
     </div>
-    <div class="row">
+    <div class="container mt-5">
 		<h5>Payment policy: </h5>
 		{% if object.payment_policy|length < 120 %}
 		<p>{{ object.payment_policy }}</p>
 		{% else %}
-		<p class="payment-policy-short">{{ object.payment_policy|truncatechars:"120" }}</p>
-		<p class="payment-policy-full style="display:none"">{{ object.payment_policy}}</p>
-		<span class="flex-grow-1 text-toggle" id="payment-policy">More</span>
+		<span class="payment-policy-short">{{ object.payment_policy|truncatechars:"120" }}</span>
+		<span class="payment-policy-full" style="display:none">{{ object.payment_policy}}</span>
+		<span class="text-toggle" id="payment-policy">More</span>
 		{% endif %}
     </div>
-    <div class="row">
+    <div class="container mt-5">
 		<h5>Shipment policy: </h5>
 		{% if object.shipment_policy|length < 120 %}
 		<p>{{ object.shipment_policy }}</p>
 		{% else %}
-		<p class="shipment-policy-short">{{ object.shipment_policy|truncatechars:"120" }}</p>
-		<p class="shipment-policy-full" style="display:none">{{ object.shipment_policy}}</p>
-		<span class="flex-grow-1 text-toggle" id="shipment-policy">More</span>
+		<span class="shipment-policy-short">{{ object.shipment_policy|truncatechars:"120" }}</span>
+		<span class="shipment-policy-full" style="display:none">{{ object.shipment_policy}}</span>
+		<span class="text-toggle" id="shipment-policy">More</span>
 		{% endif %}
     </div>
-    <div class="row">
+    <div class="container mt-5">
 		<h5>Return policy: </h5>
 		{% if object.return_policy|length < 120 %}
 		<p>{{ object.return_policy }}</p>
 		{% else %}
-		<p class="return-policy-short">{{ object.return_policy|truncatechars:"120" }}</p>
-		<p class="return-policy-full" style="display:none">{{ object.return_policy}}</p>
-		<span class="flex-grow-1 text-toggle" id="return-policy">More</span>
+		<span class="return-policy-short">{{ object.return_policy|truncatechars:"120" }}</span>
+		<span class="return-policy-full" style="display:none">{{ object.return_policy}}</span>
+		<span class="text-toggle" id="return-policy">More</span>
 		{% endif %}
     </div>
     <div class="row mt-5" id="comments">
@@ -156,7 +156,7 @@
     <div class="col-12 mt-5">
 		<h5>Comments:</h5>
         {% for comment in listing.comment_set.all %}
-        <div class="row border border-bottom-1">
+        <div class="row mt-3 border border-bottom-1 border-top-0 border-left-0 border-right-0">
             <div class="flex-grow-1">
                 Commented by: {{ comment.author.username }}
             </div>
@@ -167,7 +167,7 @@
                 Status: {{ comment.status }}
             </div>
         </div>
-        <div class="row border border-bottom-1">
+        <div class="row border">
             {{ comment.content }}
         </div>
         {% if comment.answer %}

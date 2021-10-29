@@ -912,7 +912,7 @@ def messenger(request):
     pass
     
 
-def categories(request):
+def categories(request, cat_id):
     pass
 
 class ListingView(DetailView):
@@ -979,9 +979,19 @@ def comment(request, listing_pk):
     pass
 
 @login_required
-def bid(request, listing_pk):
-    pass
-    
+def bid(request, listing_pk, val):
+    try:
+        listing = Listing.objects.get(pk=listing_pk)
+        new_bid = Bid.objects.create(
+                                bidder=request.user,
+                                listing=listing,
+                                value=val
+                            )
+    except:
+        message.failure = (request, "The listing was not found.")
+        return HttpResponse("Failed")
+    messages.success = (request, "Your bid was accepted.")
+    return HttpResponse("Completed")
 
 def search(request):
     pass

@@ -564,7 +564,8 @@ var homePage = {
 		homePage.config = {
 			cancelOne: $(".cancel-listing"),
 			watch: $(".watch"),
-			unwatch: $(".unwatch")
+			unwatch: $(".unwatch"),
+			placeBidButton: $(".place-bid")
 		};
 		$.extend(homePage.config, settings);
 		homePage.setup();
@@ -580,6 +581,9 @@ var homePage = {
 		});
 		homePage.config.unwatch.on("click", function(event) {
 		    homePage.removeFromWatchlist(event);
+		});
+		homePage.config.placeBidButton.on("click", function(event) {
+			homePage.placeBid(event);
 		});
 	},
 	
@@ -605,6 +609,14 @@ var homePage = {
 	    let id = trigger.target.id;
 	    let url = "/watchlist/" + id.split("-")[1] + "/remove/";
 	    homePage.sendRequest(url);
+	},
+	
+	placeBid: function(trigger) {
+		trigger.preventDefault();
+		let id = trigger.target.id;
+		let value = $(trigger.target).parent().prev().find("input").val();
+		let url = "/bid/" + id.split("-")[1] + "/" + value + "/";
+		homePage.sendRequest(url);
 	},
 	
 	sendRequest: function(targetUrl) {
@@ -663,13 +675,23 @@ var listingPage = {
 	setup: function() {
 	    homePage.init();
 		listingPage.config.toggles.on("click", function(event) {
-		    w
 		    listingPage.togglePolicyText(event);
 		});
 	},
 	
 	togglePolicyText: function(trigger) {
 	    let id = trigger.target.id;
+	    let full = $("." + id + "-full");
+	    let short = $("." + id + "-short");
+	    if (full.is(":hidden")) {
+			short.hide();
+			full.show();
+			$(trigger.target).text("Less");
+		} else {
+			full.hide();
+			short.show();
+			$(trigger.target).text("More");
+		}
 	}
 };
 
