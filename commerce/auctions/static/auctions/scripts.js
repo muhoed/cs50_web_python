@@ -650,6 +650,30 @@ var watchlistPage = {
 };
 
 
+var listingPage = {
+	
+	init: function(settings) {
+		listingPage.config = {
+			toggles: $(".text-toggle")
+		};
+		$.extend(listingPage.config, settings);
+		listingPage.setup();
+	},
+	
+	setup: function() {
+	    homePage.init();
+		listingPage.config.toggles.on("click", function(event) {
+		    w
+		    listingPage.togglePolicyText(event);
+		});
+	},
+	
+	togglePolicyText: function(trigger) {
+	    let id = trigger.target.id;
+	}
+};
+
+
 $(document).ready(function(){
 	let pageTitle = $("title").text();
 	switch(pageTitle) {
@@ -690,7 +714,7 @@ $(document).ready(function(){
 		        watchlistPage.init();
 		        break;
 		case "Auction$ - Listing details":
-		        homePage.init();
+		        listingPage.init();
 		        break;
 		default:
 			return false;
