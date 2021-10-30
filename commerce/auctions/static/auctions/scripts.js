@@ -696,6 +696,40 @@ var listingPage = {
 };
 
 
+var purchasePage = {
+	
+	init: function(settings) {
+		purchasePage.config = {
+			placeBidButton: $(".place-bid")
+		};
+		$.extend(purchasePage.config, settings);
+		purchasePage.setup();
+	},
+	
+	setup: function() {
+		purchasePage.config.placeBidButton.on("click", function(event) {
+			purchasePage.placeBid(event);
+		});
+	},
+	
+	placeBid: function(trigger) {
+		trigger.preventDefault();
+		let id = trigger.target.id;
+		let value = $(trigger.target).parent().prev().find("input").val();
+		let url = "/bid/" + id.split("-")[1] + "/" + value + "/";
+		purchasePage.sendRequest(url);
+	},
+	
+	sendRequest: function(targetUrl) {
+	    $.ajax({
+			    url: targetUrl
+		    }).done(function(json){
+		        location.reload(true);
+		    });
+	}
+};
+
+
 $(document).ready(function(){
 	let pageTitle = $("title").text();
 	switch(pageTitle) {
@@ -737,6 +771,9 @@ $(document).ready(function(){
 		        break;
 		case "Auction$ - Listing details":
 		        listingPage.init();
+		        break;
+		case "Auction$ - Purchase activities":
+		        purchasePage.init();
 		        break;
 		default:
 			return false;
