@@ -399,6 +399,7 @@ var modifyListingPage = {
 		modifyListingPage.config = {
 			allInput: $("label, input, select, textarea").not("input[placeholder='Search product']"),
 			editableInput: $("input, textarea"),
+			relistOne: $(".relist-product"),
 			editButton: $(".edit")
 		};
 		$.extend(modifyListingPage.config, settings);
@@ -411,6 +412,16 @@ var modifyListingPage = {
 					modifyListingPage.allowModify(event);
 				});
 		modifyListingPage.config.allInput.attr("readonly", true);
+		modifyListingPage.config.relistOne.on("click", function(event){
+		    modifyListingPage.relistOneListing(event);
+		});
+	},
+	
+	relistOneListing: function(trigger) {
+		trigger.preventDefault();
+	    let pks = trigger.target.id.split("-");
+		var url = "/account/" + pks[1] + "/listing/create?listing=" + pks[2];
+		location.href = window.location.protocol + "//" + window.location.host + url;
 	},
 	
 	allowModify: function(trigger) {

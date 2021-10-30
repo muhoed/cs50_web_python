@@ -136,31 +136,45 @@
 				{% for listing in sold %}
 					<div class="listing row mt-1 ml-1 bg-light">
 						<div class="col-md-1 text-center align-self-center">
-							<img src="{{ listing.product.image_set.first.image_url }}" height="50px" width="50px">
+							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
+								<img src="{{ listing.product.image_set.first.image_url }}" height="50px" width="50px">
+							</a>
 						</div>
 						<div class="col-md-2 text-center align-self-center">
-							{{ listing.product.name|capfirst }}
+							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
+								{{ listing.product.name|capfirst }}
+							</a>
 						</div>
 						<div class="col-md-2 text-center align-self-center">
-							{% for category in listing.product.categories.all %}
-								<p>{{ category.name }}</p>
-							{% endfor %}
+							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
+								{% for category in listing.product.categories.all %}
+									<p>{{ category.name }}</p>
+								{% endfor %}
+							</a>
 						</div>
 						<div class="col-md-1 text-center align-self-center">
-							{{ listing.bids.count }}
+							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
+								{{ listing.bids.count }}
+							</a>
 						</div>
 						<div class="col-md-2 text-center align-self-center">
-							{{ listing.max_bid }}
+							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
+								{{ listing.max_bid }}
+							</a>
 						</div>
 						<div class="col-md-2 text-center align-self-center">
-							{{ listing.winner.username }}
+							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
+								{{ listing.winner.username }}
+							</a>
 						</div>
 						<div class="col-md-2 text-center align-self-center">
-							{% if listing.cancelled_on %}
-								{{ listing.cancelled_on }}
-							{% else %}
-								{{ listing.end_time}}
-							{% endif %}
+							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
+								{% if listing.cancelled_on %}
+									{{ listing.cancelled_on }}
+								{% else %}
+									{{ listing.end_time}}
+								{% endif %}
+							</a>
 						</div>
 					</div>
 				{% empty %}
@@ -197,25 +211,35 @@
 				{% for listing in unsold %}
 					<div class="listing row mt-1 ml-1 bg-light">
 						<div class="col-md-1 text-center align-self-center">
-							<img src="{{ listing.product.image_set.first.image_url }}" height="50px" width="50px">
+							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
+								<img src="{{ listing.product.image_set.first.image_url }}" height="50px" width="50px">
+							</a>
 						</div>
 						<div class="col-md-3 text-center align-self-center">
-							{{ listing.product.name|capfirst }}
+							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
+								{{ listing.product.name|capfirst }}
+							</a>
 						</div>
 						<div class="col-md-2 text-center align-self-center">
-							{% for category in listing.product.categories.all %}
-								<p>{{ category.name }}</p>
-							{% endfor %}
+							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
+								{% for category in listing.product.categories.all %}
+									<p>{{ category.name }}</p>
+								{% endfor %}
+							</a>
 						</div>
 						<div class="col-md-2 text-center align-self-center">
-							{{ listing.followers.count }}
+							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
+								{{ listing.followers.count }}
+							</a>
 						</div>
 						<div class="col-md-2 text-center align-self-center">
-							{% if listing.cancelled_on %}
-								{{ listing.cancelled_on }}
-							{% else %}
-								{{ listing.end_time }}
-							{% endif %}
+							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
+								{% if listing.cancelled_on %}
+									{{ listing.cancelled_on }}
+								{% else %}
+									{{ listing.end_time }}
+								{% endif %}
+							</a>
 						</div>
 						<div class="col-md-2 text-center align-self-center">
 							<button class="btn btn-secondary relist-product" id="relist-{{ user.pk }}-{{ listing.pk }}">Relist</button>

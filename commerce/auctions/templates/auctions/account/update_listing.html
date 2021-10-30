@@ -104,8 +104,12 @@
 			<input type="submit" class="btn btn-primary edit" value="Edit">
 		{% endif %}
 	</form>
-	<a href="{% url 'auctions:cancel_listing' user.pk object.pk %}">
-		<button class="btn btn-danger cancel" id="{{ object.pk }}">Cancel</button>
-	</a>
+	{% if object.status == "active" %}
+		<a href="{% url 'auctions:cancel_listing' user.pk object.pk %}">
+			<button class="btn btn-danger cancel" id="{{ object.pk }}">Cancel</button>
+		</a>
+	{% else %}
+		<button class="btn btn-secondary relist-product" id="relist-{{ user.pk }}-{{ listing.pk }}">Relist</button>
+	{% endif %}
 </div>
 {% endblock %}

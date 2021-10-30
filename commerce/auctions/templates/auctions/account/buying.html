@@ -39,7 +39,7 @@
 								</button>-->
                             </div>
                             <div class="row header-row mt-2 ml-1">
-                                <div class="col-md-2 text-center">
+                                <div class="col-md-1 text-center">
                                     Image
                                 </div>
                                 <div class="col-md-2 text-center">
@@ -57,44 +57,55 @@
                                 <div class="col-md-2 text-center">
                                     Time left
                                 </div>
-                                <div class="col-md-2 text-center">
+                                <div class="col-md-3 text-center">
                                     Action
                                 </div>				
                             </div>
 							{% for item in active|dictsort:"listing.end_time" %}
-							<a href="{% url 'auctions:listing' item.listing.pk %}">
-								<div class="listing row mt-1 ml-1 bg-light">
-									<div class="col-md-2 text-center">
+								<div class="listing row mt-1 ml-1 bg-light">	
+								<a class="col-md-1" href="{% url 'auctions:listing' item.listing.pk %}">
+									<div class="w-100 text-center">
 										<img src="{{ item.listing.product.image_set.first.image_url }}" height="50px" width="50px">
 									</div>
-									<div class="col-md-2 text-center">
+								</a>
+								<a  class="col-md-2" href="{% url 'auctions:listing' item.listing.pk %}">
+									<div class="w-100 text-center">
 										{{ item.listing.product.name|capfirst }}
 									</div>
-                                    <div class="col-md-2 text-center">
+								</a>
+								<a  class="col-md-2" href="{% url 'auctions:listing' item.listing.pk %}">
+                                    <div class="w-100 text-center">
 										{% for category in item.listing.product.categories.all %}
 											<p>{{ category.name }}</p>
 										{% endfor %}
 									</div>
-									<div class="col-md-1 text-center">
+								</a>
+								<a  class="col-md-1" href="{% url 'auctions:listing' item.listing.pk %}">
+									<div class="w-100 text-center">
 										{{ item.listing.max_bid }}
-										</div>
-                                    <div class="col-md-1 text-center">
+									</div>
+								</a>
+								<a  class="col-md-1" href="{% url 'auctions:listing' item.listing.pk %}">
+                                    <div class="w-100 text-center">
 										{{ item.value }}
 									</div>
-									<div class="col-md-2 text-center">
+								</a>
+								<a  class="col-md-2" href="{% url 'auctions:listing' item.listing.pk %}">
+									<div class="w-100 text-center">
 										{{ item.listing.end_time|timeuntil }}
 									</div>
+								</a>
                                     <!--<div class="col-md-2 text-center">
 										<button class="btn btn-primary" id="bid">Bid again</button>
 									</div>-->
-									<div class="col-md-2">
-									<div>
-										<input class="form-control" type="number" name="bid" value="{{ item.listing.max_bid|add:'1' }}">
+									<div class="col-md-3 d-flex nowrap">
+										<div>
+											<input class="form-control" type="number" name="bid" value="{{ item.listing.max_bid|add:'1' }}">
+										</div>
+										<div>
+											<button class="btn btn-success place-bid" id="bid-{{ item.listing.id }}">Bid</button>
+										</div>
 									</div>
-									<div>
-										<button class="btn btn-success place-bid" id="bid-{{ item.listing.id }}">Bid</button>
-									</div>
-								</div>
 								</div>
 							</a>
 							{% empty %}
@@ -149,7 +160,7 @@
 										{{ item.value }}
 									</div>
                                     <div class="col-md-2 text-center">
-										{{ item.listing.product.seller }}
+										{{ item.listing.product.seller.username }}
 									</div>
                                     <div class="col-md-1 text-center">
 										<button class="btn btn-primary" id="pay-{{ item.listing.id }}">Pay</button>

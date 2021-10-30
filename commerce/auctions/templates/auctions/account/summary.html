@@ -129,9 +129,6 @@
 					<h3>Your watchlist:</h3>
 					{% with user.watchlist.all as user_watchlist %}
 						<div class="header row mt-1">
-							<div class="col-md-2 text-center">
-								Status
-							</div>
 							<div class="col-md-1 text-center">
 								Picture
 							</div>
@@ -150,13 +147,13 @@
 							<div class="col-md-2 text-center">
 								Left time
 							</div>
+							<div class="col-md-2 text-center">
+								Status
+							</div>
 						</div>
 						{% for listing in user_watchlist|dictsortreversed:"end_time"|slice:":5" %}
 						<a href="{% url 'auctions:listing' listing.pk %}">
 							<div class="listing row mt-1 ml-1 bg-light">
-								<div class="col-md-2 text-center">
-									{{ listing.status }}
-								</div>
 								<div class="col-md-1 text-center">
 									<img src="{{ listing.product.image_set.first.image_url }}" height="50px" width="50px">
 								</div>
@@ -177,6 +174,9 @@
 								<div class="col-md-2 text-center">
 									{{ listing.end_time|timeuntil }}
 								</div>
+								<div class="col-md-2 text-center">
+									{{ listing.status }}
+								</div>
 							</div>
 						</a>
 						{% empty %}
@@ -191,7 +191,7 @@
 					<div class="w-50 mr-1">
 						<h3>Recent sales:</h3>
 							{% for listing in sold|slice:":5" %}
-							<a href="{% url 'auctions:update_listing' user.pk listing.pk">
+							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
 								<div class="listing row mt-1 ml-1 bg-light">
 									<div class="col-md-6 text-center">
 										<img src="{{ listing.product.image_set.first.image_url }}" height="50px" width="50px">
@@ -212,7 +212,7 @@
 					<div class="w-50 ml-1">
 						<h3>Recent purchases:</h3>
 							{% for listing in bought|slice:":5" %}
-							<a href="{% url 'auctiong:listing' listing.pk %}">
+							<a href="{% url 'auctions:listing' listing.pk %}">
 								<div class="listing row mt-1 ml-1 bg-light">
 									<div class="col-md-6 text-center">
 										<img src="{{ listing.product.image_set.first.image_url }}" height="50px" width="50px">

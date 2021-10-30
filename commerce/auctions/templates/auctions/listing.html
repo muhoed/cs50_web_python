@@ -22,6 +22,7 @@
 					</div>
 				</div>
 				<div class="col-6">
+					{% if user.is_authenticated and object.status == "active" %}
 					<div class="row">
 						<h4>Place a bid:</h4>
 						{{ form.non_field_errors }}
@@ -41,7 +42,8 @@
 							</div>
 						</form>
 					</div>
-					<div class="row mt-5">
+					{% endif %}
+					<div class="row {% if user.is_authenticated and object.status == 'active' %} mt-5 {% endif %}">
 						<div class="col-8">
 							Seller:
 						</div>
@@ -85,16 +87,32 @@
 			</div>
 		</div>
 		<div class="col-4 pl-5">
-			<div class="row justify-content-start">
-				Ends in:
-			</div>
-			<div class="row justify-content-start">
-				<h3>{{ object.end_time|timeuntil }}</h3>
-			</div>
+			{% if object.status == "active" %}
+				<div class="row justify-content-start">
+					Ends in:
+				</div>
+				<div class="row justify-content-start">
+					<h3>{{ object.end_time|timeuntil }}</h3>
+				</div>
+			{% elif object.status == "not started yet" %}
+				<div class="row justify-content-start">
+					Starting in {{ object.start_time|timesince }}
+				</div>
+			{% else %}
+				<div class="row justify-content-start">Listing ended</div>
+			{% endif %}
+			{% if user.is_authenticated %}
 			<div class="row justify-content-start mt-5">
 				{% if listing.product.seller == user %}
 					<button class="bnt btn-danger cancel-listing" id="cancel-{{ user.pk }}-{{ object.pk }}">Cancel</button>
 				{% else %}
+					{% if listing.winner == user %}
+						<div class="col mb-5">
+							<button class="btn btn-primary pay" id="pay-{{ user.pk }}-{{ listing.pk }}">Pay</button>
+							<p>  or  </p> 
+							<button class="btn btn-secondary contact-seller" id="contact-{{ user.pk }}-{{ listing.pk }}">Contact seller</button>
+						</div>
+					{% endif %}
 					{% if listing in user.watchlist.all %}
 						<button class="btn btn-warning unwatch" id="unwatch-{{ object.id }}">Remove from watchlist</button>
 					{% else %}
@@ -105,6 +123,7 @@
 			<div class="row justify-content-start mt-2">
 				<a href="#comments"><button class="btn btn-secondary comment" id="comment-{{ object.pk }}">See/Leave comment(s)</button></a>
 			</div>
+			{% endif %}
 		</div>
     </div>
     <div class="row mt-5">
@@ -144,6 +163,7 @@
 		<span class="text-toggle" id="return-policy">More</span>
 		{% endif %}
     </div>
+    {% if user.is_authenticated and object.status == "active" %}
     <div class="row mt-5" id="comments">
 		{{ comment_form.non_field_errors }}
 		<form action="{% url 'auctions:listing' object.pk %}" method="POST" class="flex-grow-1">
@@ -153,6 +173,7 @@
 			<input type="submit" name="comment" value="Leave comment">
 		</form>
     </div>
+    {% endif %}
     <div class="col-12 mt-5">
 		<h5>Comments:</h5>
         {% for comment in listing.comment_set.all %}
