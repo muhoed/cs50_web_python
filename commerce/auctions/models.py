@@ -377,7 +377,12 @@ class Listing(models.Model):
     class productState(models.IntegerChoices):
         USED = 0
         NEW = 1
-
+        
+    class ShipmentStatus(models.IntegerChoices):
+        NOT_SHIPPED = 0
+        SHIPPED = 1
+        DELIVERED = 2
+        
     product = models.ForeignKey(Product, on_delete=models.CASCADE,
                 verbose_name="product offered in the listing",
                 related_name="listings"
@@ -401,7 +406,10 @@ class Listing(models.Model):
                 default = datetime.timedelta(days=10),
                 help_text="Duration of the listing in days. Default to 10 days.")
     cancelled_on = models.DateTimeField(null=True)
-
+    shipment_status = models.IntegerField("shipment status", 
+                choices=ShipmentStatus.choices, default=ShipmentStatus.NOT_SHIPPED)
+    paid = models.BooleanField("payment status", default=False)
+                
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
 	
@@ -502,3 +510,20 @@ class Answer(models.Model):
 				a comment of {self.comment.author.name} \
 				at {self.time}."
 	
+	
+class Message(models.Model):
+	
+	sender = models.ForeignKey(User, on_delete=models.CASCADE,
+				verbose_name="user who sent the message",
+				related_name="sent_messages")
+	recipient = models.ForeignKey(User, on_delete=models.CASCADE,
+				verbose_name="user whome the message is addressed to",
+				related_name="recieved_messages")
+	subject = models.ForeignKey(Listing, on_delete=models.CASCADE,
+				verbose_name="listing regarding which the message was sent")
+	content = models.TextField("comment's text")
+	time = models.DateTimeField(auto_now_add=True)
+	read = models.BooleanField(default=False)
+	
+	def __str__(self):
+		return f"Message from {self.sender.username} to {self.recipient.username} regarding the auction for {self.listing.product.name} sent at {self.time}."

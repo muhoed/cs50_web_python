@@ -1,0 +1,30 @@
+{% extends "auctions/account/profile_layout.html" %}
+
+{% block content %}
+<div class="container">
+    <h3>New message</h3>
+    <div class="row message-form">
+        <form action="{% url 'send_message' %}" metgdo="POST">
+            {% csrf_token %}
+            <div class="row">
+                {% form.non_field_errors %}
+            </div>
+            <div class="row">
+                <div class="col-4">
+                    Recipient:
+                </div>
+                <div class="col-8">
+                    {{ listing.winner.username }}
+                <input type="hidden" name="" value="{{ listing.winner }}">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-4">
+                    Recipient's email:
+                </div>
+                <div class="col-8">
+                    {{ toEmail }}
+                </div>
+            </div>
+</div>
+{% endblock %}

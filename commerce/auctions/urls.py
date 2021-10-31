@@ -129,6 +129,9 @@ urlpatterns = [
 		"account/<int:user_pk>/cancel_listings/", 
 		views.cancel_listings, name="cancel_listings"
 		),
+	path("account/<int:user_pk>/listing/<int:listing_pk>/shipped/", 
+		views.mark_shipped, name="listing_shipped"
+		),
 	path("listing/<int:pk>/", views.ListingView.as_view(
 								extra_context={'title': _('listing details')},
 								template_name="auctions/listing.html"
@@ -142,15 +145,16 @@ urlpatterns = [
 								extra_context={'title': _('modify product')},
 								template_name="auctions/account/update_product.html"),
 			name="update_product"),
-	#path("account/<int:user_pk>/delete_product/<int:product_pk>/", 
-		#views.delete_product, name="delete_product"
-		#),
 	path("account/<int:user_pk>/product/<int:pk>/delete/", views.DeleteProductView.as_view(
 								extra_context={'title': _('confirm product delete')},
 								template_name="auctions/account/product_delete_confirm.html"),
 			name="delete_product"),
     path("listing/<int:listing_pk>/comment/", views.comment, name="comment"),
     path("bid/<int:listing_pk>/<val>/", views.bid, name="bid"),
+    path("message", views.MessageView.as_view(
+        extra_context={'title': _('send message')},
+								template_name="auctions/account/messenger/send_message.html"),
+								name="send_message"),
     path("messenger", views.messenger, name="messenger"),
     path("search", views.search, name="search")
 ]

@@ -2,8 +2,7 @@
 
 {% block content %}
 <div class="container">
-    <h2>Listing information</h2>
-    <p>You can edit listing parameters other than product details untill the listing starts.</p>
+    <h3>Listing status</h3>
     <div class="row listing-status-header">
         <div class="col-md-3 text-center">
             Listing status
@@ -32,6 +31,40 @@
             {{ object.max_bid }}€
         </div>
     </div>
+    {% if object.winner %}
+    <div class="row sale-status-header mt-5">
+        <div class="col-md-3 text-center">
+            Buyer
+        </div>
+        <div class="col-md-3 text-center">
+            Shipment status
+        </div>
+        <div class="col-md-3 text-center">
+            Payment status
+        </div>
+        <div class="col-md-3 text-center">
+            <a href="">
+                <button class="btn btn-primary">Contact buyer</button>
+            </a>
+        </div>
+    </div>
+    <div class="row sale-status-data mt-1 bg-light">
+        <div class="col-md-3 text-center align-self-center">
+            {{ object.winner.username }}
+        </div>
+        <div class="col-md-3 text-center align-self-center">
+            {{ object.get_shipment_status_display }}
+        </div>
+        <div class="col-md-3 text-center align-self-center">
+            {% if object.paid %}Paid{% else %}Not paid{% endif %}
+        </div>
+        <div class="col-md-3 text-center align-self-center">
+            <button class="btn btn-secondary mark-shipped" {% if object.shipment_status != 0 %} disabled{% endif %} id="shipped-{{ user.pk }}-{{ object.pk }}">Confirm shipment</button>
+        </div>
+    </div>
+    {% endif %}
+    <h3>Listing information</h3>
+    <p>You can edit listing parameters other than product details untill the listing starts.</p>
 	<form action="{% url 'auctions:update_listing' user.pk object.pk %}" method="POST">
 		{% csrf_token %}
 			<div class="update-listing-form mt-2 mb-2 container border border-primary border-top-0 border-right-0 border-left-0">

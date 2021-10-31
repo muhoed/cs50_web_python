@@ -179,3 +179,9 @@ ImageFormset = forms.models.inlineformset_factory(Product, Image,
 											form=ImageForm, extra=3, 
 											max_num=3, validate_max=True,
                                             can_delete=True)	
+
+
+class MessageForm(forms.ModelForm):
+	class Meta():
+		model = Message
+		fields = ('content',)

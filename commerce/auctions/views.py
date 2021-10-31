@@ -733,6 +733,24 @@ def cancel_listings(request, user_pk):
         message_text = message_text + listing.product.name + ", "
     messages.success = (request, message_text)
     return redirect(reverse('auctions:sell_activities', kwargs={'pk': user_pk}))
+                                            
+
+@login_required
+def mark_shipped(request, user_pk, listing_pk):
+    """
+    Helper view function to mark product as shipped and send respective message to a buyer.
+    """
+    req_user = get_object_or_404(User, pk=user_pk)
+    if request.user != req_user:
+        return HttpResponse("Failed")
+    listing = get_object_or_404(Listing, pk=listing_pk)
+    if listing.product.seller != req_user:
+        raise ValidationError
+    listing.shipment_status = 1
+    listing.save()
+    message_text = f"Listing's product was marked as shipped and respective message was sent to the buyer." % (listing.product.name)
+    messages.success = (request, message_text)
+    return HttpResponse("Completed")
     
     
 class CreateProductView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
@@ -905,15 +923,7 @@ class DeleteProductView(LoginRequiredMixin, CorrectUserTestMixin, DeleteView):
                                                     'pk':self.user.pk,
                                                     }
                                             )
-    
-    
-@login_required    
-def messenger(request):
-    pass
-    
-
-def categories(request, cat_id):
-    pass
+                                            
 
 class ListingView(DetailView):
     model = Listing
@@ -992,6 +1002,20 @@ def bid(request, listing_pk, val):
         return HttpResponse("Failed")
     messages.success = (request, "Your bid was accepted.")
     return HttpResponse("Completed")
+    
+    
+class SendMessage(CreateView):
+    model = Message
+    form_class = MessageForm
+    
+
+@login_required    
+def messenger(request):
+    pass
+    
+
+def categories(request, cat_id):
+    pass
 
 def search(request):
     pass

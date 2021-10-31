@@ -12,6 +12,14 @@
 //			});
 //};
 
+function sendRequest(targetUrl) {
+	    $.ajax({
+			    url: targetUrl
+		    }).done(function(json){
+		        location.reload(true);
+		    });
+	};
+
 var profilePage = {
 	
 	init: function(settings) {
@@ -400,7 +408,8 @@ var modifyListingPage = {
 			allInput: $("label, input, select, textarea").not("input[placeholder='Search product']"),
 			editableInput: $("input, textarea"),
 			relistOne: $(".relist-product"),
-			editButton: $(".edit")
+			editButton: $(".edit"),
+			markShippedButton: $(".mark-shipped")
 		};
 		$.extend(modifyListingPage.config, settings);
 		modifyListingPage.setup();
@@ -415,6 +424,9 @@ var modifyListingPage = {
 		modifyListingPage.config.relistOne.on("click", function(event){
 		    modifyListingPage.relistOneListing(event);
 		});
+		modifyListingPage.config.markShippedButton.on("click", function(event){
+		    modifyListingPage.markShipped(event);
+		});
 	},
 	
 	relistOneListing: function(trigger) {
@@ -428,6 +440,13 @@ var modifyListingPage = {
 	    trigger.preventDefault();
 		modifyListingPage.config.editableInput.attr("readonly", false);
 		modifyListingPage.config.editButton.prop("value", "Save");
+	},
+	
+	markShipped: function(trigger) {
+	    let id = trigger.target.id;
+	    alert(id);
+	    let url = "/account/" + id.split("-")[1] + "/listing/" + id.split("-")[2] + "/shipped/";
+	    sendRequest(url);
 	}
 };
 
