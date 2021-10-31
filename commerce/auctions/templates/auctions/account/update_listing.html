@@ -43,7 +43,7 @@
             Payment status
         </div>
         <div class="col-md-3 text-center">
-            <a href="">
+            <a href="{% url 'auctions:send_message' user_pk=user.pk listing_pk=object.pk %}">
                 <button class="btn btn-primary">Contact buyer</button>
             </a>
         </div>

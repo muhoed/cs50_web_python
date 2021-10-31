@@ -184,4 +184,4 @@ ImageFormset = forms.models.inlineformset_factory(Product, Image,
 class MessageForm(forms.ModelForm):
 	class Meta():
 		model = Message
-		fields = ('content',)
+		fields = ('sender', 'recipient', 'subject', 'content',)

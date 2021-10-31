@@ -1004,9 +1004,44 @@ def bid(request, listing_pk, val):
     return HttpResponse("Completed")
     
     
-class SendMessage(CreateView):
+class MessageView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
     model = Message
     form_class = MessageForm
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["listing"] = self.listing
+        if self.user == self.listing.product.seller:
+            context["recipient"] = self.listing.winner
+        else:
+            context["recipient"] = self.listing.product.seller
+        try:
+            context["toEmail"] = context["recipient"].emailaddress_set.get(email_type='CT')
+        except:
+            context["toEmail"] = context["recipient"].email
+        if self.listing.cancelled_on:
+            endtime = self.listing.cancelled_on
+        else:
+            endtime = self.listing.end_time
+        context["subject"] = "Regarding auction for " + self.listing.product.name + "ended on " + endtime.strftime("%Y/%m/%d %H:%M:%S")
+        return context
+        
+    def dispatch(self, *args, **kwargs):
+        if 'user_pk' not in kwargs:
+            raise ImproperlyConfigured(
+                "The URL path must contain 'user_pk' parameter."
+            )
+        self.user = User.objects.get(pk=kwargs['user_pk'])
+        if 'listing_pk' not in kwargs:
+            raise ImproperlyConfigured(
+                "The URL path must contain 'listing_pk' parameter."
+            )
+        self.listing = Listing.objects.get(pk=kwargs['listing_pk'])
+        if self.listing.product.seller != self.user and self.listing.winner != self.user:
+            raise ValidationError(
+                "Only the seller and the buyer in the auction may communicate regarding it."
+            )
+        return super().dispatch(*args, **kwargs)
     
 
 @login_required    

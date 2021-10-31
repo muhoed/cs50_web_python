@@ -4,18 +4,19 @@
 <div class="container">
     <h3>New message</h3>
     <div class="row message-form">
-        <form action="{% url 'send_message' %}" metgdo="POST">
+        <form action="{% url 'auctions:send_message' user.pk listing.pk %}" metod="POST">
             {% csrf_token %}
             <div class="row">
-                {% form.non_field_errors %}
+                {{ form.non_field_errors }}
+				<input type="hidden" name="sender" value="{{ user }}">
             </div>
             <div class="row">
                 <div class="col-4">
                     Recipient:
                 </div>
                 <div class="col-8">
-                    {{ listing.winner.username }}
-                <input type="hidden" name="" value="{{ listing.winner }}">
+                    {{ recipient }}
+					<input type="hidden" name="recipient" value="{{ recipient }}">
                 </div>
             </div>
             <div class="row">
@@ -26,5 +27,19 @@
                     {{ toEmail }}
                 </div>
             </div>
+            <div class="row">
+				{{ form.content.errors }}
+			</div>
+            <div class="row">
+                <div class="col-4">
+                    Message content:
+                </div>
+                <div class="col-8">
+                    {{ form.content }}
+                </div>
+            </div>
+            <input type="submit" class="btn btn-success" name="send-message" value="Send">
+        </form>
+    </div>
 </div>
 {% endblock %}
