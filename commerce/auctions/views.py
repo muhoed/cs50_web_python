@@ -1004,7 +1004,7 @@ def bid(request, listing_pk, val):
     return HttpResponse("Completed")
     
     
-class MessageView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
+class CreateMessageView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
     model = Message
     form_class = MessageForm
     
@@ -1023,7 +1023,7 @@ class MessageView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
             endtime = self.listing.cancelled_on
         else:
             endtime = self.listing.end_time
-        context["subject"] = "Regarding auction for " + self.listing.product.name + "ended on " + endtime.strftime("%Y/%m/%d %H:%M:%S")
+        context["subject"] = "Regarding auction for " + self.listing.product.name + " ended on " + endtime.strftime("%Y/%m/%d %H:%M:%S")
         return context
         
     def dispatch(self, *args, **kwargs):
@@ -1042,6 +1042,17 @@ class MessageView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
                 "Only the seller and the buyer in the auction may communicate regarding it."
             )
         return super().dispatch(*args, **kwargs)
+        
+        
+class MessageView(LoginRequiredMixin, DetailView):
+    model = Message
+    
+    def get(self, request, *args, **kwargs):
+        if self.object.sender != request.user and self.object.recipient != request.user:
+            raise ValidationError(
+                "You do not hove access to content of this message."
+            )
+        return super().get(request, *args, **kwargs)
     
 
 @login_required    

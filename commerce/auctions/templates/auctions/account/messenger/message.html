@@ -1,0 +1,16 @@
+{% extends "auctions/account/profile_layout.html" %}
+
+{% block content %}
+
+<div class="container">
+    <h4>{{ object.subject }}</h4>
+    <p>Sender: {{ object.sender.username }}</p>
+    <p>Recipient: {{ object.recipient.username }}</p>
+    <p>Content:</p>
+    <p>{{ object.content }}</p>
+    {% if user == object.recipient %}
+        <button class="btn btn-primary">Reply</button>
+    {% endif %}
+</div>
+
+{% endblock %}

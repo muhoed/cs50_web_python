@@ -444,7 +444,6 @@ var modifyListingPage = {
 	
 	markShipped: function(trigger) {
 	    let id = trigger.target.id;
-	    alert(id);
 	    let url = "/account/" + id.split("-")[1] + "/listing/" + id.split("-")[2] + "/shipped/";
 	    sendRequest(url);
 	}

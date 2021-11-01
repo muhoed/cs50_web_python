@@ -525,5 +525,9 @@ class Message(models.Model):
 	time = models.DateTimeField(auto_now_add=True)
 	read = models.BooleanField(default=False)
 	
+	@property
+	def get_absolute_url(self):
+	    return reverse('auctions:message', kwargs={'pk': self.id})
+	
 	def __str__(self):
 		return f"Message from {self.sender.username} to {self.recipient.username} regarding the auction for {self.listing.product.name} sent at {self.time}."

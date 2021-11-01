@@ -151,10 +151,14 @@ urlpatterns = [
 			name="delete_product"),
     path("listing/<int:listing_pk>/comment/", views.comment, name="comment"),
     path("bid/<int:listing_pk>/<val>/", views.bid, name="bid"),
-    path("account/<int:user_pk>/message/<int:listing_pk>/send/", views.MessageView.as_view(
+    path("account/<int:user_pk>/message/<int:listing_pk>/send/", views.CreateMessageView.as_view(
 								extra_context={'title': _('send message')},
 								template_name="auctions/account/messenger/send_message.html"),
 			name="send_message"),
+    path("account/messenger/<int:pk>/", views.MessageView.as_view(
+								extra_context={'title': _('message')},
+								template_name="auctions/account/messenger/message.html"),
+			name="message"),
     path("messenger", views.messenger, name="messenger"),
     path("search", views.search, name="search")
 ]

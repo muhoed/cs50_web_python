@@ -15,7 +15,7 @@
                     Recipient:
                 </div>
                 <div class="col-8">
-                    {{ recipient }}
+                    {{ recipient.username }}
 					<input type="hidden" name="recipient" value="{{ recipient }}">
                 </div>
             </div>
@@ -28,13 +28,23 @@
                 </div>
             </div>
             <div class="row">
+                <div class="col-4">
+                    Subject:
+                </div>
+                <div class="col-8">
+                    {{ subject }}
+                </div>
+            </div>
+            <div class="row">
 				{{ form.content.errors }}
 			</div>
             <div class="row">
-                <div class="col-4">
+                <div class="col-12">
                     Message content:
                 </div>
-                <div class="col-8">
+            </div>
+            <div class="row">
+                <div class="col-12">
                     {{ form.content }}
                 </div>
             </div>

@@ -182,6 +182,10 @@ ImageFormset = forms.models.inlineformset_factory(Product, Image,
 
 
 class MessageForm(forms.ModelForm):
-	class Meta():
-		model = Message
-		fields = ('sender', 'recipient', 'subject', 'content',)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['content'].widget.attrs.update(rows="5", style='width:100%;')
+        
+    class Meta():
+        model = Message
+        fields = ('sender', 'recipient', 'subject', 'content',)
