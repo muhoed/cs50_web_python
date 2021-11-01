@@ -3,12 +3,12 @@
 {% block content %}
 <div class="container">
     <h3>New message</h3>
-    <div class="row message-form">
-        <form action="{% url 'auctions:send_message' user.pk listing.pk %}" metod="POST">
+    <div class="row ml-2 message-form">
+        <form action="{% url 'auctions:send_message' user.pk listing.pk %}" method="POST">
             {% csrf_token %}
             <div class="row">
                 {{ form.non_field_errors }}
-				<input type="hidden" name="sender" value="{{ user }}">
+				<input type="hidden" name="sender" value="{{ user.pk }}">
             </div>
             <div class="row">
                 <div class="col-4">
@@ -16,7 +16,7 @@
                 </div>
                 <div class="col-8">
                     {{ recipient.username }}
-					<input type="hidden" name="recipient" value="{{ recipient }}">
+					<input type="hidden" name="recipient" value="{{ recipient.pk }}">
                 </div>
             </div>
             <div class="row">
@@ -33,6 +33,7 @@
                 </div>
                 <div class="col-8">
                     {{ subject }}
+					<input type="hidden" name="subject" value="{{ listing.pk }}">
                 </div>
             </div>
             <div class="row">

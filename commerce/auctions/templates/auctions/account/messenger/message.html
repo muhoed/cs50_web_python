@@ -3,7 +3,7 @@
 {% block content %}
 
 <div class="container">
-    <h4>{{ object.subject }}</h4>
+    <h5>Message subject: auction for {{ object.subject.product.name }} ended on {% if object.subject.cancelled_on %}{{ object.subject.cancelled_on }}{% else %}{{ object.subject.end_time}}{% endif %}</h5>
     <p>Sender: {{ object.sender.username }}</p>
     <p>Recipient: {{ object.recipient.username }}</p>
     <p>Content:</p>

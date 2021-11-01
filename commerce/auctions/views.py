@@ -748,7 +748,7 @@ def mark_shipped(request, user_pk, listing_pk):
         raise ValidationError
     listing.shipment_status = 1
     listing.save()
-    message_text = f"Listing's product was marked as shipped and respective message was sent to the buyer." % (listing.product.name)
+    message_text = f"Product %s was marked as shipped and respective message was sent to the buyer." % (listing.product.name)
     messages.success = (request, message_text)
     return HttpResponse("Completed")
     
@@ -1048,11 +1048,13 @@ class MessageView(LoginRequiredMixin, DetailView):
     model = Message
     
     def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
         if self.object.sender != request.user and self.object.recipient != request.user:
             raise ValidationError(
                 "You do not hove access to content of this message."
             )
-        return super().get(request, *args, **kwargs)
+        return self.render_to_response(context)
     
 
 @login_required    

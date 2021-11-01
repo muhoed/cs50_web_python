@@ -325,7 +325,6 @@ class Category(models.Model):
 	name = models.CharField("category's title", max_length=100, unique=True)
 	description = models.CharField("category's description", max_length=255, blank=True)
 	
-	@property
 	def get_absolute_url(self):
 		return reverse('auctions:category', args=[int(self.id)])
 		
@@ -446,7 +445,6 @@ class Listing(models.Model):
                 return bids.order_by('-value')[0].bidder
         return None
         
-    @property
     def get_absolute_url(self):
         return reverse('auctions:listing', kwargs={'pk': self.id})
 
@@ -525,7 +523,6 @@ class Message(models.Model):
 	time = models.DateTimeField(auto_now_add=True)
 	read = models.BooleanField(default=False)
 	
-	@property
 	def get_absolute_url(self):
 	    return reverse('auctions:message', kwargs={'pk': self.id})
 	
