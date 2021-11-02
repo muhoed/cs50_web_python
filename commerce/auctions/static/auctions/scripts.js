@@ -509,7 +509,7 @@ var createOrUpdateProductPage = {
 	    if (confirmation) {
 	        let pks = trigger.target.id.split("-");
 	        let url = "/account/" + pks[1] + "/delete_product/" + pks[3] + "/";
-		    sendRequest(url, "url");
+		    sendRequest(url);
 	    }
 	}
 };
@@ -549,7 +549,7 @@ var sellingActivitiesPage = {
 	    if (confirmation) {
 	        let user = trigger.target.id.split("-");
 	        var url = "/account/" + user[2] + "/cancel_listings/";
-		    sellingActivitiesPage.sendRequest(url);
+		    sendRequest(url);
 	    }
 	},
 	
@@ -559,7 +559,7 @@ var sellingActivitiesPage = {
 	    if (confirmation) {
 	        let pks = trigger.target.id.split("-");
 		    var url = "/account/" + pks[1] + "/listing/" + pks[2] + "/cancel/";
-		    sellingActivitiesPage.sendRequest(url);
+		    sendRequest(url);
 	    }
 	},
 	
@@ -575,14 +575,6 @@ var sellingActivitiesPage = {
 		let pks = trigger.target.id.split("-");
 		var url = "/account/" + pks[1] + "/listing/create?product=" + pks[2];
 		location.href = window.location.protocol + "//" + window.location.host + url;
-	},
-	
-	sendRequest: function(targetUrl) {
-	    $.ajax({
-			    url: targetUrl
-		    }).done(function(json){
-		        location.reload(true);
-		    });
 	}
 };
 
@@ -622,7 +614,7 @@ var homePage = {
 	    if (confirmation) {
 	        let pks = trigger.target.id.split("-");
 		    var url = "/account/" + pks[1] + "/listing/" + pks[2] + "/cancel/";
-		    homePage.sendRequest(url);
+		    sendRequest(url);
 	    }
 	},
 	
@@ -630,14 +622,14 @@ var homePage = {
 	    trigger.preventDefault();
 	    let id = trigger.target.id;
 	    let url = "/watchlist/" + id.split("-")[1] + "/add/";
-	    homePage.sendRequest(url);
+	    sendRequest(url);
 	},
 	
 	removeFromWatchlist: function(trigger) {
 	    trigger.preventDefault();
 	    let id = trigger.target.id;
 	    let url = "/watchlist/" + id.split("-")[1] + "/remove/";
-	    homePage.sendRequest(url);
+	    sendRequest(url);
 	},
 	
 	placeBid: function(trigger) {
@@ -645,15 +637,7 @@ var homePage = {
 		let id = trigger.target.id;
 		let value = $(trigger.target).parent().prev().find("input").val();
 		let url = "/bid/" + id.split("-")[1] + "/" + value + "/";
-		homePage.sendRequest(url);
-	},
-	
-	sendRequest: function(targetUrl) {
-	    $.ajax({
-			    url: targetUrl
-		    }).done(function(json){
-		        location.reload(true);
-		    });
+		sendRequest(url);
 	}
 };
 
@@ -678,15 +662,7 @@ var watchlistPage = {
 	    trigger.preventDefault();
 	    let id = trigger.target.id;
 	    let url = "/watchlist/" + id.split("-")[1] + "/remove/";
-	    watchlistPage.sendRequest(url);
-	},
-	
-	sendRequest: function(targetUrl) {
-	    $.ajax({
-			    url: targetUrl
-		    }).done(function(json){
-		        location.reload(true);
-		    });
+	    sendRequest(url);
 	}
 };
 
@@ -695,7 +671,8 @@ var listingPage = {
 	
 	init: function(settings) {
 		listingPage.config = {
-			toggles: $(".text-toggle")
+			toggles: $(".text-toggle"),
+			markPaidButton: $(".pay")
 		};
 		$.extend(listingPage.config, settings);
 		listingPage.setup();
@@ -705,6 +682,9 @@ var listingPage = {
 	    homePage.init();
 		listingPage.config.toggles.on("click", function(event) {
 		    listingPage.togglePolicyText(event);
+		});
+		listingPage.config.markPaidButton.on("click", function(event) {
+			listingPage.markPaid(event);
 		});
 	},
 	
@@ -721,6 +701,12 @@ var listingPage = {
 			short.show();
 			$(trigger.target).text("More");
 		}
+	},
+	
+	markPaid: function(trigger) {
+	    let id = trigger.target.id;
+	    let url = "/account/" + id.split("-")[1] + "/listing/" + id.split("-")[2] + "/paid/";
+	    sendRequest(url);
 	}
 };
 
@@ -729,7 +715,8 @@ var purchasePage = {
 	
 	init: function(settings) {
 		purchasePage.config = {
-			placeBidButton: $(".place-bid")
+			placeBidButton: $(".place-bid"),
+			markPaidButton: $(".pay")
 		};
 		$.extend(purchasePage.config, settings);
 		purchasePage.setup();
@@ -738,6 +725,9 @@ var purchasePage = {
 	setup: function() {
 		purchasePage.config.placeBidButton.on("click", function(event) {
 			purchasePage.placeBid(event);
+		purchasePage.config.markPaidButton.on("click", function(event) {
+			purchasePage.markPaid(event);
+		});
 		});
 	},
 	
@@ -746,15 +736,13 @@ var purchasePage = {
 		let id = trigger.target.id;
 		let value = $(trigger.target).parent().prev().find("input").val();
 		let url = "/bid/" + id.split("-")[1] + "/" + value + "/";
-		purchasePage.sendRequest(url);
+		sendRequest(url);
 	},
 	
-	sendRequest: function(targetUrl) {
-	    $.ajax({
-			    url: targetUrl
-		    }).done(function(json){
-		        location.reload(true);
-		    });
+	markPaid: function(trigger) {
+	    let id = trigger.target.id;
+	    let url = "/account/" + id.split("-")[1] + "/listing/" + id.split("-")[2] + "/paid/";
+	    sendRequest(url);
 	}
 };
 

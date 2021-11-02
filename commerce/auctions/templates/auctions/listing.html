@@ -103,23 +103,21 @@
 			{% endif %}
 			{% if user.is_authenticated %}
 			<div class="row justify-content-start mt-5">
-				{% if listing.product.seller == user %}
+				{% if object.product.seller == user %}
 					<button class="bnt btn-danger cancel-listing" id="cancel-{{ user.pk }}-{{ object.pk }}">Cancel</button>
-				{% else %}
-					{% if listing.winner == user %}
-						<div class="col mb-5">
-							<button class="btn btn-primary pay" id="pay-{{ user.pk }}-{{ listing.pk }}">Pay</button>
-							<p>  or  </p> 
-							
-            <a href="{% url 'auctions:send_message' user_pk=user.pk listing_pk=listing.pk %}">
-                <button class="btn btn-secondary contact-seller" id="contact-{{ user.pk }}-{{ listing.pk }}">Contact seller</button>
-            </a>
-						</div>
+				{% elif object.winner == user %}
+					<!--<div class="col mb-5">-->
+					{% if not object.paid %}
+						<button class="btn btn-primary mr-1 pay" id="pay-{{ user.pk }}-{{ object.pk }}">Mark as Paid</button>
 					{% endif %}
-					{% if listing in user.watchlist.all %}
-						<button class="btn btn-warning unwatch" id="unwatch-{{ object.id }}">Remove from watchlist</button>
+						<a href="{% url 'auctions:send_message' user_pk=user.pk listing_pk=object.pk %}">
+							<button class="btn btn-secondary contact-seller" id="contact-{{ user.pk }}-{{ object.pk }}">Contact seller</button>
+						</a>
+					<!--</div>-->
+					{% if object in user.watchlist.all %}
+						<button class="btn btn-warning unwatch mt-5" id="unwatch-{{ object.id }}">Remove from watchlist</button>
 					{% else %}
-						<button class="btn btn-primary watch" id="watch-{{ object.id }}">Add to watchlist</button>
+						<button class="btn btn-primary watch mt-5" id="watch-{{ object.id }}">Add to watchlist</button>
 					{% endif %}
 				{% endif %}
 			</div>

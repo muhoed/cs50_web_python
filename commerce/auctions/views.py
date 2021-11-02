@@ -745,10 +745,28 @@ def mark_shipped(request, user_pk, listing_pk):
         return HttpResponse("Failed")
     listing = get_object_or_404(Listing, pk=listing_pk)
     if listing.product.seller != req_user:
-        raise ValidationError
+        raise ValidationError("You are not allowed to perform this action.")
     listing.shipment_status = 1
     listing.save()
     message_text = f"Product %s was marked as shipped and respective message was sent to the buyer." % (listing.product.name)
+    messages.success = (request, message_text)
+    return HttpResponse("Completed")
+    
+    
+@login_required
+def mark_paid(request, user_pk, listing_pk):
+    """
+    Helper view function to mark product as paid and send respective message to a buyer.
+    """
+    req_user = get_object_or_404(User, pk=user_pk)
+    if request.user != req_user:
+        return HttpResponse("Failed")
+    listing = get_object_or_404(Listing, pk=listing_pk)
+    if listing.winner != req_user:
+        raise ValidationError("You are not allowed to perform this action.")
+    listing.paid = True
+    listing.save()
+    message_text = f"Product %s was marked as paid and respective message was sent to the buyer." % (listing.product.name)
     messages.success = (request, message_text)
     return HttpResponse("Completed")
     
