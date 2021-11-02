@@ -63,10 +63,23 @@
         </div>
     </div>
     {% endif %}
-    <h3>Listing information</h3>
-    <p>You can edit listing parameters other than product details untill the listing starts.</p>
-	<form action="{% url 'auctions:update_listing' user.pk object.pk %}" method="POST">
-		{% csrf_token %}
+    <ul class="nav nav-tabs nav-justified">
+		<li class="nav-item">
+			<a class="nav-link active" data-toggle="tab" href="#info">
+				<b>Listing information</b>
+			</a>
+		</li>
+		<li class="nav-item">
+			<a class="nav-link" data-toggle="tab" href="#comments">
+				<b>Comments</b>
+			</a>
+		</li>
+	</ul>
+	<div class="tab-content">
+		<div class="tab-pane info mt-2" id="info">
+        <p>You can edit listing parameters other than product details untill the listing starts.</p>
+	    <form action="{% url 'auctions:update_listing' user.pk object.pk %}" method="POST">
+		    {% csrf_token %}
 			<div class="update-listing-form mt-2 mb-2 container border border-primary border-top-0 border-right-0 border-left-0">
 				<!-- listing product is not editable but should be in POST data -->
 				<div class="products-list row">
@@ -144,5 +157,44 @@
 	{% else %}
 		<button class="btn btn-secondary relist-product" id="relist-{{ user.pk }}-{{ listing.pk }}">Relist</button>
 	{% endif %}
+	</div>
+	<div class="tab-pane info mt-2" id="comments">
+	    {% for comment in listing.comment_set.all %}
+	        <div class="row mt-3 border border-bottom-1 border-top-0 border-left-0 border-right-0">
+                <div class="flex-grow-1">
+                Commented by: {{ comment.author.username }}
+                </div>
+                <div>
+                Commented on: {{ comment.time }}
+                </div>
+                <div class="ml-5">
+                Status: {{ comment.status }}
+                </div>
+            </div>
+            <div class="row border">
+                {{ comment.content }}
+            </div>
+            {% if comment.answer %}
+                <div class="row border border-bottom-1">
+                    <div class="flex-grow-1">
+                        Your answer
+                    </div>
+                    <div>
+                    Answered on: {{ comment.answer.time }}
+                    </div>
+                </div>
+                <div class="row">
+                {{ comment.answer.content }}
+                </div>
+            {% endif %}
+        </div>
+        <button class="btn btn-primary answer">Respond</button>
+	    {% empty %}
+	        <div class="row">
+	            There are no comments on this listing.
+	        </div>
+	    {% endfor %}
+	</div>
+	</div>
 </div>
 {% endblock %}

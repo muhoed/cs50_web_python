@@ -110,7 +110,10 @@
 						<div class="col mb-5">
 							<button class="btn btn-primary pay" id="pay-{{ user.pk }}-{{ listing.pk }}">Pay</button>
 							<p>  or  </p> 
-							<button class="btn btn-secondary contact-seller" id="contact-{{ user.pk }}-{{ listing.pk }}">Contact seller</button>
+							
+            <a href="{% url 'auctions:send_message' user_pk=user.pk listing_pk=listing.pk %}">
+                <button class="btn btn-secondary contact-seller" id="contact-{{ user.pk }}-{{ listing.pk }}">Contact seller</button>
+            </a>
 						</div>
 					{% endif %}
 					{% if listing in user.watchlist.all %}
