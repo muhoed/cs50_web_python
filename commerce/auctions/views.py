@@ -1013,7 +1013,9 @@ class ManageCommentsView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
         return super().dispatch(*args, **kwargs)
     
     def get_queryset(self):
-        return Comment.objects.filter(Q(author=self.user)|Q(listing_product_seller=self.user))
+        #queryset = Comment.objects.filter(author=self.user) or Comment.objects.filter(listing__product_seller=self.user)
+        #print([q for q in Comment.objects.filter(listing__product__seller=self.user)])
+        return Comment.objects.filter(Q(author=self.user)|Q(listing__product__seller=self.user))
 
 
 @login_required

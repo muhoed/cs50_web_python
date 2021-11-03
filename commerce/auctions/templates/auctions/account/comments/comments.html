@@ -1,7 +1,7 @@
 {% extends "auctions/account/profile_layout.html" %}
 
 {% block content %}
-    <h3>See your comments and respective sellers responses. Respond to comments left by potential buyers to your listings.</h3>
+    <h5 class="ml-5">See your comments and respective sellers responses. Respond to comments left by potential buyers to your listings.</h5>
 	<div class="container">
 		<ul class="nav nav-tabs nav-justified">
 			<li class="nav-item">
@@ -17,293 +17,77 @@
 		</ul>
 		<div class="tab-content">
 			<div class="tab-pane active mt-2" id="your">
-				<div class="row w-100" id="tab-header">
-					<h3>Your comments and respective sellers responses:</h3>
+				<div class="row" id="tab-header">
+					<h5 class="ml-3">Your comments and respective sellers responses:</h5>
 				</div>
 				{% for comment in comment_list %}
-				<div class="header-row mt-2 ml-1 row">
-					<div class="col-md-3">
-						Listing
+				{% if comment.author == user %}
+					<div class="mt-2 row">
+						<div class="col-md-3">
+							Listing
+						</div>
+						<div class="col-md-9">
+							<a href="{% url 'auctions:listing' comment.listing.pk %}">{{ comment.listing }}</a>
+						</div>
 					</div>
-					<div class="col-md-9">
-						{{ comment.listing }}
+					<div class="row bg-light">
+						<div class="col-md-3">
+							Your comment:
+						</div>
+						<div class="col-md-9">
+							{{ comment.content }}
+						</div>
 					</div>
-				</div>
-				<div class="row">
-					<div class="col-md-3">
-						Your comment:
+					{% for answer in comment.answer_set.all %}
+					<div class="row">
+						<div class="col-md-5">
+							Answered on {{ answer.time }} by {{ answer.respondent.username }}
+						</div>
+						<div class="col-md-7">
+							{{ answer.content }}
+						</div>
 					</div>
-					<div class="col-md-9">
-						{{ comment.content }}
-					</div>
-				</div>
-	
-				{% for answer in comment.answer_set.all %}
-				<div class="row">
-					<div class="col-md-5">
-						Answered on {{ answer.time }} by {{ answer.respondent.username }}
-					</div>
-					<div class="col-md-7">
-						{{ answer.content }}
-					</div>
-				</div>
-				{{ endfor }}
-			{% endfor %}
+					{% endfor %}
+				{% endif %}
+				{% endfor %}
 			</div>
 			<div class="tab-pane mt-2" id="toyou">
-				<div class="row w-100" id="tab-header">
-					<h3>Your comments and respective sellers responses:</h3>
+				<div class="row" id="tab-header">
+					<h5 class="ml-3">Comments left to your listings:</h5>
 				</div>
-					<div class="col-md-2 text-center">
-						<button class="btn btn-danger cancel-all" id="cancel-all-{{ user.pk }}">
-							Cancel all
-						</button>
-					</div>			
-				</div>
-				{% for listing in active %}
-				<a href="{% url 'auctions:update_listing' user.pk listing.pk %}">
-					<div class="listing-row row mt-1 ml-1 bg-light" id="{{ listing.product.id }}">
-						<div class="col-md-1 align-self-center">
-							<img src="{{ listing.product.image_set.first.image_url }}" height="50px" width="50px">
+				{% for comment in comment_list %}
+				{% if comment.author != user %}
+					<div class="mt-2 row">
+						<div class="col-md-5">
+							Listing
 						</div>
-						<div class="col-md-2 text-center align-self-center">
-							{{ listing.product.name|capfirst }}
-						</div>
-						<div class="col-md-2 text-center align-self-center">
-							{% for category in listing.product.categories.all %}
-								<p>{{ category.name }}</p>
-							{% endfor %}
-						</div>
-						<div class="col-md-1 text-center align-self-center">
-							{{ listing.bids.count }}
-						</div>
-						<div class="col-md-2 text-center align-self-center">
-							{{ listing.max_bid }}
-						</div>
-						<div class="col-md-2 text-center align-self-center">
-							{{ listing.end_time|timeuntil }}
-						</div>
-						<div class="col-md-2 text-center align-self-center">
-							<button class="btn btn-warning cancel-listing" id="cancel-{{ user.pk }}-{{ listing.id }}">
-								Cancel
-							</button>
+						<div class="col-md-7">
+							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=comment.listing.pk %}">{{ comment.listing }}</a>
 						</div>
 					</div>
-				</a>
-				{% empty %}
-					<p class="mt-1 bg-light">You do not have active listings at the moment. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create one.</p>
-				{% endfor %}
-			</div>
-			<div class="tab-pane mt-2" id="sold">
-				<div class="d-flex nowrap w-100" id="tab-header">
-					<h3 class="flex-grow-1">Your sold items:</h3>
-					<!--<button class="btn btn-primary" id="sold-items">
-						Show stats
-					</button>-->
-				</div>
-				<div class="header-row mt-2 ml-1 row">
-					<div class="col-md-1 text-center">
-						Image
-					</div>
-					<div class="col-md-2 text-center">
-						Title
-					</div>
-					<div class= "col-md-2 text-center">
-						Categories
-					</div>
-					<div class="col-md-1 text-center">
-						Bids count
-					</div>
-					<div class="col-md-2 text-center">
-						Winning bid
-					</div>
-					<div class="col-md-2 text-center">
-						Winner
-					</div>
-					<div class="col-md-2 text-center">
-						Ended on
-					</div>			
-				</div>
-				{% for listing in sold %}
-					<div class="listing row mt-1 ml-1 bg-light">
-						<div class="col-md-1 text-center align-self-center">
-							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
-								<img src="{{ listing.product.image_set.first.image_url }}" height="50px" width="50px">
-							</a>
+					<div class="row bg-light">
+						<div class="col-md-5">
+							Commented on {{ comment.time }} by {{ comment.author.username }}:
 						</div>
-						<div class="col-md-2 text-center align-self-center">
-							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
-								{{ listing.product.name|capfirst }}
-							</a>
-						</div>
-						<div class="col-md-2 text-center align-self-center">
-							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
-								{% for category in listing.product.categories.all %}
-									<p>{{ category.name }}</p>
-								{% endfor %}
-							</a>
-						</div>
-						<div class="col-md-1 text-center align-self-center">
-							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
-								{{ listing.bids.count }}
-							</a>
-						</div>
-						<div class="col-md-2 text-center align-self-center">
-							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
-								{{ listing.max_bid }}
-							</a>
-						</div>
-						<div class="col-md-2 text-center align-self-center">
-							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
-								{{ listing.winner.username }}
-							</a>
-						</div>
-						<div class="col-md-2 text-center align-self-center">
-							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
-								{% if listing.cancelled_on %}
-									{{ listing.cancelled_on }}
-								{% else %}
-									{{ listing.end_time}}
-								{% endif %}
-							</a>
+						<div class="col-md-7">
+							{{ comment.content }}
 						</div>
 					</div>
-				{% empty %}
-					<p class="mt-1 bg-light">You did not sell any items yet. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to sell one.</p>
-				{% endfor %}
-			</div>
-			<div class="tab-pane mt-2" id="unsold">
-				<div class="d-flex nowrap w-100" id="tab-header">
-					<h3 class="flex-grow-1">Items that was not sold:</h3>
-					<!--<button class="btn btn-primary" id="unsold-items">
-						Show stats
-					</button>-->
-				</div>
-				<div class="row header-row mt-2 ml-1">
-					<div class="col-md-1 text-center">
-						Image
-					</div>
-					<div class="col-md-3 text-center">
-						Title
-					</div>
-					<div class= "col-md-2 text-center">
-						Categories
-					</div>
-					<div class="col-md-2 text-center">
-						Followers
-					</div>
-					<div class="col-md-2 text-center">
-						Ended on
-					</div>
-					<div class="col-md-2 text-center">
-						Action
-					</div>				
-				</div>
-				{% for listing in unsold %}
-					<div class="listing row mt-1 ml-1 bg-light">
-						<div class="col-md-1 text-center align-self-center">
-							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
-								<img src="{{ listing.product.image_set.first.image_url }}" height="50px" width="50px">
-							</a>
+					{% for answer in comment.answer_set.all %}
+					<div class="row">
+						<div class="col-md-4">
+							You answered on {{ answer.time }} }}
 						</div>
-						<div class="col-md-3 text-center align-self-center">
-							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
-								{{ listing.product.name|capfirst }}
-							</a>
-						</div>
-						<div class="col-md-2 text-center align-self-center">
-							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
-								{% for category in listing.product.categories.all %}
-									<p>{{ category.name }}</p>
-								{% endfor %}
-							</a>
-						</div>
-						<div class="col-md-2 text-center align-self-center">
-							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
-								{{ listing.followers.count }}
-							</a>
-						</div>
-						<div class="col-md-2 text-center align-self-center">
-							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
-								{% if listing.cancelled_on %}
-									{{ listing.cancelled_on }}
-								{% else %}
-									{{ listing.end_time }}
-								{% endif %}
-							</a>
-						</div>
-						<div class="col-md-2 text-center align-self-center">
-							<button class="btn btn-secondary relist-product" id="relist-{{ user.pk }}-{{ listing.pk }}">Relist</button>
+						<div class="col-md-8">
+							{{ answer.content }}
 						</div>
 					</div>
-				{% empty %}
-					<p class="mt-1 bg-light">You do not have any listings ended without winning bidder. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create new listing.</p>
-				{% endfor %}
-			</div>
-			<div class="tab-pane mt-2" id="products">
-				<div class="d-flex nowrap w-100" id="tab-header">
-					<h3 class="flex-grow-1">Manage products you offer:</h3>
-					<a href="{% url 'auctions:create_product'  user.pk %}"><button class="btn btn-primary" id="create-listing-btn">
-						Add product
-					</button></a>
-				</div>
-				<div class="row header-row mt-2 ml-1">
-					<div class="col-md-2 text-center">
-						Image
-					</div>
-					<div class="col-md-3 text-center">
-						Title
-					</div>
-					<div class= "col-md-2 text-center">
-						Categories
-					</div>
-					<div class="col-md-2 text-center">
-						Status
-					</div>
-					<div class="col-md-1 text-center">
-						Num sold
-					</div>
-					<div class="col-md-2 text-center">
-						Action
-					</div>				
-				</div>
-				{% for product in user.products.all|dictsort:"created_on" %}
-				<a href="{% url 'auctions:update_product' user.pk product.pk %}">
-					<div class="row product-row mt-1 ml-1 bg-light" id="{{ product.id }}">
-						<div class="col-md-2 text-center align-self-center">
-							<img src="{{ product.image_set.first.image_url }}" height="50px" width="50px">
-						</div>
-						<div class="col-md-3 text-center align-self-center">
-							{{ product.name|capfirst }}
-						</div>
-						<div class="col-md-2 text-center align-self-center">
-							{% for category in product.categories.all %}
-								<p>{{ category.name }}</p>
-							{% endfor %}
-						</div>
-						<div class="col-md-2 text-center align-self-center">
-							{% if product.sold_num > 0 %}
-								Sold
-							{% elif product.listings.first %}
-								Listed
-							{% else %}
-								Not listed 
-							{% endif %}
-						</div>
-						<div class="col-md-1 text-center align-self-center">
-							{{ product.sold_num }}
-						</div>
-						<div class="col-md-2 text-center align-self-center">
-							<button class="btn btn-secondary sell-product" id="sell-{{ user.pk }}-{{ product.pk }}">Sell</button>
-						</div>
-					</div>
-				</a>
-				{% empty %}
-					<p class="mt-1 bg-light">You did not add any product yet. <a href="{% url 'auctions:create_product' user.pk %}">Click here</a> to add one.</p>
+					{% endfor %}
+					<a href=""><button class="btn btn-primary">Respond</button></a>
+				{% endif %}
 				{% endfor %}
 			</div>
 		</div>
 	</div>
-	{% endif %}
 	
 {% endblock %}
