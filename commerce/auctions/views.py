@@ -1002,9 +1002,19 @@ def change_watchlist(request, listing_pk, action):
     return HttpResponse("Completed")
         
     
-@login_required
-def comment(request, listing_pk):
-    pass
+class ManageCommentsView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
+        
+    def dispatch(self, *args, **kwargs):
+        if 'user_pk' not in kwargs:
+            raise ImproperlyConfigured(
+                "The URL path must contain 'user_pk' parameter."
+            )
+        self.user = User.objects.get(pk=kwargs['user_pk'])
+        return super().dispatch(*args, **kwargs)
+    
+    def get_queryset(self):
+        return Comment.objects.filter(Q(author=self.user)|Q(listing_product_seller=self.user))
+
 
 @login_required
 def bid(request, listing_pk, val):
