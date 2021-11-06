@@ -157,6 +157,10 @@ urlpatterns = [
 								extra_context={'title': _('manage comments')},
 								template_name="auctions/account/comments/comments.html"),
 			name="manage_comments"),
+	path("account/<int:user_pk>/comment/<int:comment_pk>/answer/", views.CreateRespondToCommentView.as_view(
+								extra_context={'title': _('answer comment')},
+								template_name="auctions/account/comments/respond.html"),
+			name="answer_comment"),
     path("bid/<int:listing_pk>/<val>/", views.bid, name="bid"),
     path("account/<int:user_pk>/message/<int:listing_pk>/send/", views.CreateMessageView.as_view(
 								extra_context={'title': _('send message')},

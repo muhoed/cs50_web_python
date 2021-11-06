@@ -4,16 +4,16 @@
 <div class="container">
     <h3>Listing status</h3>
     <div class="row listing-status-header">
-        <div class="col-md-3 text-center">
+        <div class="col-3 text-center">
             Listing status
         </div>
-        <div class="col-md-3 text-center">
+        <div class="col-3 text-center">
             Num.of watchers
         </div>
-        <div class="col-md-3 text-center">
+        <div class="col-3 text-center">
             Num.of bids
         </div>
-        <div class="col-md-3 text-center">
+        <div class="col-3 text-center">
             Top bid
         </div>
     </div>
@@ -63,7 +63,7 @@
         </div>
     </div>
     {% endif %}
-    <ul class="nav nav-tabs nav-justified">
+    <ul class="nav nav-tabs nav-justified mt-2">
 		<li class="nav-item">
 			<a class="nav-link active" data-toggle="tab" href="#info">
 				<b>Listing information</b>
@@ -76,7 +76,7 @@
 		</li>
 	</ul>
 	<div class="tab-content">
-		<div class="tab-pane info mt-2" id="info">
+		<div class="tab-pane info mt-2 active" id="info">
         <p>You can edit listing parameters other than product details untill the listing starts.</p>
 	    <form action="{% url 'auctions:update_listing' user.pk object.pk %}" method="POST">
 		    {% csrf_token %}
@@ -160,7 +160,7 @@
 	</div>
 	<div class="tab-pane info mt-2" id="comments">
 	    {% for comment in listing.comment_set.all %}
-	        <div class="row mt-3 border border-bottom-1 border-top-0 border-left-0 border-right-0">
+	        <div class="row ml-1 mt-3 bg-light border border-bottom-0 border-top-1 border-left-0 border-right-0">
                 <div class="flex-grow-1">
                 Commented by: {{ comment.author.username }}
                 </div>
@@ -171,30 +171,31 @@
                 Status: {{ comment.status }}
                 </div>
             </div>
-            <div class="row border">
+            <div class="row ml-1 border border-top-1 border-bottom-1 border-left-0 border-right-0">
                 {{ comment.content }}
             </div>
-            {% if comment.answer %}
-                <div class="row border border-bottom-1">
+			<a href="{% url 'auctions:answer_comment' user.pk comment.pk %}"><button class="btn btn-primary answer">Respond</button></a>
+            {% if comment.answer_set.first %}
+            {% for answer in comment.answer_set.all %}
+                <div class="row mt-1 ml-5 bg-light">
                     <div class="flex-grow-1">
                         Your answer
                     </div>
                     <div>
-                    Answered on: {{ comment.answer.time }}
+                    Answered on: {{ answer.time }}
                     </div>
                 </div>
-                <div class="row">
-                {{ comment.answer.content }}
+                <div class="row ml-5">
+                {{ answer.content }}
                 </div>
+            {% endfor %}
             {% endif %}
         </div>
-        <button class="btn btn-primary answer">Respond</button>
 	    {% empty %}
 	        <div class="row">
 	            There are no comments on this listing.
 	        </div>
 	    {% endfor %}
-	</div>
 	</div>
 </div>
 {% endblock %}

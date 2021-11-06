@@ -76,14 +76,14 @@
 					{% for answer in comment.answer_set.all %}
 					<div class="row">
 						<div class="col-md-4">
-							You answered on {{ answer.time }} }}
+							You answered on {{ answer.time }}
 						</div>
 						<div class="col-md-8">
 							{{ answer.content }}
 						</div>
 					</div>
 					{% endfor %}
-					<a href=""><button class="btn btn-primary">Respond</button></a>
+					<a href="{% url 'auctions:answer_comment' user.pk comment.pk %}"><button class="btn btn-primary">Respond</button></a>
 				{% endif %}
 				{% endfor %}
 			</div>

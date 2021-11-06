@@ -1,0 +1,60 @@
+{% extends "auctions/account/profile_layout.html" %}
+
+{% block content %}
+
+<div class="container">
+	<h3>Enter your answer</h3>
+    <form action="{% url 'auctions:answer_comment' user.pk comment.pk %}" method="POST">
+		{% csrf_token %}
+		<div class="row">
+			{{ form.non_field_errors }}
+			<input type="hidden" name="respondent" value="{{ respondent.pk }}">
+			<input type="hidden" name="comment" value="{{ comment.pk }}">
+		</div>
+		<div class="row">
+			{{ form.content.errors }}
+		</div>
+		<div class="row">
+			<div class="col-12">
+				{{ form.content }}
+			</div>
+		</div>
+		<input type="submit" class="btn btn-primary" name="respond" value="Respond">
+	</form>
+	<h5 class="mt-2">Comment to respond:</h5>
+	<div class="row">
+		<div class="col-3">
+			Comment author:
+		</div>
+		<div class="col-9">
+			{{ comment.author.username }}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-3">
+			Comment text:
+		</div>
+		<div class="col-9">
+			{{ comment.content }}
+		</div>
+	</div>
+	{% if comment.answer_set.first %}
+	<h5>You have already answered to this comment:</h5>
+	{% for answer in comment.answer_set.all %}
+	<div class="row ml-5">
+		<div class="col-3">Answered on {{ answer.time }}</div>
+		<div class="col-9">{{ answer.content }}</div>
+	</div>
+	{% endfor %}
+	{% endif %}
+	<div class="row">
+		<div class="col-3">
+			Related listing
+		</div>
+		<div class="col-9">
+			{{ comment.listing }}
+		</div>
+	</div>
+</div>
+
+{% endblock %}

@@ -134,9 +134,13 @@ class CommentForm(forms.ModelForm):
         fields = ["author", "listing", "content"]
 	
 class AnswerForm(forms.ModelForm):
-	class Meta():
-		model = Answer
-		fields = ["content"]
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['content'].widget.attrs.update(rows="5", style='width:100%;')
+        
+    class Meta():
+        model = Answer
+        fields = ["respondent", "comment", "content"]
 	
 class ListingForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):

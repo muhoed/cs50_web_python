@@ -1013,10 +1013,42 @@ class ManageCommentsView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
         return super().dispatch(*args, **kwargs)
     
     def get_queryset(self):
-        #queryset = Comment.objects.filter(author=self.user) or Comment.objects.filter(listing__product_seller=self.user)
-        #print([q for q in Comment.objects.filter(listing__product__seller=self.user)])
         return Comment.objects.filter(Q(author=self.user)|Q(listing__product__seller=self.user))
 
+
+class CreateRespondToCommentView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
+    model = Answer
+    form_class = AnswerForm
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["comment"] = self.comment
+        context["respondent"] = self.user
+        return context
+        
+    def dispatch(self, *args, **kwargs):
+        if 'user_pk' not in kwargs:
+            raise ImproperlyConfigured(
+                "The URL path must contain 'user_pk' parameter."
+            )
+        self.user = User.objects.get(pk=kwargs['user_pk'])
+        if 'comment_pk' not in kwargs:
+            raise ImproperlyConfigured(
+                "The URL path must contain 'comment_pk' parameter."
+            )
+        self.comment = Comment.objects.get(pk=kwargs['comment_pk'])
+        if self.comment.listing.product.seller != self.user:
+            raise ValidationError(
+                "Only the seller may answer comments left to her/his listing."
+            )
+        return super().dispatch(*args, **kwargs)
+        
+    def get_success_url(self):
+        messages.success = (self.request, "Your answer was published.")
+        return reverse_lazy('auctions:update_listing', kwargs={
+                                                        'user_pk': self.user.pk,
+                                                        'pk': self.comment.listing.pk 
+                                                        })
 
 @login_required
 def bid(request, listing_pk, val):

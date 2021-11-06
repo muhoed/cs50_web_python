@@ -143,30 +143,39 @@
 								</div>
 							</div>
                             {% for item in bought|dictsort:"listing.end_time" %}
-                            <a href="{% url 'auctions:listing' item.listing.pk %}">
 								<div class="listing row mt-1 ml-1 bg-light">
-									<div class="col-md-1 text-center">
-										<img src="{{ item.product.image_set.first.image_url }}" height="50px" width="50px">
+									<div class="col-1">
+										<a class="text-center" href="{% url 'auctions:listing' item.listing.pk %}">
+											<img src="{{ item.product.image_set.first.image_url }}" height="50px" width="50px">
+										</a>
 									</div>
-									<div class="col-md-3 text-center">
-										{{ item.listing.product.name|capfirst }}
+									<div class="col-3">
+										<a class="text-center" href="{% url 'auctions:listing' item.listing.pk %}">
+											{{ item.listing.product.name|capfirst }}
+										</a>
 									</div>
-									<div class="col-md-2 text-center">
+									<div class="col-2">
+										<a class="text-center" href="{% url 'auctions:listing' item.listing.pk %}">
 										{% for category in item.listing.product.categories.all %}
 											<p>{{ category.name }}</p>
 										{% endfor %}
+										</a>
 									</div>
-									<div class="col-md-1 text-center">
-										{{ item.value }}
+									<div class="col-1">
+										<a class="text-center" href="{% url 'auctions:listing' item.listing.pk %}">
+											{{ item.value }}
+										</a>	
 									</div>
-                                    <div class="col-md-2 text-center">
-										{{ item.listing.product.seller.username }}
+                                    <div class="col-2">
+										<a class="text-center" href="{% url 'auctions:listing' item.listing.pk %}">
+											{{ item.listing.product.seller.username }}
+										</a>
 									</div>
-                                    <div class="col-md-1 text-center">
-										<button class="btn btn-primary pay" id="pay-{{ user.pk }}-{{ item.listing.pk }}">Pay</button>
+                                    <div class="col-1">
+										<button class="btn btn-primary pay" id="pay-{{ user.pk }}-{{ item.listing.pk }}" {% if item.listing.paid %}disabled{%endif%}>Pay</button>
 									</div>
-                                    <div class="col-md-2 text-center">
-										Not paid
+                                    <div class="col-2 text-center">
+										{% if item.listing.paid %}Paid{% else %}Not paid{% endif %}
 									</div>
 								</div>
 							</a>
