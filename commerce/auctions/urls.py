@@ -162,15 +162,15 @@ urlpatterns = [
 								template_name="auctions/account/comments/respond.html"),
 			name="answer_comment"),
     path("bid/<int:listing_pk>/<val>/", views.bid, name="bid"),
-    path("account/<int:user_pk>/message/<int:listing_pk>/send/", views.CreateMessageView.as_view(
+    path("account/<int:user_pk>/messenger/<int:listing_pk>/sendmessage/", views.CreateMessageView.as_view(
 								extra_context={'title': _('send message')},
 								template_name="auctions/account/messenger/send_message.html"),
 			name="send_message"),
-    path("account/messenger/<int:pk>/", views.MessageView.as_view(
+    path("account/messenger/<int:pk>/message/", views.MessageView.as_view(
 								extra_context={'title': _('message')},
 								template_name="auctions/account/messenger/message.html"),
 			name="message"),
-    path("messenger", views.MessengerView.as_view(
+    path("account/messenger/", views.MessengerView.as_view(
         extra_context={'title': _('messenger')},
 								template_name="auctions/account/messenger/messenger.html"), name="messenger"),
     path("search", views.search, name="search")

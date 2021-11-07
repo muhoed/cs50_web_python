@@ -192,4 +192,4 @@ class MessageForm(forms.ModelForm):
         
     class Meta():
         model = Message
-        fields = ('sender', 'recipient', 'subject', 'content',)
+        fields = ('sender', 'recipient', 'subject', 'content', 'related',)

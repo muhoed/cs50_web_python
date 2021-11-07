@@ -9,6 +9,7 @@
             <div class="row">
                 {{ form.non_field_errors }}
 				<input type="hidden" name="sender" value="{{ user.pk }}">
+				{% if parent %}<input type="hidden" name="related" value="{{ parent }}">{% endif %}
             </div>
             <div class="row">
                 <div class="col-4">

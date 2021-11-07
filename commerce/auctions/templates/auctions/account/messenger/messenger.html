@@ -1,89 +1,84 @@
 {% extends "auctions/account/profile_layout.html" %}
 
 {% block content %}
-    <h5 class="ml-5">See your comments and respective sellers responses. Respond to comments left by potential buyers to your listings.</h5>
+    <h3 class="ml-5">See and manage messages and notifications.</h3>
 	<div class="container">
 		<ul class="nav nav-tabs nav-justified">
 			<li class="nav-item">
-				<a class="nav-link active" data-toggle="tab" href="#your">
-					Your comments
+				<a class="nav-link active" data-toggle="tab" href="#inbox">
+					Inbox
 				</a>
 			</li>
 			<li class="nav-item">
-				<a class="nav-link" data-toggle="tab" href="#toyou">
-					Comments to your listings
+				<a class="nav-link" data-toggle="tab" href="#outbox">
+					Outbox
 				</a>
 			</li>
 		</ul>
 		<div class="tab-content">
-			<div class="tab-pane active mt-2" id="your">
+			<div class="tab-pane active mt-2" id="inbox">
 				<div class="row" id="tab-header">
-					<h5 class="ml-3">Your comments and respective sellers responses:</h5>
+					<h5 class="ml-3">Received messages and notifications. Click a message to see content and/or the whole conversation.</h5>
 				</div>
-				{% for comment in comment_list %}
-				{% if comment.author == user %}
-					<div class="mt-2 row">
-						<div class="col-md-3">
-							Listing
+				<div class="mt-2 row">
+					<div class="col-2 text-center">
+						Time
+					</div>
+					<div class="col-2 text-center">
+						Sender
+					</div>
+					<div class="col-8 text-center">
+						Subject
+					</div>
+				</div>
+				{% for message in message_list %}
+				{% if message.recipient == user %}
+				<a href="{% url 'auctions:message' message.pk %}">
+					<div class="row mt-1 border border-top-1 border-left-0 border-right-0 border-bottom-0 {% if not message.read %}font-weight-bold{% endif %}">
+						<div class="col-2">
+							{{ message.time }}
 						</div>
-						<div class="col-md-9">
-							<a href="{% url 'auctions:listing' comment.listing.pk %}">{{ comment.listing }}</a>
+						<div class="col-2">
+							{{ message.sender.username }}
+						</div>
+						<div class="col-8">
+							{{ message.subject }}
 						</div>
 					</div>
-					<div class="row bg-light">
-						<div class="col-md-3">
-							Your comment:
-						</div>
-						<div class="col-md-9">
-							{{ comment.content }}
-						</div>
-					</div>
-					{% for answer in comment.answer_set.all %}
-					<div class="row">
-						<div class="col-md-5">
-							Answered on {{ answer.time }} by {{ answer.respondent.username }}
-						</div>
-						<div class="col-md-7">
-							{{ answer.content }}
-						</div>
-					</div>
-					{% endfor %}
+				</a>
 				{% endif %}
 				{% endfor %}
 			</div>
-			<div class="tab-pane mt-2" id="toyou">
+			<div class="tab-pane mt-2" id="outbox">
 				<div class="row" id="tab-header">
-					<h5 class="ml-3">Comments left to your listings:</h5>
+					<h5 class="ml-3">Sent message. Click message to see content and/or the whole conversation.</h5>
 				</div>
-				{% for comment in comment_list %}
-				{% if comment.author != user %}
-					<div class="mt-2 row">
-						<div class="col-md-5">
-							Listing
+				<div class="mt-2 row">
+					<div class="col-2 text-center">
+						Time
+					</div>
+					<div class="col-2 text-center">
+						Recipient
+					</div>
+					<div class="col-8 text-center">
+						Subject
+					</div>
+				</div>
+				{% for message in message_list %}
+				{% if message.sender == user %}
+				<a href="{% url 'auctions:message' message.pk %}">
+					<div class="row mt-1 border border-top-1 border-left-0 border-right-0 border-bottom-0">
+						<div class="col-2">
+							{{ message.time }}
 						</div>
-						<div class="col-md-7">
-							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=comment.listing.pk %}">{{ comment.listing }}</a>
+						<div class="col-2">
+							{{ message.recipient.username }}
+						</div>
+						<div class="col-8">
+							{{ message.subject }}
 						</div>
 					</div>
-					<div class="row bg-light">
-						<div class="col-md-5">
-							Commented on {{ comment.time }} by {{ comment.author.username }}:
-						</div>
-						<div class="col-md-7">
-							{{ comment.content }}
-						</div>
-					</div>
-					{% for answer in comment.answer_set.all %}
-					<div class="row">
-						<div class="col-md-4">
-							You answered on {{ answer.time }}
-						</div>
-						<div class="col-md-8">
-							{{ answer.content }}
-						</div>
-					</div>
-					{% endfor %}
-					<a href="{% url 'auctions:answer_comment' user.pk comment.pk %}"><button class="btn btn-primary">Respond</button></a>
+				</a>
 				{% endif %}
 				{% endfor %}
 			</div>

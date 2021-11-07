@@ -1086,6 +1086,9 @@ class CreateMessageView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
         else:
             endtime = self.listing.end_time
         context["subject"] = "Regarding auction for " + self.listing.product.name + " ended on " + endtime.strftime("%Y/%m/%d %H:%M:%S")
+        if "parent" in self.request.GET:
+            parent = get_object_or_404(Message, pk=self.request.GET["parent"])
+            context["parent"] = parent.pk
         return context
         
     def dispatch(self, *args, **kwargs):
@@ -1111,26 +1114,23 @@ class MessageView(LoginRequiredMixin, DetailView):
     
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
-        context = self.get_context_data(object=self.object)
+        #validate that current user is sender or recipient of message
         if self.object.sender != request.user and self.object.recipient != request.user:
             raise ValidationError(
-                "You do not hove access to content of this message."
+                "You do not have access to content of this message."
             )
+        #mark message as read if user is recipient and message was not read yet 
+        if not self.object.read and self.object.recipient == request.user:
+            self.object.read = True
+            self.object.save()
+        context = self.get_context_data(object=self.object)
         return self.render_to_response(context)
     
 
-class MessengerView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
-        
-    def dispatch(self, *args, **kwargs):
-        if 'user_pk' not in kwargs:
-            raise ImproperlyConfigured(
-                "The URL path must contain 'user_pk' parameter."
-            )
-        self.user = User.objects.get(pk=kwargs['user_pk'])
-        return super().dispatch(*args, **kwargs)
+class MessengerView(LoginRequiredMixin, ListView):
     
     def get_queryset(self):
-        return Message.objects.filter(Q(sender=self.user)|Q(recipient=self.user))
+        return Message.objects.filter(Q(sender=self.request.user)|Q(recipient=self.request.user))
 
 
 def categories(request, cat_id):

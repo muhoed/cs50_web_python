@@ -3,49 +3,64 @@
 {% block content %}
 
 <div class="container">
-    <div class="row">
+	<div class="row ml-1">
+		<a href="{% url 'auctions:messenger' %}">
+			Go to Messenger
+		</a>
+	</div>
+    <div class="row mt-2">
         <div class="col-8">
             <h5>Message subject: auction for {{ object.subject.product.name }} ended on {% if object.subject.cancelled_on %}{{ object.subject.cancelled_on }}{% else %}{{ object.subject.end_time}}{% endif %}</h5>
         </div>
-        {% if user == object.recipient %}
+        {% if user == object.recipient and object.sender.username != "system" %}
         <div class="col-4">
-            <button class="btn btn-primary">Reply</button>
+            <a href="{% url 'auctions:send_message' user.pk object.subject.pk %}?parent={{ object.pk }}">
+				<button class="btn btn-primary">Reply</button>
+			</a>
         </div>
         {% endif %}
     </div>
-    <div class="row message>">
-    <div class="col-3">Sender: {{ object.sender.username }}</div>
-    <div class="col-9">Recipient: {{ object.recipient.username }}</div>
+    <div class="row message ml-1 mt-2 bg-light border border-bottom-1 border-top-0 border-left-0 bottom-right-0">
+		<div class="col-4">Sender: {{ object.sender.username }}</div>
+		<div class="col-4">Recipient: {{ object.recipient.username }}</div>
+		<div class="col-4">{{ object.time }}</div>
     </div>
-    <div class="row message">
-    <div class="col-3">Content:</div>
-    <div class="col-9">{{ object.content }}</div>
+    <div class="row message ml-1 border border-bottom-1 border-top-0 border-left-0 bottom-right-0">
+		<div class="col-3">Content:</div>
+		<div class="col-9">{{ object.content }}</div>
     </div>
 </div>
-{% if object.related or message.related_set.first %}
+{% if object.related or object.message_set.first %}
 <div class="container">
-    <li class="nav nav-item conversation" data-toggle="collapse" data-target="#conversation">Show/hide whole conversation</li>
-
+	<ul class="nav">
+		<li class="nav-item conversation" data-toggle="collapse" data-target="#conversation">
+			<a href="#" class="nav-link">Show/hide whole conversation</a>
+		</li>
+	</ul>
     <div id="conversation" class="collapse">
         {% if object.related %}
-        <div class="row">
-            <div class="col-3">Sender: {{ object.related.sender.username }}</div>
-            <div class="col-9">Recipient: {{ object.related.recipient.username }}</div>
+        <div class="row ml-1 mt-2 bg-light border border-bottom-1 border-top-0 border-left-0 bottom-right-0">
+            <div class="col-4">Sender: {{ object.related.sender.username }}</div>
+            <div class="col-4">Recipient: {{ object.related.recipient.username }}</div>
+            <div class="col-4">{{ object.related.time }}</div>
         </div>
-        <div class="row">
+        <div class="row ml-1 border border-bottom-1 border-top-0 border-left-0 bottom-right-0">
             <div class="col-3">Content:</div>
             <div class="col-9">{{ object.related.content }}</div>
         </div>
         {% endif %}
-        <div class="row bg-light>">
-            <div class="col-3">
+        <div class="row mt-2 ml-1 bg-info border border-bottom-1 border-top-0 border-left-0 bottom-right-0>">
+            <div class="col-4">
                 Sender: {{ object.sender.username }}
             </div>
-            <div class="col-9">
+            <div class="col-4">
                 Recipient: {{ object.recipient.username }}
             </div>
+            <div class="col-4">
+                {{ object.time }}
+            </div>
         </div>
-        <div class="row bg-light">
+        <div class="row ml-1 bg-info border border-bottom-1 border-top-0 border-left-0 bottom-right-0">
             <div class="col-3">
                 Content:
             </div>
@@ -53,12 +68,13 @@
                 {{ object.content }}
             </div>
         </div>
-        {% for message in object.related_set.all %}
-        <div class="row>">
-            <div class="col-3">Sender: {{ message.sender.username }}</div>
-            <div class="col-9">Recipient: {{ message.recipient.username }}</div>
+        {% for message in object.message_set.all %}
+        <div class="row mt-2 ml-1 bg-light border border-bottom-1 border-top-0 border-left-0 bottom-right-0">
+            <div class="col-4">Sender: {{ message.sender.username }}</div>
+            <div class="col-4">Recipient: {{ message.recipient.username }}</div>
+            <div class="col-4">{{ message.time }}</div>
         </div>
-        <div class="row">
+        <div class="row ml-1 border border-bottom-1 border-top-0 border-left-0 bottom-right-0">
             <div class="col-3">Content:</div>
             <div class="col-9">{{ message.content }}</div>
         </div>

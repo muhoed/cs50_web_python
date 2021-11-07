@@ -747,6 +747,35 @@ var purchasePage = {
 };
 
 
+var messagePage = {
+	
+	init: function(settings) {
+		messagePage.config = {
+			collapseToggle: $(".conversation"),
+			messageContent: $(".message")
+		};
+		$.extend(messagePage.config, settings);
+		messagePage.setup();
+	},
+	
+	setup: function() {
+		messagePage.config.collapseToggle.on("click", function(event) {
+			messagePage.toggleMessageDisplay(event);
+		});
+	},
+	
+	toggleMessageDisplay: function(trigger) {
+		messagePage.config.messageContent.each(function(){
+			if ($(this).is(":hidden")) {
+				$(this).show();
+			} else {
+				$(this).hide();
+			}
+		});
+	}
+};
+
+
 $(document).ready(function(){
 	let pageTitle = $("title").text();
 	switch(pageTitle) {
@@ -791,6 +820,9 @@ $(document).ready(function(){
 		        break;
 		case "Auction$ - Purchase activities":
 		        purchasePage.init();
+		        break;
+		case "Auction$ - Message":
+		        messagePage.init();
 		        break;
 		default:
 			return false;
