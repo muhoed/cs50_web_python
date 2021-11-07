@@ -178,7 +178,7 @@
     <div class="col-12 mt-5">
 		<h5>Comments:</h5>
         {% for comment in listing.comment_set.all %}
-        <div class="row mt-3 border border-bottom-1 border-top-0 border-left-0 border-right-0">
+        <div class="row mt-3 border border-bottom-1 border-top-0 border-left-0 border-right-0 bg-light">
             <div class="flex-grow-1">
                 Commented by: {{ comment.author.username }}
             </div>
@@ -192,19 +192,19 @@
         <div class="row border">
             {{ comment.content }}
         </div>
-        {% if comment.answer %}
-            <div class="row border border-bottom-1">
+        {% for answer in comment.answer_set.all %}
+            <div class="row border border-bottom-1 mt-1 ml-5 bg-light">
                 <div class="flex-grow-1">
-                    Answered by: {{ comment.answer.respondent.username }}
+                    Answered by: {{ answer.respondent.username }}
                 </div>
                 <div>
-                    Answered on: {{ comment.answer.time }}
+                    Answered on: {{ answer.time }}
                 </div>
             </div>
-            <div class="row">
-                {{ comment.answer.content }}
+            <div class="row mt-1 ml-5">
+                {{ answer.content }}
             </div>
-        {% endif %}
+        {% endfor %}
     </div>
     {% empty %}
     <div class="row mt-5">

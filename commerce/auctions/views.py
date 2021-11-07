@@ -1119,10 +1119,19 @@ class MessageView(LoginRequiredMixin, DetailView):
         return self.render_to_response(context)
     
 
-@login_required    
-def messenger(request):
-    pass
+class MessengerView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
+        
+    def dispatch(self, *args, **kwargs):
+        if 'user_pk' not in kwargs:
+            raise ImproperlyConfigured(
+                "The URL path must contain 'user_pk' parameter."
+            )
+        self.user = User.objects.get(pk=kwargs['user_pk'])
+        return super().dispatch(*args, **kwargs)
     
+    def get_queryset(self):
+        return Message.objects.filter(Q(sender=self.user)|Q(recipient=self.user))
+
 
 def categories(request, cat_id):
     pass

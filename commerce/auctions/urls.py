@@ -170,7 +170,9 @@ urlpatterns = [
 								extra_context={'title': _('message')},
 								template_name="auctions/account/messenger/message.html"),
 			name="message"),
-    path("messenger", views.messenger, name="messenger"),
+    path("messenger", views.MessengerView.as_view(
+        extra_context={'title': _('messenger')},
+								template_name="auctions/account/messenger/messenger.html"), name="messenger"),
     path("search", views.search, name="search")
 ]
 

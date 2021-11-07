@@ -175,7 +175,6 @@
                 {{ comment.content }}
             </div>
 			<a href="{% url 'auctions:answer_comment' user.pk comment.pk %}"><button class="btn btn-primary answer">Respond</button></a>
-            {% if comment.answer_set.first %}
             {% for answer in comment.answer_set.all %}
                 <div class="row mt-1 ml-5 bg-light">
                     <div class="flex-grow-1">
@@ -189,7 +188,6 @@
                 {{ answer.content }}
                 </div>
             {% endfor %}
-            {% endif %}
         </div>
 	    {% empty %}
 	        <div class="row">

@@ -519,6 +519,7 @@ class Message(models.Model):
 				related_name="recieved_messages")
 	subject = models.ForeignKey(Listing, on_delete=models.CASCADE,
 				verbose_name="listing regarding which the message was sent")
+	related = models.ForeignKey("self", on_delete=models.CASCADE, verbose_name="initial message", null=True, blank=True)
 	content = models.TextField("comment's text")
 	time = models.DateTimeField(auto_now_add=True)
 	read = models.BooleanField(default=False)

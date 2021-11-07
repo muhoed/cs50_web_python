@@ -3,14 +3,67 @@
 {% block content %}
 
 <div class="container">
-    <h5>Message subject: auction for {{ object.subject.product.name }} ended on {% if object.subject.cancelled_on %}{{ object.subject.cancelled_on }}{% else %}{{ object.subject.end_time}}{% endif %}</h5>
-    <p>Sender: {{ object.sender.username }}</p>
-    <p>Recipient: {{ object.recipient.username }}</p>
-    <p>Content:</p>
-    <p>{{ object.content }}</p>
-    {% if user == object.recipient %}
-        <button class="btn btn-primary">Reply</button>
-    {% endif %}
+    <div class="row">
+        <div class="col-8">
+            <h5>Message subject: auction for {{ object.subject.product.name }} ended on {% if object.subject.cancelled_on %}{{ object.subject.cancelled_on }}{% else %}{{ object.subject.end_time}}{% endif %}</h5>
+        </div>
+        {% if user == object.recipient %}
+        <div class="col-4">
+            <button class="btn btn-primary">Reply</button>
+        </div>
+        {% endif %}
+    </div>
+    <div class="row message>">
+    <div class="col-3">Sender: {{ object.sender.username }}</div>
+    <div class="col-9">Recipient: {{ object.recipient.username }}</div>
+    </div>
+    <div class="row message">
+    <div class="col-3">Content:</div>
+    <div class="col-9">{{ object.content }}</div>
+    </div>
 </div>
+{% if object.related or message.related_set.first %}
+<div class="container">
+    <li class="nav nav-item conversation" data-toggle="collapse" data-target="#conversation">Show/hide whole conversation</li>
 
+    <div id="conversation" class="collapse">
+        {% if object.related %}
+        <div class="row">
+            <div class="col-3">Sender: {{ object.related.sender.username }}</div>
+            <div class="col-9">Recipient: {{ object.related.recipient.username }}</div>
+        </div>
+        <div class="row">
+            <div class="col-3">Content:</div>
+            <div class="col-9">{{ object.related.content }}</div>
+        </div>
+        {% endif %}
+        <div class="row bg-light>">
+            <div class="col-3">
+                Sender: {{ object.sender.username }}
+            </div>
+            <div class="col-9">
+                Recipient: {{ object.recipient.username }}
+            </div>
+        </div>
+        <div class="row bg-light">
+            <div class="col-3">
+                Content:
+            </div>
+            <div class="col-9">
+                {{ object.content }}
+            </div>
+        </div>
+        {% for message in object.related_set.all %}
+        <div class="row>">
+            <div class="col-3">Sender: {{ message.sender.username }}</div>
+            <div class="col-9">Recipient: {{ message.recipient.username }}</div>
+        </div>
+        <div class="row">
+            <div class="col-3">Content:</div>
+            <div class="col-9">{{ message.content }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 {% endblock %}

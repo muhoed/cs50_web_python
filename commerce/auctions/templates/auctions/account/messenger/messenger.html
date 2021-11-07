@@ -1,8 +1,93 @@
 {% extends "auctions/account/profile_layout.html" %}
 
 {% block content %}
-
-<div class="container">
-    
-</div>
+    <h5 class="ml-5">See your comments and respective sellers responses. Respond to comments left by potential buyers to your listings.</h5>
+	<div class="container">
+		<ul class="nav nav-tabs nav-justified">
+			<li class="nav-item">
+				<a class="nav-link active" data-toggle="tab" href="#your">
+					Your comments
+				</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" data-toggle="tab" href="#toyou">
+					Comments to your listings
+				</a>
+			</li>
+		</ul>
+		<div class="tab-content">
+			<div class="tab-pane active mt-2" id="your">
+				<div class="row" id="tab-header">
+					<h5 class="ml-3">Your comments and respective sellers responses:</h5>
+				</div>
+				{% for comment in comment_list %}
+				{% if comment.author == user %}
+					<div class="mt-2 row">
+						<div class="col-md-3">
+							Listing
+						</div>
+						<div class="col-md-9">
+							<a href="{% url 'auctions:listing' comment.listing.pk %}">{{ comment.listing }}</a>
+						</div>
+					</div>
+					<div class="row bg-light">
+						<div class="col-md-3">
+							Your comment:
+						</div>
+						<div class="col-md-9">
+							{{ comment.content }}
+						</div>
+					</div>
+					{% for answer in comment.answer_set.all %}
+					<div class="row">
+						<div class="col-md-5">
+							Answered on {{ answer.time }} by {{ answer.respondent.username }}
+						</div>
+						<div class="col-md-7">
+							{{ answer.content }}
+						</div>
+					</div>
+					{% endfor %}
+				{% endif %}
+				{% endfor %}
+			</div>
+			<div class="tab-pane mt-2" id="toyou">
+				<div class="row" id="tab-header">
+					<h5 class="ml-3">Comments left to your listings:</h5>
+				</div>
+				{% for comment in comment_list %}
+				{% if comment.author != user %}
+					<div class="mt-2 row">
+						<div class="col-md-5">
+							Listing
+						</div>
+						<div class="col-md-7">
+							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=comment.listing.pk %}">{{ comment.listing }}</a>
+						</div>
+					</div>
+					<div class="row bg-light">
+						<div class="col-md-5">
+							Commented on {{ comment.time }} by {{ comment.author.username }}:
+						</div>
+						<div class="col-md-7">
+							{{ comment.content }}
+						</div>
+					</div>
+					{% for answer in comment.answer_set.all %}
+					<div class="row">
+						<div class="col-md-4">
+							You answered on {{ answer.time }}
+						</div>
+						<div class="col-md-8">
+							{{ answer.content }}
+						</div>
+					</div>
+					{% endfor %}
+					<a href="{% url 'auctions:answer_comment' user.pk comment.pk %}"><button class="btn btn-primary">Respond</button></a>
+				{% endif %}
+				{% endfor %}
+			</div>
+		</div>
+	</div>
+	
 {% endblock %}
