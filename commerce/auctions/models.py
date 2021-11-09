@@ -350,7 +350,9 @@ class Product(models.Model):
     updated_on = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.name
+        return f'Product title: %s, product description: %s' % (self.name,
+															self.description
+															)
 		
 
 def get_product_image_filename(instance, filename):
