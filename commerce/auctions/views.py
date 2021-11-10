@@ -1060,7 +1060,7 @@ def bid(request, listing_pk, val):
                                 value=val
                             )
     except:
-        message.failure = (request, "The listing was not found.")
+        messages.failure = (request, "The listing was not found.")
         return HttpResponse("Failed")
     messages.success = (request, "Your bid was accepted.")
     return HttpResponse("Completed")

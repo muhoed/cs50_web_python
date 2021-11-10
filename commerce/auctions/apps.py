@@ -1,9 +1,10 @@
 from django.apps import AppConfig
-from django.db.models.signals import post_save, post_migrate
 
 
 class AuctionsConfig(AppConfig):
     name = 'auctions'
     
-    #def ready(self):
+    def ready(self):
         #from .models import Product, Listing, Bid, Comment, Answer
+        #from .signals import product_handler, listing_handler, comment_handler, answer_handler, bid_handler
+        import auctions.signals
