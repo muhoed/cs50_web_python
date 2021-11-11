@@ -1130,7 +1130,7 @@ class MessageView(LoginRequiredMixin, DetailView):
 class MessengerView(LoginRequiredMixin, ListView):
     
     def get_queryset(self):
-        return Message.objects.filter(Q(sender=self.request.user)|Q(recipient=self.request.user))
+        return Message.objects.filter(Q(sender=self.request.user)|Q(recipient=self.request.user)).order_by("-time")
 
 
 def categories(request, cat_id):
