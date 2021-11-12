@@ -348,6 +348,9 @@ class Product(models.Model):
 
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
+    
+    def get_absolute_url(self):
+        return reverse('auctions:update_product', kwargs={'user_pk': self.seller.pk, 'pk': self.id})
 
     def __str__(self):
         return f'Product title: %s, product description: %s' % (self.name,

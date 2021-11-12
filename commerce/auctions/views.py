@@ -954,8 +954,14 @@ class ListingView(DetailView):
             context["comment_form"] = CommentForm()
         return context
         
-    def post(self, request, *args, **kwargs):
+    def dispatch(self, *args, **kwargs):
         self.object = self.get_object()
+        if self.object.product.seller == self.request.user:
+            return redirect(reverse('auctions:update_listing', kwargs={'user_pk': self.request.user.pk, 'pk': self.object.pk}))
+        return super().dispatch(*args, **kwargs)
+        
+    def post(self, request, *args, **kwargs):
+        #self.object = self.get_object()
         data = {"listing": self.object}
         if "content" in request.POST:
             data["author"] = request.user

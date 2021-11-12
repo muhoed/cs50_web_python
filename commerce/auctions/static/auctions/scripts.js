@@ -16,7 +16,12 @@ function sendRequest(targetUrl) {
 	    $.ajax({
 			    url: targetUrl
 		    }).done(function(json){
+		        if (json !== "Completed") {
+		            alert(json);
+		        }
 		        location.reload(true);
+		    }).fail(function(json){
+		        alert(json);
 		    });
 	};
 
