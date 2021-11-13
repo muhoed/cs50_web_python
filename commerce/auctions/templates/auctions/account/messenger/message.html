@@ -10,11 +10,11 @@
 	</div>
     <div class="row mt-2">
         <div class="col-8">
-            <h5>Message subject: auction for {{ object.subject.product.name }} ended on {% if object.subject.cancelled_on %}{{ object.subject.cancelled_on }}{% else %}{{ object.subject.end_time}}{% endif %}</h5>
+            <h5>Message subject: {{ object.subject }}</h5>
         </div>
         {% if user == object.recipient and object.sender.username != "system" %}
         <div class="col-4">
-            <a href="{% url 'auctions:send_message' user.pk object.subject.pk %}?parent={{ object.pk }}">
+            <a href="{% url 'auctions:send_message' user.pk object.listing.pk %}?parent={{ object.pk }}">
 				<button class="btn btn-primary">Reply</button>
 			</a>
         </div>
@@ -27,7 +27,7 @@
     </div>
     <div class="row message ml-1 border border-bottom-1 border-top-0 border-left-0 bottom-right-0">
 		<div class="col-3">Content:</div>
-		<div class="col-9">{{ object.content }}</div>
+		<div class="col-9">{{ object.content|safe }}</div>
     </div>
 </div>
 {% if object.related or object.message_set.first %}
@@ -46,7 +46,7 @@
         </div>
         <div class="row ml-1 border border-bottom-1 border-top-0 border-left-0 bottom-right-0">
             <div class="col-3">Content:</div>
-            <div class="col-9">{{ object.related.content }}</div>
+            <div class="col-9">{{ object.related.content|safe }}</div>
         </div>
         {% endif %}
         <div class="row mt-2 ml-1 bg-info border border-bottom-1 border-top-0 border-left-0 bottom-right-0>">
@@ -65,7 +65,7 @@
                 Content:
             </div>
             <div class="col-9">
-                {{ object.content }}
+                {{ object.content|safe }}
             </div>
         </div>
         {% for message in object.message_set.all %}
@@ -76,7 +76,7 @@
         </div>
         <div class="row ml-1 border border-bottom-1 border-top-0 border-left-0 bottom-right-0">
             <div class="col-3">Content:</div>
-            <div class="col-9">{{ message.content }}</div>
+            <div class="col-9">{{ message.content|safe }}</div>
         </div>
         {% endfor %}
     </div>

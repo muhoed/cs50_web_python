@@ -34,7 +34,8 @@
                 </div>
                 <div class="col-8">
                     {{ subject }}
-					<input type="hidden" name="subject" value="{{ listing.pk }}">
+					<input type="hidden" name="listing" value="{{ listing.pk }}">
+					<input type="hidden" name="subject" value="{{ subject }}">
                 </div>
             </div>
             <div class="row">
@@ -47,7 +48,7 @@
             </div>
             <div class="row">
                 <div class="col-12">
-                    {{ form.content }}
+                    {{ form.content|safe }}
                 </div>
             </div>
             <input type="submit" class="btn btn-success" name="send-message" value="Send">

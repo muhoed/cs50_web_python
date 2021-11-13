@@ -135,6 +135,9 @@ urlpatterns = [
 	path("account/<int:user_pk>/listing/<int:listing_pk>/paid/", 
 		views.mark_paid, name="listing_paid"
 		),
+	path("account/<int:user_pk>/listing/<int:listing_pk>/delivered/", 
+		views.mark_delivered, name="listing_delivered"
+		),
 	path("listing/<int:pk>/", views.ListingView.as_view(
 								extra_context={'title': _('listing details')},
 								template_name="auctions/listing.html"

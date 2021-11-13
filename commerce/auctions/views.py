@@ -766,7 +766,25 @@ def mark_paid(request, user_pk, listing_pk):
         raise ValidationError("You are not allowed to perform this action.")
     listing.paid = True
     listing.save()
-    message_text = f"Product %s was marked as paid and respective message was sent to the buyer." % (listing.product.name)
+    message_text = f"Product %s was marked as paid and respective message was sent to the seller." % (listing.product.name)
+    messages.success = (request, message_text)
+    return HttpResponse("Completed")
+    
+
+@login_required
+def mark_delivered(request, user_pk, listing_pk):
+    """
+    Helper view function to mark product as paid and send respective message to a buyer.
+    """
+    req_user = get_object_or_404(User, pk=user_pk)
+    if request.user != req_user:
+        return HttpResponse("Failed")
+    listing = get_object_or_404(Listing, pk=listing_pk)
+    if listing.winner != req_user:
+        raise ValidationError("You are not allowed to perform this action.")
+    listing.shipment_status = 2
+    listing.save()
+    message_text = f"Product %s was marked as delivered and respective message was sent to the seller." % (listing.product.name)
     messages.success = (request, message_text)
     return HttpResponse("Completed")
     
@@ -997,7 +1015,7 @@ def change_watchlist(request, listing_pk, action):
         listing = Listing.objects.get(pk=listing_pk)
     except:
         message.failure = (request, "The listing was not found.")
-        return HttpResponse("Failed")
+        return HttpResponse("The listing was not found.")
     if action == "add":
         request.user.watchlist.add(listing)
         messages.success = (request, "Listing was added to your watchlist")
@@ -1060,14 +1078,19 @@ class CreateRespondToCommentView(LoginRequiredMixin, CorrectUserTestMixin, Creat
 def bid(request, listing_pk, val):
     try:
         listing = Listing.objects.get(pk=listing_pk)
+    except:
+        messages.failure = (request, "The listing was not found.")
+        return HttpResponse("The listing was not found.")
+    
+    try:    
         new_bid = Bid.objects.create(
                                 bidder=request.user,
                                 listing=listing,
                                 value=val
                             )
-    except:
-        messages.failure = (request, "The listing was not found.")
-        return HttpResponse("Failed")
+    except Exception as e:
+        return HttpResponse(e)
+        
     messages.success = (request, "Your bid was accepted.")
     return HttpResponse("Completed")
     
@@ -1087,11 +1110,8 @@ class CreateMessageView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
             context["toEmail"] = context["recipient"].emailaddress_set.get(email_type='CT')
         except:
             context["toEmail"] = context["recipient"].email
-        if self.listing.cancelled_on:
-            endtime = self.listing.cancelled_on
-        else:
-            endtime = self.listing.end_time
-        context["subject"] = "Regarding auction for " + self.listing.product.name + " ended on " + endtime.strftime("%Y/%m/%d %H:%M:%S")
+        starttime = self.listing.start_time
+        context["subject"] = "Auction for " + self.listing.product.name + " listed on " + starttime.strftime("%Y/%m/%d %H:%M:%S")
         if "parent" in self.request.GET:
             parent = get_object_or_404(Message, pk=self.request.GET["parent"])
             context["parent"] = parent.pk
@@ -1110,7 +1130,7 @@ class CreateMessageView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
         self.listing = Listing.objects.get(pk=kwargs['listing_pk'])
         if self.listing.product.seller != self.user and self.listing.winner != self.user:
             raise ValidationError(
-                "Only the seller and the buyer in the auction may communicate regarding it."
+                "Only the seller and the buyer in the listing may communicate regarding it."
             )
         return super().dispatch(*args, **kwargs)
         

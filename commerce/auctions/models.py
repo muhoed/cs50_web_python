@@ -455,11 +455,11 @@ class Listing(models.Model):
 
     def __str__(self):
         return f"Auction listing for {self.product.name}. \
-                start time: {self.start_time}, \
-                start price: {self.start_price}, \
-                highest bid: {self.max_bid}, \
-                duration: {self.duration}, \
-                status: {self.status}." 
+                Start time: {self.start_time}, \
+                Start price: {self.start_price}, \
+                Highest bid: {self.max_bid}, \
+                Duration: {self.duration}, \
+                Status: {self.status}" 
 	
 	
 class Bid(models.Model):
@@ -522,9 +522,12 @@ class Message(models.Model):
 	recipient = models.ForeignKey(User, on_delete=models.CASCADE,
 				verbose_name="user whome the message is addressed to",
 				related_name="recieved_messages")
-	subject = models.ForeignKey(Listing, on_delete=models.CASCADE,
-				verbose_name="listing regarding which the message was sent")
-	related = models.ForeignKey("self", on_delete=models.CASCADE, verbose_name="initial message", null=True, blank=True)
+	listing = models.ForeignKey(Listing, on_delete=models.CASCADE,
+				verbose_name="listing regarding which the message was sent",
+				null=True, blank=True)
+	related = models.ForeignKey("self", on_delete=models.CASCADE, 
+				verbose_name="initial message", null=True, blank=True)
+	subject = models.CharField("message subject", max_length=285)
 	content = models.TextField("comment's text")
 	time = models.DateTimeField(auto_now_add=True)
 	read = models.BooleanField(default=False)
@@ -533,4 +536,4 @@ class Message(models.Model):
 	    return reverse('auctions:message', kwargs={'pk': self.id})
 	
 	def __str__(self):
-		return f"Message from {self.sender.username} to {self.recipient.username} regarding the auction for {self.listing.product.name} sent at {self.time}."
+		return f"Message from {self.sender.username} to {self.recipient.username} regarding {self.subject} sent at {self.time}."

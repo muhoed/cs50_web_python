@@ -16,7 +16,7 @@ function sendRequest(targetUrl) {
 	    $.ajax({
 			    url: targetUrl
 		    }).done(function(json){
-		        if (json !== "Completed") {
+		        if (json != "Completed") {
 		            alert(json);
 		        }
 		        location.reload(true);
@@ -677,7 +677,8 @@ var listingPage = {
 	init: function(settings) {
 		listingPage.config = {
 			toggles: $(".text-toggle"),
-			markPaidButton: $(".pay")
+			markPaidButton: $(".pay"),
+			markDeliveredButton: $(".delivered")
 		};
 		$.extend(listingPage.config, settings);
 		listingPage.setup();
@@ -690,6 +691,9 @@ var listingPage = {
 		});
 		listingPage.config.markPaidButton.on("click", function(event) {
 			listingPage.markPaid(event);
+		});
+		listingPage.config.markDeliveredButton.on("click", function(event) {
+			listingPage.markDelivered(event);
 		});
 	},
 	
@@ -711,6 +715,12 @@ var listingPage = {
 	markPaid: function(trigger) {
 	    let id = trigger.target.id;
 	    let url = "/account/" + id.split("-")[1] + "/listing/" + id.split("-")[2] + "/paid/";
+	    sendRequest(url);
+	},
+	
+	markDelivered: function(trigger) {
+	    let id = trigger.target.id;
+	    let url = "/account/" + id.split("-")[1] + "/listing/" + id.split("-")[2] + "/delivered/";
 	    sendRequest(url);
 	}
 };
