@@ -110,8 +110,10 @@ urlpatterns = [
 			name="watchlist"),
 	path("watchlist/<int:listing_pk>/<str:action>/", 
 					views.change_watchlist, name="change_watchlist"),
-    path("categories", views.categories, name="categories"),
-    path("categories/<int:cat_id>/", views.categories, name="categories"),
+    path("categories", views.CategoriesView.as_view(
+								extra_context={'title': _('categories')},
+								template_name='auctions/categories.html'), name="categories"),
+    path("categories/<int:pk>/", views.CategoryView.as_view(), name="category"),
     path("account/<int:pk>/listing/create", views.CreateListingView.as_view(
 								extra_context={'title': _('create listing')},
 								template_name='auctions/account/create_listing.html'), 

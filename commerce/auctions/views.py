@@ -545,7 +545,7 @@ class ActiveListingsView(ListView):
                                     start_time__lt=timezone.now(), 
                                     endtime__gt=timezone.now(), 
                                     cancelled_on__isnull=True
-                                ).order_by('endtime')
+                                ).order_by('-endtime')
     template_name = 'auctions/index.html'
     paginate_by = 10
     
@@ -1157,10 +1157,48 @@ class MessengerView(LoginRequiredMixin, ListView):
     
     def get_queryset(self):
         return Message.objects.filter(Q(sender=self.request.user)|Q(recipient=self.request.user)).order_by("-time")
+        
 
+class CategoriesView(ListView):
+    """
+    Displays categories list.
+    """
+    model = Category
+    
 
-def categories(request, cat_id):
-    pass
+class CategoryView(ListView):
+    """
+    Displays all active listings in the selected category.
+    """
+    
+    template_name = 'auctions/index.html'
+    paginate_by = 10
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if "title" not in context:
+            context["title"] = "category " + self.category.name
+        return context
+    
+    def dispatch(self, *args, **kwargs):
+        if 'pk' not in kwargs:
+            raise ImproperlyConfigured(
+                "The URL path must contain 'pk' parameter."
+            )
+        pk = kwargs["pk"]
+        self.category = get_object_or_404(Category, pk=pk)
+        return super().dispatch(*args, **kwargs)
+    
+    def get_queryset(self):
+        return Listing.objects.annotate(endtime=ExpressionWrapper(
+                                                    F("start_time") + F("duration"), 
+                                                    output_field=DateTimeField()
+                                                    ).filter(
+                                                        start_time__lt=timezone.now(), 
+                                    endtime__gt=timezone.now(), 
+                                    cancelled_on__isnull=True
+                                ).order_by('-endtime')
+                                
 
 def search(request):
     pass

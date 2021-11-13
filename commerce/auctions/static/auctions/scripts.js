@@ -839,6 +839,9 @@ $(document).ready(function(){
 		case "Auction$ - Message":
 		        messagePage.init();
 		        break;
+		case pageTitle.match("Auction$ - Category .+"):
+		        homePage.init();
+		        break;
 		default:
 			return false;
 	}

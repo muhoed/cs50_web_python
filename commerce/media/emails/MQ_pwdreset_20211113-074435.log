@@ -1,0 +1,14 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Subject: Password reset for email admin@example.com
+From: webmaster@localhost
+To: admin@example.com
+Date: Sat, 13 Nov 2021 06:44:35 -0000
+Message-ID: <163678587511.28874.9483309818473501381@localhost>
+
+Someone asked for password reset for email admin@example.com. Code: pwdreset. 
+Follow the link below:
+http://127.0.0.1:8000/password_reset_confirm/MQ/aw1k6a-8c0e0bdeea5dd194da79a62b94020098/
+
+-------------------------------------------------------------------------------
