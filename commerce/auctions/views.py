@@ -1163,7 +1163,19 @@ class CategoriesView(ListView):
     """
     Displays categories list.
     """
-    model = Category
+    
+    def get_queryset(self):
+        category_product_list = Category.objects.filter(pk=OuterRef(OuterRef('pk'))).values("products")
+        active_count = Listing.objects.annotate(endtime=ExpressionWrapper(
+                                                    F("start_time") + F("duration"), 
+                                                    output_field=DateTimeField()
+                                                    )).filter(
+                                                        start_time__lt=timezone.now(), 
+                                                        endtime__gt=timezone.now(), 
+                                                        cancelled_on__isnull=True,
+                                                        product__in=Subquery(category_product_list)
+                                                    ).count()
+        return Category.objects.annotate(active_listings_count=Subquery(active_count))
     
 
 class CategoryView(ListView):
@@ -1190,14 +1202,16 @@ class CategoryView(ListView):
         return super().dispatch(*args, **kwargs)
     
     def get_queryset(self):
+        product_list = self.category.products.all()
         return Listing.objects.annotate(endtime=ExpressionWrapper(
                                                     F("start_time") + F("duration"), 
                                                     output_field=DateTimeField()
-                                                    ).filter(
+                                                    )).filter(
                                                         start_time__lt=timezone.now(), 
-                                    endtime__gt=timezone.now(), 
-                                    cancelled_on__isnull=True
-                                ).order_by('-endtime')
+                                                        endtime__gt=timezone.now(), 
+                                                        cancelled_on__isnull=True,
+                                                        product__in=product_list
+                                                    ).order_by('-endtime')
                                 
 
 def search(request):

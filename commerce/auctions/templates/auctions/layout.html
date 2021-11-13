@@ -89,7 +89,7 @@
 			<ul class="navbar-nav">	
 			{% for category in categories_list %}
 				<li class="nav-item">
-					<a class="nav-link" href="{% url 'auctions:categories' category.id %}">
+					<a class="nav-link" href="{% url 'auctions:category' category.id %}">
 						{{ category.name | capfirst }}
 					</a>
 				</li>
