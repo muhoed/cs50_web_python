@@ -13,7 +13,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.templatetags.static import static
 from django.core.mail import EmailMultiAlternatives
 from django.db import IntegrityError
-from django.db.models import (F, Q, Max, Case, When, Value, OuterRef, 
+from django.db.models import (F, Q, Max, Case, When, Value, OuterRef, Exists,
                                 Count, Subquery, ExpressionWrapper, DateTimeField)
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
@@ -1165,17 +1165,22 @@ class CategoriesView(ListView):
     """
     
     def get_queryset(self):
-        active = Product.objects.filter(Exists(pk=OuterRef("category_pk"))).values['products']
-        active_count = Listing.objects.annotate(category_pk=OuterRef('pk')).annotate(endtime=ExpressionWrapper(
+        #get all active listings
+        active_listings = Listing.objects.annotate(endtime=ExpressionWrapper(
                                                     F("start_time") + F("duration"), 
                                                     output_field=DateTimeField()
                                                     )).filter(
                                                         start_time__lt=timezone.now(), 
                                                         endtime__gt=timezone.now(), 
-                                                        cancelled_on__isnull=True,
-                                                        product__in=Subquery(category)
-                                                    ).count()
-        return Category.objects.annotate(active_listings_count=Count(Subquery(active)).all()
+                                                        cancelled_on__isnull=True
+                                                    )
+        #get a number of active listings for products in selected category
+        category_active_listings = active_listings.filter(
+                                        product__in=Category.objects.filter(
+                                                                    pk=OuterRef(OuterRef('pk'))
+                                                                    ).values("products")
+                                        ).values("pk")
+        return Category.objects.annotate(active_listings_count=Count(Subquery(category_active_listings))).all()
     
 
 class CategoryView(ListView):
