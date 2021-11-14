@@ -1165,17 +1165,17 @@ class CategoriesView(ListView):
     """
     
     def get_queryset(self):
-        category_product_list = Category.objects.filter(pk=OuterRef(OuterRef('pk'))).values("products")
-        active_count = Listing.objects.annotate(endtime=ExpressionWrapper(
+        active = Product.objects.filter(Exists(pk=OuterRef("category_pk"))).values['products']
+        active_count = Listing.objects.annotate(category_pk=OuterRef('pk')).annotate(endtime=ExpressionWrapper(
                                                     F("start_time") + F("duration"), 
                                                     output_field=DateTimeField()
                                                     )).filter(
                                                         start_time__lt=timezone.now(), 
                                                         endtime__gt=timezone.now(), 
                                                         cancelled_on__isnull=True,
-                                                        product__in=Subquery(category_product_list)
+                                                        product__in=Subquery(category)
                                                     ).count()
-        return Category.objects.annotate(active_listings_count=Subquery(active_count))
+        return Category.objects.annotate(active_listings_count=Count(Subquery(active)).all()
     
 
 class CategoryView(ListView):
