@@ -27,6 +27,10 @@ def product_handler(sender, instance, **kwargs):
     Message.objects.create(sender=sysuser, recipient=recipient, 
 										subject=subject, content=content
 										)
+
+@receiver(pre_save, sender=Listing)
+def pre_listing_handler(sender, instance, **kwargs):
+    instance.end_time = instance.start_time + instance.duration
     
 @receiver(post_save, sender=Listing)
 def listing_handler(sender, instance, created, **kwargs):

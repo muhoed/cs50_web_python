@@ -14,17 +14,17 @@
 				Number of active listings in the category
 			</div>
 		</div>
-		{% for category in category_list %}
-		<a href="{% url 'auctions:category' category.pk %}">
+		{% for category in object_list %}
+		<a href="{% url 'auctions:category' category.0.pk %}">
 			<div class="row mt-1 ml-1 border border-bottom-1 border-top-0 border-left-0 border-right-0 bg-light">
 				<div class="col-2 align-self-center">
-					{{ category.name }}
+					{{ category.0.name }}
 				</div>
 				<div class="col-6 align-self-center">
-					{{ category.description }}
+					{{ category.0.description }}
 				</div> 
 				<div class="col-4 text-center align-self-center">
-					{{ category.active_listings_count }}
+					{{ category.1 }}
 				</div>
 			</div>
 		</a>

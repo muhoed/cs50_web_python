@@ -349,6 +349,10 @@ class Product(models.Model):
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
     
+    @property
+    def sold_num(self):
+        return Listing.get_ended().filter(bids__isnull=False, product=self.pk).values('product').count()
+    
     def get_absolute_url(self):
         return reverse('auctions:update_product', kwargs={'user_pk': self.seller.pk, 'pk': self.id})
 
@@ -409,6 +413,7 @@ class Listing(models.Model):
     duration = models.DurationField("duration of the listing",
                 default = datetime.timedelta(days=10),
                 help_text="Duration of the listing in days. Default to 10 days.")
+    end_time = models.DateTimeField(null=True) #pre_save calculated field
     cancelled_on = models.DateTimeField(null=True)
     shipment_status = models.IntegerField("shipment status", 
                 choices=ShipmentStatus.choices, default=ShipmentStatus.NOT_SHIPPED)
@@ -429,9 +434,9 @@ class Listing(models.Model):
         else:
             return "active"
 
-    @property
-    def end_time(self):
-        return self.start_time + self.duration
+    #@property
+    #def end_time(self):
+    #    return self.start_time + self.duration
         
     @property
     def max_bid(self):
@@ -449,6 +454,21 @@ class Listing(models.Model):
             if bids:
                 return bids.order_by('-value')[0].bidder
         return None
+
+    @classmethod    
+    def get_active(cls):
+        return cls.objects.filter(
+                                start_time__lte=timezone.now(),
+                                end_time__gt=timezone.now(),
+                                cancelled_on__isnull=True
+                                )
+                                
+    @classmethod
+    def get_ended(cls):
+        return cls.objects.filter(
+                                (models.Q(end_time__lte=timezone.now())|models.Q(cancelled_on__isnull=False)),
+                                start_time__lt=timezone.now()
+                                )
         
     def get_absolute_url(self):
         return reverse('auctions:listing', kwargs={'pk': self.id})

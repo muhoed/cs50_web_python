@@ -395,19 +395,12 @@ class ActivitiesSummaryView(LoginRequiredMixin, CorrectUserTestMixin, DetailView
         # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
         
-        #retrieve all listings to cache
-        all_listings = Listing.objects.annotate(
-                                            endtime=ExpressionWrapper(
-                                                    F("start_time") + F("duration"), 
-                                                    output_field=DateTimeField()
-                                        )).order_by("endtime")
-        
-        # Add all active listings created by the user in a QuerySet
-        context['user_active_listings'] = all_listings.filter(
-                                                product__seller=self.request.user, 
-                                                cancelled_on__isnull=True,
-                                                endtime__gt=timezone.now()
-                                            )
+        #retrieve all listings
+        #all_listings = Listing.objects.order_by("end_time")
+        #
+        context['user_active_listings'] = Listing.get_active().filter(
+                                                    product__seller=self.request.user
+                                                    ).order_by("end_time")
                                         
         # Add all bids placed by the user in a QuerySet  
         user_bids = Bid.objects.filter(
@@ -427,7 +420,8 @@ class ActivitiesSummaryView(LoginRequiredMixin, CorrectUserTestMixin, DetailView
         # Add ended listings bidded by the user in context
         context["bought"] = []
         context["sold"] = []
-        for listing in all_listings:
+        ended_listings = Listing.get_ended()
+        for listing in ended_listings:
             if listing.winner:
                 if listing.winner == self.request.user:
                     context["bought"].append(listing)
@@ -458,11 +452,7 @@ class SellActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
         self.user = User.objects.get(pk=kwargs['pk'])
         self.queryset = Listing.objects.filter(
                                             product__seller=self.user
-                                        ).annotate(
-                                            endtime=ExpressionWrapper(
-                                                    F("start_time") + F("duration"), 
-                                                    output_field=DateTimeField()
-                                        )).order_by("endtime")
+                                        ).order_by("end_time")
         
         return super().dispatch(*args, **kwargs)
         
@@ -536,16 +526,7 @@ class ActiveListingsView(ListView):
     """
     Displays all active listings.
     """
-    queryset = Listing.objects.annotate(
-                                    endtime=ExpressionWrapper(
-                                                        F("start_time")+F("duration"), 
-                                                        output_field=DateTimeField()
-                                                    )
-                                ).filter(
-                                    start_time__lt=timezone.now(), 
-                                    endtime__gt=timezone.now(), 
-                                    cancelled_on__isnull=True
-                                ).order_by('-endtime')
+    queryset = Listing.get_active().order_by('-end_time')
     template_name = 'auctions/index.html'
     paginate_by = 10
     
@@ -573,7 +554,6 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
             except:
                 product = None
         if listing:
-            #context["form"].fields["product"].initial = listing.product
             context["form"].initial = {
                 "product": listing.product,
                 "state": listing.state,
@@ -1165,24 +1145,20 @@ class CategoriesView(ListView):
     """
     
     def get_queryset(self):
-        #get all active listings
-        active_listings = Listing.objects.annotate(endtime=ExpressionWrapper(
-                                                    F("start_time") + F("duration"), 
-                                                    output_field=DateTimeField()
-                                                    )).filter(
-                                                        start_time__lt=timezone.now(), 
-                                                        endtime__gt=timezone.now(), 
-                                                        cancelled_on__isnull=True
-                                                    )
-        
-        #get active listings for products in selected category
-        category_active_listings = active_listings.filter(
-                                        product__in=Category.objects.filter(
-                                                                    pk=OuterRef(OuterRef('pk'))
-                                                                    ).values("products__id")
-                                        ).values("pk")
+        active_listings = Listing.get_active()
+                                        
+        all_categories = Category.objects.all()
+        queryset1 = []
+        for cat in all_categories:
+            cat_prod = cat.products.all()
+            active = 0
+            for prod in cat_prod:
+                for listing in active_listings:
+                    if listing.product == prod:
+                        active += 1
+            queryset1.append((cat, active))
                             
-        return Category.objects.annotate(active_listings_count=Count(Subquery(category_active_listings))).all()
+        return queryset1 #.all()
     
 
 class CategoryView(ListView):
@@ -1210,15 +1186,7 @@ class CategoryView(ListView):
     
     def get_queryset(self):
         product_list = self.category.products.all()
-        return Listing.objects.annotate(endtime=ExpressionWrapper(
-                                                    F("start_time") + F("duration"), 
-                                                    output_field=DateTimeField()
-                                                    )).filter(
-                                                        start_time__lt=timezone.now(), 
-                                                        endtime__gt=timezone.now(), 
-                                                        cancelled_on__isnull=True,
-                                                        product__in=product_list
-                                                    ).order_by('-endtime')
+        return Listing.get_active().filter(product__in=product_list).order_by('-end_time')
                                 
 
 def search(request):
