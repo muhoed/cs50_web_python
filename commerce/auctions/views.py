@@ -1174,12 +1174,14 @@ class CategoriesView(ListView):
                                                         endtime__gt=timezone.now(), 
                                                         cancelled_on__isnull=True
                                                     )
-        #get a number of active listings for products in selected category
+        
+        #get active listings for products in selected category
         category_active_listings = active_listings.filter(
                                         product__in=Category.objects.filter(
                                                                     pk=OuterRef(OuterRef('pk'))
-                                                                    ).values("products")
+                                                                    ).values("products__id")
                                         ).values("pk")
+                            
         return Category.objects.annotate(active_listings_count=Count(Subquery(category_active_listings))).all()
     
 
