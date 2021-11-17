@@ -24,6 +24,16 @@ function sendRequest(targetUrl) {
 		        alert(json);
 		    });
 	};
+	
+var getUnreadMessageNumber = function() {
+    .ajax({
+        url: "/unread"
+    }).done(function(json){
+        if (json['unread'] !== 0) {
+            $(".unread").text(json['unread']).show();
+        }
+    });
+}
 
 var profilePage = {
 	
@@ -792,6 +802,7 @@ var messagePage = {
 
 
 $(document).ready(function(){
+    let messages_num = setInterval(function() { getUnreadMessageNumber(); }, 10000)
 	let pageTitle = $("title").text();
 	switch(pageTitle) {
 		case "Auction$ - Create profile":

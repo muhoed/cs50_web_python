@@ -1,4 +1,4 @@
-from .models import Category
+from .models import Category, Message
 from .forms import SearchForm
 
 
@@ -15,3 +15,9 @@ def search_form_processor(request):
 	"""
 	sform = SearchForm()
 	return {'sform': sform,}
+	
+def unread_messages_number_processor(request):
+    """
+    Context processor to add number of unread messages to page context.
+    """
+    return {'num_unread': Message.objects.filter(read=False, recipient=request.user).count(),}

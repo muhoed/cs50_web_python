@@ -37,3 +37,15 @@ body {
 	height: 1px;
 	visibility: hidden;
 }
+
+#bootstrap-override .nav-link.messages-link {
+    display: inline-block;
+    position: relative;
+}
+
+#bootstrap-override .badge.unread {
+    display: inline-block;
+    position: absolute;
+    right:-2px;
+    top:2px;
+}

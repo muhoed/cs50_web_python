@@ -1139,6 +1139,14 @@ class MessengerView(LoginRequiredMixin, ListView):
         return Message.objects.filter(Q(sender=self.request.user)|Q(recipient=self.request.user)).order_by("-time")
         
 
+def check_unread_messages(request):
+    try:
+        num_unread = Message.objects.filter(recipient=request.user, read=False).count()
+        return HttpResponse(json.dumps({'unread': num_unread}))
+    except:
+        return HttpResponse(json.dumps({'unread': 0}))
+
+
 class CategoriesView(ListView):
     """
     Displays categories list.

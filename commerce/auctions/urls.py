@@ -178,6 +178,7 @@ urlpatterns = [
     path("account/messenger/", views.MessengerView.as_view(
         extra_context={'title': _('messenger')},
 								template_name="auctions/account/messenger/messenger.html"), name="messenger"),
+    path("unread", views.check_unread_messages, name="unread"),
     path("search", views.search, name="search")
 ]
 

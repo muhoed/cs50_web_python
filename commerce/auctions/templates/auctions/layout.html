@@ -13,7 +13,7 @@
 		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
         <script src="{% static 'auctions/scripts.js' %}"></script>
     </head>
-    <body>
+    <body id="bootstrap-override">
 		{% if messages %}
 			<ul class="messages container">
 				{% for message in messages %}
@@ -50,8 +50,8 @@
 							<a class="nav-link" href="{% url 'auctions:create_listing' user.pk %}">Sell</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" href="{% url 'auctions:messenger' %}">Messages</a>
-						</li>
+							<a class="nav-link messages-link" href="{% url 'auctions:messenger' %}"style="position: relative;">
+						<span class="badge badge-pill badge-success unread" style="{% if num_unread == 0 %}display:none;{% endif %}">{{ num_unread }}</span>Messages</a></li>
 						<li class="nav-item">
 							<a class="nav-link" href="{% url 'auctions:profile' user.pk %}">Account</a>
 						</li>
