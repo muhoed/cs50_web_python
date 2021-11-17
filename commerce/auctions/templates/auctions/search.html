@@ -1,0 +1,40 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<div class="container">
+    <h2>Search results</h2>
+	<div>
+		<h5 class="font-italic">Listings with matches in product titles:</h5>
+		{% if in_titles %}
+			<ul>
+				{% for listing in in_titles %}
+					<li><a href="{% url 'auctions:listing' listing.pk %}">
+						{{ listing }}</a></li>
+				{% endfor %}
+			</ul>
+		{% else %}
+			<p>No product titles in active listings match search criteria</p>
+		{% endif %}
+	</div>
+	<div style="margin-top:20px;">
+		<h5 class="font-italic">Listings with matches in product description (others than listings above):</h5>
+		{% if in_content %}
+			<table class="table table-hover">
+				<tr>
+					<th>Listing</th>
+					<th>Matched description</th>
+				</tr>
+				{% for entry in in_content %}
+					<tr onclick="document.location='{% url 'auctions:listing' entry.0.pk %}'"
+						class="table-link">
+						<td>{{ entry.0 }}</td>
+						<td>{{ entry.1 }}<mark>{{ entry.2 }}</mark>{{ entry.3 }}</td>
+					</tr>
+				{% endfor %}
+			</table>
+		{% else %}
+			<p>No listing with matching description found</p>
+		{% endif %}
+	</div>
+</div>
+{% endblock %}

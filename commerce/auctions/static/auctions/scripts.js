@@ -1,17 +1,3 @@
-//function sendRequest(targetUrl, onDone) {
-//	    $.ajax({
-//			    url: targetUrl
-//		    }).done(function(json){
-//				if (onDone == "reload") {
-//					location.reload();
-//				} else {
-//					window.location.href = json;
-//				}
-//		    }).fail(function(json){
-//				location.reload();
-//			});
-//};
-
 function sendRequest(targetUrl) {
 	    $.ajax({
 			    url: targetUrl
@@ -26,11 +12,11 @@ function sendRequest(targetUrl) {
 	};
 	
 var getUnreadMessageNumber = function() {
-    .ajax({
+    $.ajax({
         url: "/unread"
-    }).done(function(json){
-        if (json['unread'] !== 0) {
-            $(".unread").text(json['unread']).show();
+    }).done(function(num){
+        if (num != 0) {
+            $(".unread").text(num).show();
         }
     });
 }
@@ -818,41 +804,41 @@ $(document).ready(function(){
 			emailLinkPage.init({topic: "pwdreset"});
 			break;
 		case "Auction$ - Confirm registration":
-		        emailLinkPage.init({topic: "regactivation"});
-		        break;
+		    emailLinkPage.init({topic: "regactivation"});
+		    break;
 		case "Auction$ - Create listing":
-		        createListingPage.init();
-		        break;
+		    createListingPage.init();
+		    break;
 		case "Auction$ - Modify listing":
-		        modifyListingPage.init();
-		        break;
+		    modifyListingPage.init();
+		    break;
 		case "Auction$ - Create product":
-		        createOrUpdateProductPage.init();
-		        break;
+		    createOrUpdateProductPage.init();
+		    break;
 		case "Auction$ - Modify product":
-		        createOrUpdateProductPage.init();
-		        break;
+		    createOrUpdateProductPage.init();
+		    break;
 		case "Auction$ - Selling activities":
-		        sellingActivitiesPage.init();
-		        break;
+		    sellingActivitiesPage.init();
+		    break;
 		case "Auction$ - Home":
-		        homePage.init();
-		        break;
+		    homePage.init();
+		    break;
 		case "Auction$ - Watchlist":
-		        watchlistPage.init();
-		        break;
+		    watchlistPage.init();
+		    break;
 		case "Auction$ - Listing details":
-		        listingPage.init();
-		        break;
+		    listingPage.init();
+		    break;
 		case "Auction$ - Purchase activities":
-		        purchasePage.init();
-		        break;
+		    purchasePage.init();
+		    break;
 		case "Auction$ - Message":
-		        messagePage.init();
-		        break;
+		    messagePage.init();
+		    break;
 		case pageTitle.match("Auction$ - Category .+"):
-		        homePage.init();
-		        break;
+		    homePage.init();
+		    break;
 		default:
 			return false;
 	}

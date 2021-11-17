@@ -351,7 +351,12 @@ class Product(models.Model):
     
     @property
     def sold_num(self):
-        return Listing.get_ended().annotate(bid_count=models.Count(models.F("bids"))).filter(bid_count__gt=0, product=self.pk).values('product').count()
+        return Listing.get_ended().annotate(
+                            bid_count=models.Count(
+                                            models.F("bids"))).filter(
+                                                                bid_count__gt=0, 
+                                                                product=self.pk
+                                                                ).values('product').count()
     
     def get_absolute_url(self):
         return reverse('auctions:update_product', kwargs={'user_pk': self.seller.pk, 'pk': self.id})

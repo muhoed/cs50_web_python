@@ -69,12 +69,13 @@
 				</ul>
 			</div>
         </div>
-		<form class="form-inline container justify-content-center" action="{% url 'auctions:search' %}" method="GET">
+		<form class="form-inline container justify-content-center" action="{% url 'auctions:search' %}" method="POST">
+			{% csrf_token %}
 			{{ sform.non_field_errors }}
 			<div class="fieldError">
-				{{ sform.watched.errors }}
+				{{ sform.search_query.errors }}
 			</div>
-			<input type="text" class="form-control w-50" placeholder="Search product" name="sform.watched.html_name" id="{{ sform.watched.id_for_label }}">
+			<input type="text" class="form-control w-50" placeholder="Search product" name="{{ sform.search_query.html_name }}" id="{{ sform.search_query.id_for_label }}">
 			<input class="btn btn-info" type="submit" name="search" role="button" value="Search">
 		</form>
         <hr>

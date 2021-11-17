@@ -179,7 +179,10 @@ urlpatterns = [
         extra_context={'title': _('messenger')},
 								template_name="auctions/account/messenger/messenger.html"), name="messenger"),
     path("unread", views.check_unread_messages, name="unread"),
-    path("search", views.search, name="search")
+    path("search", views.SearchView.as_view(
+								extra_context={'title': _('search results')},
+								template_name="auctions/search.html"),
+			name="search")
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

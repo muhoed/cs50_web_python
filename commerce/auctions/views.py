@@ -1,6 +1,7 @@
 from datetime import datetime
 import json
 import os
+import re
 
 from django.conf import settings as conf_settings
 from django.contrib import messages
@@ -24,7 +25,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.decorators import method_decorator
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic import TemplateView, ListView, DetailView
-from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormMixin
+from django.views.generic.edit import FormView, CreateView, UpdateView, DeleteView, FormMixin
 from django.views.decorators.cache import never_cache
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.template import loader
@@ -1141,10 +1142,13 @@ class MessengerView(LoginRequiredMixin, ListView):
 
 def check_unread_messages(request):
     try:
-        num_unread = Message.objects.filter(recipient=request.user, read=False).count()
-        return HttpResponse(json.dumps({'unread': num_unread}))
+        if request.user.is_authenticated:
+            num_unread = Message.objects.filter(recipient=request.user, read=False).count()
+            return HttpResponse(num_unread)
+        else:
+            raise AuthenticationError
     except:
-        return HttpResponse(json.dumps({'unread': 0}))
+        return HttpResponse(0)
 
 
 class CategoriesView(ListView):
@@ -1199,3 +1203,43 @@ class CategoryView(ListView):
 
 def search(request):
     pass
+    
+
+class SearchView(FormView):
+    form_class = SearchForm
+    
+    def form_valid(self, form):
+        #query text can't be empty or contain only spaces
+        query = form.cleaned_data["search_query"]
+        if not query or re.match("^\s+$", query):
+            return self.form_invalid(form)
+        
+        #prepare query text and active listings set
+        query.lstrip().rstrip()
+        pattern = "(?i)"+query
+        listings = Listing.get_active()
+        
+        #check products titles
+        self.title_matches = [listing for listing in listings if re.search(pattern, listing.product.name)]
+        #check products description
+        self.text_matches = []
+        for listing in listings:
+            if listing not in self.title_matches:
+                content = listing.product.description
+                queryMatch = re.search(pattern, content)
+                if queryMatch:
+                    self.text_matches.append([listing, "..."+content[
+                    (0 if queryMatch.start()-20 < 0 else queryMatch.start()-20): \
+                    queryMatch.start()], content[queryMatch.start():queryMatch.end()+1],
+                    content[queryMatch.end()+1:(len(content) if queryMatch.end()+20>= \
+                    len(content) else queryMatch.end()+20)]+"..."])
+        if self.title_matches == [] and self.text_matches == []:
+            return self.form_invalid(form)
+        
+        #display listings matching search criteria     
+        messages.success = (self.request, f"Total of {len(self.title_matches) + len(self.text_matches)} results was found")
+        return render(self.request, "auctions/search.html", {
+            "title": "search results",
+            "in_titles": self.title_matches,
+            "in_content": self.text_matches
+        })

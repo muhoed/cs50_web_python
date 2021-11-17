@@ -117,7 +117,7 @@ class UserPasswordResetForm(PasswordResetForm):
 	
 	
 class SearchForm(forms.Form):
-	watched = forms.CharField(label="Search", max_length=100)
+	search_query = forms.CharField(label="Search", max_length=100)
 	
 class PlaceBidForm(forms.ModelForm):
 	class Meta():

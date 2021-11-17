@@ -49,3 +49,7 @@ body {
     right:-2px;
     top:2px;
 }
+
+.table-link:hover {
+	cursor: pointer;
+}

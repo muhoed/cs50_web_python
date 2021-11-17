@@ -20,4 +20,6 @@ def unread_messages_number_processor(request):
     """
     Context processor to add number of unread messages to page context.
     """
-    return {'num_unread': Message.objects.filter(read=False, recipient=request.user).count(),}
+    if request.user.is_authenticated:
+        return {'num_unread': Message.objects.filter(read=False, recipient=request.user).count(),}
+    return {'num_unread': 0}
