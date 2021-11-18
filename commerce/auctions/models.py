@@ -562,3 +562,11 @@ class Message(models.Model):
 	
 	def __str__(self):
 		return f"Message from {self.sender.username} to {self.recipient.username} regarding {self.subject} sent at {self.time}."
+
+
+def get_sys_user():
+    try:
+        sys_user = User.objects.get(username="system")
+    except:
+        sys_user = User.objects.create(username="system", email="noreplay@auctions.demo", password="system")
+    return sys_user

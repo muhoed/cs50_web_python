@@ -139,6 +139,6 @@ EMAIL_FILE_PATH = MEDIA_ROOT + '/emails/'
 
 # Celery specific settings
 
-CELERY_BROKER_URL = redis://localhost
-CELERY_RESULT_BACKEND=redis://localhost
+CELERY_BROKER_URL = "redis://localhost"
+CELERY_RESULT_BACKEND = "redis://localhost"
 CELERY_TIMEZONE = TIME_ZONE
