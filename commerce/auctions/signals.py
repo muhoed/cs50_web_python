@@ -245,4 +245,3 @@ def bid_handler(sender, instance, **kwargs):
     message2 = Message.objects.create(sender=sysuser, recipient=recipient2, 
 													subject=subject2, content=content2
 													)
-    print(message2.pk)

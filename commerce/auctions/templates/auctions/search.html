@@ -8,6 +8,7 @@
 		{% if in_titles %}
 			<ul>
 				{% for listing in in_titles %}
+					
 					<li><a href="{% url 'auctions:listing' listing.pk %}">
 						{{ listing }}</a></li>
 				{% endfor %}
@@ -19,19 +20,18 @@
 	<div style="margin-top:20px;">
 		<h5 class="font-italic">Listings with matches in product description (others than listings above):</h5>
 		{% if in_content %}
-			<table class="table table-hover">
-				<tr>
-					<th>Listing</th>
-					<th>Matched description</th>
-				</tr>
+			<ul>
 				{% for entry in in_content %}
-					<tr onclick="document.location='{% url 'auctions:listing' entry.0.pk %}'"
-						class="table-link">
-						<td>{{ entry.0 }}</td>
-						<td>{{ entry.1 }}<mark>{{ entry.2 }}</mark>{{ entry.3 }}</td>
-					</tr>
+					<li class="row">
+					    <div class="col-6"><a href="{% url 'auctions:listing' entry.0.pk %}">
+						{{ entry.0 }}</a>
+						</div>
+						<div class="col-6">
+						    {{ entry.1 }}<b>{{ entry.2 }}</b>{{ entry.3 }}
+						</div>
+						</li>
 				{% endfor %}
-			</table>
+			</ul>
 		{% else %}
 			<p>No listing with matching description found</p>
 		{% endif %}

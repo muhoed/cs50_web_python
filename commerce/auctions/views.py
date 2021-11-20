@@ -444,6 +444,7 @@ class CredentialsUpdateView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView
 class SellActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
     """Summary of user's selling activities."""
     context_object_name = "listings_list"
+    paginate_by = 10
     
     def dispatch(self, *args, **kwargs):
         if 'pk' not in kwargs:
@@ -476,6 +477,7 @@ class SellActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
 class BuyActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
     """Summary of user's buying activities."""
     context_object_name = "user_bids"
+    paginate_by = 10
     
     def dispatch(self, *args, **kwargs):
         if 'pk' not in kwargs:
@@ -511,6 +513,7 @@ class BuyActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
 class UserWatchlistView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
     """Display and manage user's watchlist."""
     context_object_name = "watched_list"
+    paginate_by = 10
     
     def dispatch(self, *args, **kwargs):
         if 'pk' not in kwargs:
@@ -646,7 +649,7 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
     
 class UpdateListingView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
     """
-    View existing listing parameters.
+    View existing listing parameters for seller.
     Modify parameters of active but not yet started listing except product detail.
     """
     model = Listing
@@ -943,6 +946,9 @@ class DeleteProductView(LoginRequiredMixin, CorrectUserTestMixin, DeleteView):
                                             
 
 class ListingView(DetailView):
+    """
+    Listing view for users over than seller.
+    """
     model = Listing
     
     def get_context_data(self, **kwargs):
@@ -1008,6 +1014,10 @@ def change_watchlist(request, listing_pk, action):
         
     
 class ManageCommentsView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
+    """
+    Display comments on current user listings and comments current user left on others listings.
+    """
+    paginate_by = 10
         
     def dispatch(self, *args, **kwargs):
         if 'user_pk' not in kwargs:
@@ -1135,6 +1145,10 @@ class MessageView(LoginRequiredMixin, DetailView):
     
 
 class MessengerView(LoginRequiredMixin, ListView):
+    """
+    Display messages received and sent by current user.
+    """
+    paginate_by = 10
     
     def get_queryset(self):
         return Message.objects.filter(Q(sender=self.request.user)|Q(recipient=self.request.user)).order_by("-time")
@@ -1155,6 +1169,7 @@ class CategoriesView(ListView):
     """
     Displays categories list.
     """
+    paginate_by = 10
     
     def get_queryset(self):
         active_listings = Listing.get_active()
@@ -1199,10 +1214,6 @@ class CategoryView(ListView):
     def get_queryset(self):
         product_list = self.category.products.all()
         return Listing.get_active().filter(product__in=product_list).order_by('-end_time')
-                                
-
-def search(request):
-    pass
     
 
 class SearchView(FormView):
