@@ -19,7 +19,32 @@ var getUnreadMessageNumber = function() {
             $(".unread").text(num).show();
         }
     });
-}
+};
+
+var common = {
+    
+    init: function(settings) {
+        common.config = {
+            textToggle: $(".text-toggle")
+        };
+		$.extend(common.config, settings);
+		common.setup();
+    },
+    
+    setup: function() {
+        common.config.textToggle.on("click", function(event){
+            common.changeToggle(event.delegateTarget);
+        });
+    },
+    
+    changeToggle: function(trigger) {
+        if (trigger.text() = "More") {
+            trigger.text("Less");
+        } else if (trigger.text = "Less") {
+            trigger.text("More");
+        }
+    }
+};
 
 var profilePage = {
 	
@@ -819,6 +844,7 @@ $(document).ready(function(){
 		    createOrUpdateProductPage.init();
 		    break;
 		case "Auction$ - Selling activities":
+		    common.init();
 		    sellingActivitiesPage.init();
 		    break;
 		case "Auction$ - Home":
@@ -838,6 +864,9 @@ $(document).ready(function(){
 		    break;
 		case pageTitle.match("Auction$ - Category .+"):
 		    homePage.init();
+		    break;
+		case pageTitle.match("Auction$ - Search results"):
+		    common.init();
 		    break;
 		default:
 			return false;

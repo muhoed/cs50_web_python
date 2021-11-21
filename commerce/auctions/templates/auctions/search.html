@@ -7,12 +7,22 @@
 		<h5 class="font-italic">Listings with matches in product titles:</h5>
 		{% if in_titles %}
 			<ul>
-				{% for listing in in_titles %}
+				{% for listing in in_titles|slice:"5" %}
 					
 					<li><a href="{% url 'auctions:listing' listing.pk %}">
 						{{ listing }}</a></li>
 				{% endfor %}
 			</ul>
+			{% if in_titles.5 %}
+			<ul class="collapse" id="in-titles">
+				{% for listing in in_titles|slice:"5:" %}
+					
+					<li><a href="{% url 'auctions:listing' listing.pk %}">
+						{{ listing }}</a></li>
+				{% endfor %}
+			</ul>
+			<p data-toggle="collapse" data-target="#in-titles" class="w-100 text-center text-toggle">More</p>
+			{% endif %}
 		{% else %}
 			<p>No product titles in active listings match search criteria</p>
 		{% endif %}
@@ -21,7 +31,7 @@
 		<h5 class="font-italic">Listings with matches in product description (others than listings above):</h5>
 		{% if in_content %}
 			<ul>
-				{% for entry in in_content %}
+				{% for entry in in_content|slice:"5" %}
 					<li class="row">
 					    <div class="col-6"><a href="{% url 'auctions:listing' entry.0.pk %}">
 						{{ entry.0 }}</a>
@@ -32,6 +42,21 @@
 						</li>
 				{% endfor %}
 			</ul>
+			{% if in_content.5 %}
+			<ul class="collapse" id="in-content">
+				{% for entry in in_content|slice:"5:" %}
+					<li class="row">
+					    <div class="col-6"><a href="{% url 'auctions:listing' entry.0.pk %}">
+						{{ entry.0 }}</a>
+						</div>
+						<div class="col-6">
+						    {{ entry.1 }}<b>{{ entry.2 }}</b>{{ entry.3 }}
+						</div>
+						</li>
+				{% endfor %}
+			</ul>
+			<p data-toggle="collapse" data-target="#in-content" class="w-100 text-center text-toggle">More</p>
+			{% endif %}
 		{% else %}
 			<p>No listing with matching description found</p>
 		{% endif %}

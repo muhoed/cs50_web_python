@@ -69,7 +69,8 @@
 						</button>
 					</div>			
 				</div>
-				{% for listing in active %}
+				<div>
+				{% for listing in active|slice:":10" %}
 				<a href="{% url 'auctions:update_listing' user.pk listing.pk %}">
 					<div class="listing-row row mt-1 ml-1 bg-light" id="{{ listing.product.id }}">
 						<div class="col-md-1 align-self-center">
@@ -102,6 +103,44 @@
 				{% empty %}
 					<p class="mt-1 bg-light">You do not have active listings at the moment. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create one.</p>
 				{% endfor %}
+				</div>
+				{% if active.10 %}
+				<div class="collapse" id="active">
+				{% for listing in active|slice:"10:" %}
+				<a href="{% url 'auctions:update_listing' user.pk listing.pk %}">
+					<div class="listing-row row mt-1 ml-1 bg-light" id="{{ listing.product.id }}">
+						<div class="col-md-1 align-self-center">
+							<img src="{{ listing.product.image_set.first.image_url }}" height="50px" width="50px">
+						</div>
+						<div class="col-md-2 text-center align-self-center">
+							{{ listing.product.name|capfirst }}
+						</div>
+						<div class="col-md-2 text-center align-self-center">
+							{% for category in listing.product.categories.all %}
+								<p>{{ category.name }}</p>
+							{% endfor %}
+						</div>
+						<div class="col-md-1 text-center align-self-center">
+							{{ listing.bids.count }}
+						</div>
+						<div class="col-md-2 text-center align-self-center">
+							{{ listing.max_bid }}
+						</div>
+						<div class="col-md-2 text-center align-self-center">
+							{{ listing.end_time|timeuntil }}
+						</div>
+						<div class="col-md-2 text-center align-self-center">
+							<button class="btn btn-warning cancel-listing" id="cancel-{{ user.pk }}-{{ listing.id }}">
+								Cancel
+							</button>
+						</div>
+					</div>
+				</a>
+				{% endfor %}
+				</div>
+				
+			<p data-toggle="collapse" data-target="#active" class="w-100 text-center text-toggle">More</p>
+				{% endif %}
 			</div>
 			<div class="tab-pane mt-2" id="sold">
 				<div class="d-flex nowrap w-100" id="tab-header">
@@ -208,7 +247,8 @@
 						Action
 					</div>				
 				</div>
-				{% for listing in unsold %}
+				<div>
+				{% for listing in unsold|slice:":5" %}
 					<div class="listing row mt-1 ml-1 bg-light">
 						<div class="col-md-1 text-center align-self-center">
 							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
@@ -244,10 +284,54 @@
 						<div class="col-md-2 text-center align-self-center">
 							<button class="btn btn-secondary relist-product" id="relist-{{ user.pk }}-{{ listing.pk }}">Relist</button>
 						</div>
-					</div>
+				</div>
 				{% empty %}
 					<p class="mt-1 bg-light">You do not have any listings ended without winning bidder. <a href="{% url 'auctions:create_listing' user.pk %}">Click here</a> to create new listing.</p>
 				{% endfor %}
+				</div>
+				{% if unsold.5 %}
+				<div class="collapse" id="active">
+				{% for listing in unsold|slice:"5:" %}
+					<div class="listing row mt-1 ml-1 bg-light">
+						<div class="col-md-1 text-center align-self-center">
+							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
+								<img src="{{ listing.product.image_set.first.image_url }}" height="50px" width="50px">
+							</a>
+						</div>
+						<div class="col-md-3 text-center align-self-center">
+							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
+								{{ listing.product.name|capfirst }}
+							</a>
+						</div>
+						<div class="col-md-2 text-center align-self-center">
+							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
+								{% for category in listing.product.categories.all %}
+									<p>{{ category.name }}</p>
+								{% endfor %}
+							</a>
+						</div>
+						<div class="col-md-2 text-center align-self-center">
+							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
+								{{ listing.followers.count }}
+							</a>
+						</div>
+						<div class="col-md-2 text-center align-self-center">
+							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=listing.pk %}">
+								{% if listing.cancelled_on %}
+									{{ listing.cancelled_on }}
+								{% else %}
+									{{ listing.end_time }}
+								{% endif %}
+							</a>
+						</div>
+						<div class="col-md-2 text-center align-self-center">
+							<button class="btn btn-secondary relist-product" id="relist-{{ user.pk }}-{{ listing.pk }}">Relist</button>
+						</div>
+				</div>
+				{% endfor %}
+				</div>
+				<p data-toggle="collapse" data-target="#unsold" class="w-100 text-center text-toggle">More</p>
+				{% endif %}
 			</div>
 			<div class="tab-pane mt-2" id="products">
 				<div class="d-flex nowrap w-100" id="tab-header">
