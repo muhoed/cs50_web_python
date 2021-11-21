@@ -1,13 +1,28 @@
 #from commerce.celery import app as celery_app
 from celery import shared_task
-from .models import Message, get_sys_user
 
 
-#@celery_app.task
+def import_django_instance():
+    """
+    Makes django environment available 
+    to tasks!!
+    Credits to Raihan Kabir. See 'https://stackoverflow.com/questions/66160524/django-model-object-as-parameter-for-celery-task-raises-encodeerror-object-of'
+    """
+    import django
+    import os
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'commerce.settings')
+    django.setup()
+
+
 @shared_task
-def listing_ended_handler(self, instance):
+def listing_ended_handler(data):
 	try:
+		import_django_instance()
+		from django.utils.translation import gettext, gettext_lazy as _
+		from auctions.models import Listing, Message, get_sys_user
+		
 		sysuser = get_sys_user()
+		instance = Listing.objects.get(pk=int(data.get('pk')))
 		recipient = instance.product.seller
 		
 		if instance.winner and not instance.cancelled_on:

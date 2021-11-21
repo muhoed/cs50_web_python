@@ -40,7 +40,10 @@ def listing_handler(sender, instance, created, **kwargs):
                 }
         
         #initiate task to send message(-es) once listing ended
-        listing_ended_handler.apply_async((instance,), eta=instance.end_time)
+        try:
+            listing_ended_handler.apply_async(({'pk': instance.pk},), eta=instance.end_time)
+        except Exception as e:
+            print(e)
         
     elif instance.cancelled_on and not instance.winner:
         subject = _("Auction$' listing for %s was cancelled") %\

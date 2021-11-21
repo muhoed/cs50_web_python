@@ -1148,7 +1148,6 @@ class MessengerView(LoginRequiredMixin, ListView):
     """
     Display messages received and sent by current user.
     """
-    paginate_by = 10
     
     def get_queryset(self):
         return Message.objects.filter(Q(sender=self.request.user)|Q(recipient=self.request.user)).order_by("-time")
