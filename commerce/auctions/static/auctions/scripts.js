@@ -38,10 +38,11 @@ var common = {
     },
     
     changeToggle: function(trigger) {
-        if (trigger.text() = "More") {
-            trigger.text("Less");
-        } else if (trigger.text = "Less") {
-            trigger.text("More");
+		let target = $(trigger);
+        if (target.text() == "More") {
+            target.text("Less");
+        } else if (target.text() == "Less") {
+            target.text("More");
         }
     }
 };

@@ -19,7 +19,7 @@ body {
 */
 
 .text-toggle {
-	color: blue;
+	color: white;
 	cursor: pointer;
 }
 
@@ -52,12 +52,4 @@ body {
 
 .table-link:hover {
 	cursor: pointer;
-}
-
-#bootstrap-override .collapse {
-    all: initial;
-}
-
-#bootstrap-override .collapse * {
-    all: unset;
 }
