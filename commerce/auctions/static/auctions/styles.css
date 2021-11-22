@@ -23,6 +23,10 @@ body {
 	cursor: pointer;
 }
 
+span.text-toggle {
+	color: blue;
+}
+
 .edit-button:hover,
 .remove:hover,
 #addEmail:hover,

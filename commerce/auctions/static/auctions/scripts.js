@@ -1,15 +1,15 @@
 function sendRequest(targetUrl) {
-	    $.ajax({
-			    url: targetUrl
-		    }).done(function(json){
-		        if (json != "Completed") {
-		            alert(json);
-		        }
-		        location.reload(true);
-		    }).fail(function(json){
-		        alert(json);
-		    });
-	};
+	$.ajax({
+			url: targetUrl
+		}).done(function(json){
+			if (json != "Completed") {
+				alert(json);
+			}
+			location.reload(true);
+		}).fail(function(json){
+			alert(json);
+		});
+}
 	
 var getUnreadMessageNumber = function() {
     $.ajax({
@@ -814,7 +814,6 @@ var messagePage = {
 
 
 $(document).ready(function(){
-    let messages_num = setInterval(function() { getUnreadMessageNumber(); }, 10000)
 	let pageTitle = $("title").text();
 	switch(pageTitle) {
 		case "Auction$ - Create profile":
@@ -868,9 +867,10 @@ $(document).ready(function(){
 		    homePage.init();
 		    break;
 		case pageTitle.match("Auction$ - Search results"):
-		    common.init();
+			console.log("search results page");
 		    break;
 		default:
 			return false;
 	}
+    let messages_num = setInterval(function() { getUnreadMessageNumber(); }, 20000);
 });
