@@ -54,8 +54,10 @@ class CorrectUserTestMixin(UserPassesTestMixin):
         return (get_object_or_404(User, pk=pk) == self.request.user)
         
     def handle_no_permission(self):
-        """ If user attempts to get access to other user's profile redirect her/him
-        to home page and show her/him an access denied message. """
+        """
+        If user attempts to access other user's profile redirect her/him
+        to home page and show her/him an access denied message.
+        """
         if self.raise_exception or self.request.user.is_authenticated:
             messages.error(self.request, self.permission_denied_message)
             return render(self.request, 'auctions/index.html')
@@ -96,8 +98,8 @@ class RegistrationConfirmView(TemplateView):
     """
     In production version an email with registration confirmation link 
     to be sent to an user using the same underlying logic as Django password 
-    reset workflow has.
-    In this student's project version the view shows respective notification 
+    reset workflow.
+    In this school project version the view displays respective notification 
     with the activation link on the screen upon registration.
     """
     success_url = reverse_lazy('auctions:registration_complete')

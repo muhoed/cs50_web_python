@@ -61,7 +61,8 @@
                                     Action
                                 </div>				
                             </div>
-							{% for item in active|dictsort:"listing.end_time" %}
+                            <div>
+							{% for item in active|dictsort:"listing.end_time"|slice:"10" %}
 								<div class="listing row mt-1 ml-1 bg-light">	
 								<a class="col-md-1" href="{% url 'auctions:listing' item.listing.pk %}">
 									<div class="w-100 text-center">
@@ -111,6 +112,60 @@
 							{% empty %}
 								<p class="mt-1 bg-light">There are no any active listing you bidded on.</p>
 							{% endfor %}
+							</div>
+							{% if active.10 %}
+							<div class="collapse" id="active">
+							{% for item in active|dictsort:"listing.end_time"|slice:"10:" %}
+								<div class="listing row mt-1 ml-1 bg-light">	
+								<a class="col-md-1" href="{% url 'auctions:listing' item.listing.pk %}">
+									<div class="w-100 text-center">
+										<img src="{{ item.listing.product.image_set.first.image_url }}" height="50px" width="50px">
+									</div>
+								</a>
+								<a  class="col-md-2" href="{% url 'auctions:listing' item.listing.pk %}">
+									<div class="w-100 text-center">
+										{{ item.listing.product.name|capfirst }}
+									</div>
+								</a>
+								<a  class="col-md-2" href="{% url 'auctions:listing' item.listing.pk %}">
+                                    <div class="w-100 text-center">
+										{% for category in item.listing.product.categories.all %}
+											<p>{{ category.name }}</p>
+										{% endfor %}
+									</div>
+								</a>
+								<a  class="col-md-1" href="{% url 'auctions:listing' item.listing.pk %}">
+									<div class="w-100 text-center">
+										{{ item.listing.max_bid }}
+									</div>
+								</a>
+								<a  class="col-md-1" href="{% url 'auctions:listing' item.listing.pk %}">
+                                    <div class="w-100 text-center">
+										{{ item.value }}
+									</div>
+								</a>
+								<a  class="col-md-2" href="{% url 'auctions:listing' item.listing.pk %}">
+									<div class="w-100 text-center">
+										{{ item.listing.end_time|timeuntil }}
+									</div>
+								</a>
+                                    <!--<div class="col-md-2 text-center">
+										<button class="btn btn-primary" id="bid">Bid again</button>
+									</div>-->
+									<div class="col-md-3 d-flex nowrap">
+										<div>
+											<input class="form-control" type="number" name="bid" value="{{ item.listing.max_bid|add:'1' }}">
+										</div>
+										<div>
+											<button class="btn btn-success place-bid" id="bid-{{ item.listing.id }}">Bid</button>
+										</div>
+									</div>
+								</div>
+							</a>
+							{% endfor %}
+							</div>
+							<p data-toggle="collapse" data-target="#active" class="w-100 btn btn-primary text-toggle">More</p>
+							{% endif %}
 						</div>
 						<div class="tab-pane mt-2" id="won">
 							<div class="d-flex nowrap w-100" id="tab-header">
@@ -142,7 +197,8 @@
 									Status
 								</div>
 							</div>
-                            {% for item in bought|dictsort:"listing.end_time" %}
+							<div>
+                            {% for item in bought|dictsort:"listing.end_time"|slice:"10" %}
 								<div class="listing row mt-1 ml-1 bg-light">
 									<div class="col-1">
 										<a class="text-center" href="{% url 'auctions:listing' item.listing.pk %}">
@@ -182,6 +238,51 @@
 							{% empty %}
 								<p class="mt-1 bg-light">You did not win any auction yet.</p>
 							{% endfor %}
+							</div>
+							{% if bought.10 %}
+							<div class="collapse" id="bought">
+                            {% for item in bought|dictsort:"listing.end_time"|slice:"10:" %}
+								<div class="listing row mt-1 ml-1 bg-light">
+									<div class="col-1">
+										<a class="text-center" href="{% url 'auctions:listing' item.listing.pk %}">
+											<img src="{{ item.product.image_set.first.image_url }}" height="50px" width="50px">
+										</a>
+									</div>
+									<div class="col-3">
+										<a class="text-center" href="{% url 'auctions:listing' item.listing.pk %}">
+											{{ item.listing.product.name|capfirst }}
+										</a>
+									</div>
+									<div class="col-2">
+										<a class="text-center" href="{% url 'auctions:listing' item.listing.pk %}">
+										{% for category in item.listing.product.categories.all %}
+											<p>{{ category.name }}</p>
+										{% endfor %}
+										</a>
+									</div>
+									<div class="col-1">
+										<a class="text-center" href="{% url 'auctions:listing' item.listing.pk %}">
+											{{ item.value }}
+										</a>	
+									</div>
+                                    <div class="col-2">
+										<a class="text-center" href="{% url 'auctions:listing' item.listing.pk %}">
+											{{ item.listing.product.seller.username }}
+										</a>
+									</div>
+                                    <div class="col-1">
+										<button class="btn btn-primary pay" id="pay-{{ user.pk }}-{{ item.listing.pk }}" {% if item.listing.paid %}disabled{%endif%}>Pay</button>
+									</div>
+                                    <div class="col-2 text-center">
+										{% if item.listing.paid %}Paid{% else %}Not paid{% endif %}
+									</div>
+								</div>
+							</a>
+							{% endfor %}
+							</div>
+							
+							<p data-toggle="collapse" data-target="#bought" class="w-100 btn btn-primary text-toggle">More</p>
+							{% endif %}
 						</div>
 						<div class="tab-pane mt-2" id="lost">
 							<div class="d-flex nowrap w-100" id="tab-header">
@@ -213,7 +314,8 @@
 									Ended on
 								</div>
 							</div>
-                            {% for item in lost|dictsort:"listing.end_time" %}
+							<div>
+                            {% for item in lost|dictsort:"listing.end_time"|slice:"10" %}
                             <a href="{% url 'auctions:listing' item.listing.pk %}">
 								<div class="listing row mt-1 ml-1 bg-light">
 									<div class="col-md-1 text-center align-self-center">
@@ -248,6 +350,45 @@
 							{% empty %}
 								<p class="mt-1 bg-light">You do not have any listing you bidded on but lost.</p>
 							{% endfor %}
+							</div>
+							{% if lost.10 %}
+							<div class="collapse" id="lost">
+                            {% for item in lost|dictsort:"listing.end_time"|slice:"10:" %}
+                            <a href="{% url 'auctions:listing' item.listing.pk %}">
+								<div class="listing row mt-1 ml-1 bg-light">
+									<div class="col-md-1 text-center align-self-center">
+										<img src="{{ item.product.image_set.first.image_url }}" height="50px" width="50px">
+									</div>
+									<div class="col-md-3 text-center align-self-center">
+										{{ item.listing.product.name|capfirst }}
+									</div>
+									<div class="col-md-2 text-center align-self-center">
+										{% for category in item.listing.product.categories.all %}
+											<p>{{ category.name }}</p>
+										{% endfor %}
+									</div>
+									<div class="col-md-2 text-center align-self-center">
+										{{ item.listing.bids.count }}
+									</div>
+									<div class="col-md-1 text-center align-self-center">
+										{{ item.value }}
+									</div>
+									<div class="col-md-1 text-center align-self-center">
+										{{ item.listing.max_bid }}
+									</div>
+									<div class="col-md-2 text-center align-self-center">
+										{% if item.listing.cancelled_on %}
+											{{ item.listing.cancelled_on }}
+										{% else %}
+											{{ item.listing.end_time }}
+										{% endif %}
+									</div>
+								</div>
+							</a>
+							{% endfor %}
+							</div>
+						<p data-toggle="collapse" data-target="#lost" class="w-100 btn btn-primary text-toggle">More</p>
+							{% endif %}
 						</div>
 					</div>
 				</div>

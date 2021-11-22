@@ -858,6 +858,7 @@ $(document).ready(function(){
 		    listingPage.init();
 		    break;
 		case "Auction$ - Purchase activities":
+		    common.init();
 		    purchasePage.init();
 		    break;
 		case "Auction$ - Message":
