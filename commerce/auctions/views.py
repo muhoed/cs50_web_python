@@ -228,6 +228,9 @@ class RegistrationCompleteView(TemplateView):
     
 
 class UserPasswordResetView(PasswordResetView):
+    """
+    Sends email with reset password link to user.
+    """
     
     def form_valid(self, form):
         opts = {
@@ -330,7 +333,7 @@ class ProfileView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
         return super().dispatch(*args, **kwargs)
         
     def get_form_kwargs(self):
-        """Return the keyword arguments for instantiating the form."""
+        #Returns the keyword arguments for instantiating the form.
         kwargs = {
             'initial': self.get_initial(),
             'prefix': self.get_prefix(),
@@ -389,8 +392,9 @@ class ProfileView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
         return super().form_valid(form)
     
         
+@method_decorator(never_cache, name="dispatch")
 class ActivitiesSummaryView(LoginRequiredMixin, CorrectUserTestMixin, DetailView):
-    """ Display user profile details. """
+    """ Displays user profile details. """
     model = User
     permission_denied_message='Access to the requested page was denied.'
     
@@ -448,6 +452,7 @@ class SellActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
     context_object_name = "listings_list"
     paginate_by = 10
     
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         if 'pk' not in kwargs:
             raise ImproperlyConfigured(
@@ -481,6 +486,7 @@ class BuyActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
     context_object_name = "user_bids"
     paginate_by = 10
     
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         if 'pk' not in kwargs:
             raise ImproperlyConfigured(
@@ -513,10 +519,11 @@ class BuyActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
         
         
 class UserWatchlistView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
-    """Display and manage user's watchlist."""
+    """Displays and manages user's watchlist."""
     context_object_name = "watched_list"
     paginate_by = 10
     
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         if 'pk' not in kwargs:
             raise ImproperlyConfigured(
@@ -528,6 +535,7 @@ class UserWatchlistView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
         return super().dispatch(*args, **kwargs)
     
     
+@method_decorator(never_cache, name="dispatch")
 class ActiveListingsView(ListView):
     """
     Displays all active listings.
@@ -539,12 +547,13 @@ class ActiveListingsView(ListView):
     
 class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
     """
-    Create a new listing from existing or newly added product.
+    Creates a new listing from existing or newly added product.
     """
     model = Listing
     form_class = ListingForm
     
     def get_context_data(self, **kwargs):
+        # adds product to context
         context = super().get_context_data(**kwargs)
         product = None
         listing = None
@@ -961,6 +970,7 @@ class ListingView(DetailView):
             context["comment_form"] = CommentForm()
         return context
         
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         self.object = self.get_object()
         if self.object.product.seller == self.request.user:
@@ -1128,6 +1138,7 @@ class CreateMessageView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
         return super().dispatch(*args, **kwargs)
         
         
+@method_decorator(never_cache, name="dispatch")
 class MessageView(LoginRequiredMixin, DetailView):
     model = Message
     
@@ -1146,6 +1157,7 @@ class MessageView(LoginRequiredMixin, DetailView):
         return self.render_to_response(context)
     
 
+@method_decorator(never_cache, name="dispatch")
 class MessengerView(LoginRequiredMixin, ListView):
     """
     Display messages received and sent by current user.
@@ -1203,6 +1215,7 @@ class CategoryView(ListView):
             context["title"] = "category " + self.category.name
         return context
     
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         if 'pk' not in kwargs:
             raise ImproperlyConfigured(
@@ -1217,6 +1230,7 @@ class CategoryView(ListView):
         return Listing.get_active().filter(product__in=product_list).order_by('-end_time')
     
 
+@method_decorator(never_cache, name="dispatch")
 class SearchView(FormView):
     form_class = SearchForm
     

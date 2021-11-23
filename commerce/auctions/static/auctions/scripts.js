@@ -21,19 +21,19 @@ var getUnreadMessageNumber = function() {
     });
 };
 
-var common = {
+var commonUtils = {
     
     init: function(settings) {
-        common.config = {
+        commonUtils.config = {
             textToggle: $(".text-toggle")
         };
-		$.extend(common.config, settings);
-		common.setup();
+		$.extend(commonUtils.config, settings);
+		commonUtils.setup();
     },
     
     setup: function() {
-        common.config.textToggle.on("click", function(event){
-            common.changeToggle(event.delegateTarget);
+        commonUtils.config.textToggle.on("click", function(event){
+            commonUtils.changeToggle(event.delegateTarget);
         });
     },
     
@@ -844,7 +844,7 @@ $(document).ready(function(){
 		    createOrUpdateProductPage.init();
 		    break;
 		case "Auction$ - Selling activities":
-		    common.init();
+		    commonUtils.init();
 		    sellingActivitiesPage.init();
 		    break;
 		case "Auction$ - Home":
@@ -857,7 +857,7 @@ $(document).ready(function(){
 		    listingPage.init();
 		    break;
 		case "Auction$ - Purchase activities":
-		    common.init();
+		    commonUtils.init();
 		    purchasePage.init();
 		    break;
 		case "Auction$ - Message":
@@ -867,8 +867,8 @@ $(document).ready(function(){
 		    homePage.init();
 		    break;
 		case pageTitle.match("Auction$ - Search results"):
-			console.log("search results page");
-		    break;
+		    commonUtils.init();
+			break;
 		default:
 			return false;
 	}
