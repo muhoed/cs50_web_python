@@ -53,10 +53,16 @@
 							{{ item.max_bid }}
 						</div>
 						<div class="col-md-2 text-center align-self-center">
-							{{ item.end_time|timeuntil }}
+							{% if item.status == "ended" or item.status == "cancelled" %}
+								Ended
+							{% else %}
+								{{ item.end_time|timeuntil }}
+							{% endif %}
 						</div>
 						<div class="col-md-3 text-center align-self-center">
-							<button class="btn btn-primary bid">Bid</button>
+							{% if item.status == "active" %}
+								<button class="btn btn-primary bid">Bid</button>
+							{% endif %}
 							<button class="btn btn-danger  unwatch" id="unwatch-{{ item.id }}">Unwatch</button>
 						</div>
 					</div>

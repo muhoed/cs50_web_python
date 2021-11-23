@@ -500,7 +500,7 @@ class BuyActivitiesView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
         return super().dispatch(*args, **kwargs)
         
     def get_context_data(self, *args, **kwargs):
-        # add active bidded, won and lost product listings to context
+        # add active listings bidded, won and lost by current user to context
         context = super().get_context_data(*args, **kwargs)
         temp = []
         context["active"] = []
@@ -660,8 +660,8 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
     
 class UpdateListingView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
     """
-    View existing listing parameters for seller.
-    Modify parameters of active but not yet started listing except product detail.
+    Displays existing listing parameters to seller.
+    Modifies parameters of active but not yet started listing except product detail.
     """
     model = Listing
     form_class = ListingForm
@@ -901,42 +901,11 @@ class UpdateProductView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
                                                     'pk':self.object.pk
                                                 }
                                             )
-                                            
-                                            
-@login_required
-def sell_product(request, user_pk, product_pk):
-    pass
-    
-    
-#product delete function view to use with JS.
-#currently use built-in DeleteView instead
-#@login_required
-#def delete_product(request, user_pk, product_pk):
-#    """
-#    Helper view function to delete not listed product..
-#    """
-#    req_user = get_object_or_404(User, pk=user_pk)
-#    if request.user != req_user:
-#        return redirect('auctions:index')
-#    product = get_object_or_404(Product, pk=product_pk)
-#    if product.seller != req_user:
-#        raise ValidationError
-#    if product.listings.first():
-#        for listing in product.listings:
-#            if listing.status != "not started yet":
-#                messages.failure = (request, "The product can not be deleted since it is already (or was) listed")
-#                raise ValidationError
-                #return redirect(reverse('auctions:update_product', kwargs={"user_pk": user_pk, "pk": product_pk}))
-                
-#    message_text = f"Product %s was deleted" % product
-#    product.delete()
-#    messages.success = (request, message_text)
-#    return reverse('auctions:sell_activities', kwargs={'pk': user_pk})
     
     
 class DeleteProductView(LoginRequiredMixin, CorrectUserTestMixin, DeleteView):
     """
-    Delete product that was not listed yet.
+    Deletes product that was not listed yet.
     """
     model = Product
     
@@ -958,7 +927,7 @@ class DeleteProductView(LoginRequiredMixin, CorrectUserTestMixin, DeleteView):
 
 class ListingView(DetailView):
     """
-    Listing view for users over than seller.
+    Displays listing view to users over than seller.
     """
     model = Listing
     
@@ -1027,7 +996,7 @@ def change_watchlist(request, listing_pk, action):
     
 class ManageCommentsView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
     """
-    Display comments on current user listings and comments current user left on others listings.
+    Displays comments to listings of current user and comments current user left on others listings.
     """
     paginate_by = 10
         
@@ -1044,6 +1013,7 @@ class ManageCommentsView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
 
 
 class CreateRespondToCommentView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
+    """Creates answer to a comment."""
     model = Answer
     form_class = AnswerForm
     
@@ -1079,6 +1049,7 @@ class CreateRespondToCommentView(LoginRequiredMixin, CorrectUserTestMixin, Creat
 
 @login_required
 def bid(request, listing_pk, val):
+    """Helper func-based view to create new bid. Invoked from JS."""
     try:
         listing = Listing.objects.get(pk=listing_pk)
     except:
@@ -1099,6 +1070,7 @@ def bid(request, listing_pk, val):
     
     
 class CreateMessageView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
+    """Creates new message."""
     model = Message
     form_class = MessageForm
     
@@ -1140,6 +1112,7 @@ class CreateMessageView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
         
 @method_decorator(never_cache, name="dispatch")
 class MessageView(LoginRequiredMixin, DetailView):
+    """Displays message text."""
     model = Message
     
     def get(self, request, *args, **kwargs):
@@ -1160,7 +1133,7 @@ class MessageView(LoginRequiredMixin, DetailView):
 @method_decorator(never_cache, name="dispatch")
 class MessengerView(LoginRequiredMixin, ListView):
     """
-    Display messages received and sent by current user.
+    Displays messages received and sent by current user.
     """
     
     def get_queryset(self):
@@ -1168,6 +1141,10 @@ class MessengerView(LoginRequiredMixin, ListView):
         
 
 def check_unread_messages(request):
+    """
+    Helper func-based view to calculate a current number of unread messages for a user.
+    Invoked from JS.
+    """
     try:
         if request.user.is_authenticated:
             num_unread = Message.objects.filter(recipient=request.user, read=False).count()
@@ -1232,6 +1209,11 @@ class CategoryView(ListView):
 
 @method_decorator(never_cache, name="dispatch")
 class SearchView(FormView):
+    """
+    Handles search queries. Looks in products titles and description using regular expressions.
+    Returns search results as two lists. 1. Listings with occurencies in product title.
+    2. Listings with occurencies in product description except listings from p.1.
+    """
     form_class = SearchForm
     
     def form_valid(self, form):
