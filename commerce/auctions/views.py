@@ -29,6 +29,7 @@ from django.views.generic.edit import FormView, CreateView, UpdateView, DeleteVi
 from django.views.decorators.cache import never_cache
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.template import loader
+from django.core.paginator import Paginator
 
 from .models import *
 from .forms import *
@@ -998,7 +999,25 @@ class ManageCommentsView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
     """
     Displays comments to listings of current user and comments current user left on others listings.
     """
-    paginate_by = 10
+    page_size_num = 10
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # prepare data for pagination per list
+        queryset = self.get_queryset()
+        for key, value in queryset.items():
+            self.page_kwarg = key + "_page"
+            paginator, page, qset, is_paginated = self.paginate_queryset(value, self.page_size_num)
+            ctx = {
+                key + '_paginator': paginator,
+                key + '_page_obj': page,
+                key + '_is_paginated': is_paginated,
+                key + '_list': qset
+            }
+            context.update(ctx)
+            
+        return context
         
     def dispatch(self, *args, **kwargs):
         if 'user_pk' not in kwargs:
@@ -1008,8 +1027,33 @@ class ManageCommentsView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
         self.user = User.objects.get(pk=kwargs['user_pk'])
         return super().dispatch(*args, **kwargs)
     
+    # modified get method to support pagination of multiple querysets combined to dictionary    
+    def get(self, request, *args, **kwargs):
+        self.object_list = self.get_queryset()
+        allow_empty = self.get_allow_empty()
+
+        if not allow_empty:
+            # Checking every queryset in dictionary
+            for key, value in self.object_list.items():
+                # When pagination is enabled and object_list is a queryset,
+                # it's better to do a cheap query than to load the unpaginated
+                # queryset in memory.
+                if self.page_size_num is not None and hasattr(value, 'exists'):
+                    is_empty = not value.exists()
+                else:
+                    is_empty = not value
+                if is_empty:
+                    raise Http404(_('Empty list and “%(class_name)s.allow_empty” is False.') % {
+                        'class_name': self.__class__.__name__,
+                    })
+        context = self.get_context_data()
+        return self.render_to_response(context)
+    
     def get_queryset(self):
-        return Comment.objects.filter(Q(author=self.user)|Q(listing__product__seller=self.user))
+        return {
+            "left_comment": Comment.objects.filter(author=self.user),
+            "received_comment": Comment.objects.filter(listing__product__seller=self.user)
+        }
 
 
 class CreateRespondToCommentView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):

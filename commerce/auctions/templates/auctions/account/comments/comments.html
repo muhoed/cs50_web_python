@@ -20,11 +20,10 @@
 				<div class="row" id="tab-header">
 					<h5 class="ml-3">Your comments and respective sellers responses:</h5>
 				</div>
-				{% for comment in comment_list %}
-				{% if comment.author == user %}
-					<div class="mt-2 row">
+				{% for comment in left_comment_list %}
+					<div class="mt-2 row border border-top-1 border-right-0 border-bottom-0 border-left-0">
 						<div class="col-md-3">
-							Listing
+							Listing details:
 						</div>
 						<div class="col-md-9">
 							<a href="{% url 'auctions:listing' comment.listing.pk %}">{{ comment.listing }}</a>
@@ -48,18 +47,58 @@
 						</div>
 					</div>
 					{% endfor %}
-				{% endif %}
 				{% endfor %}
+				<div class="mt-5 row justify-content-center">
+				  <nav aria-label="...">
+					<ul class="pagination">
+
+					  {% if left_comment_page_obj.has_previous %}
+						<li class="page-item">
+						  <a href="?page={{ left_comment_page_obj.previous_page_number }}" class="page-link">Previous</a>
+						</li>
+						<li>
+						  <a class="page-link" href="?page={{ left_comment_page_obj.previous_page_number }}">
+							{{ left_comment_page_obj.previous_page_number }}
+						  </a>
+						</li>
+					  {% else %}
+						<li class="page-item disabled">
+						  <span class="page-link">Previous</span>
+						</li>
+					  {% endif %}
+
+					  <li class="page-item active">
+						<span class="page-link">{{ left_comment_page_obj.number }}</span>
+					  </li>
+
+					  {% if left_comment_page_obj.has_next %}
+						<li class="page-item">
+						  <a class="page-link" href="?page={{ left_comment_page_obj.next_page_number }}">
+							{{ left_comment_page_obj.next_page_number }}
+						  </a>
+						</li>
+						<li class="page-item ">
+						  <a class="page-link" href="?page={{ left_comment_page_obj.next_page_number }}">Next</a>
+						</li>
+					  {% else %}
+						<li class="page-item disabled">
+						  <span class="page-link">Next</span>
+						</li>
+					  {% endif %}
+
+					</ul>
+				  </nav>
+				</div>
 			</div>
 			<div class="tab-pane mt-2" id="toyou">
 				<div class="row" id="tab-header">
 					<h5 class="ml-3">Comments left to your listings:</h5>
 				</div>
-				{% for comment in comment_list %}
+				{% for comment in received_comment_list %}
 				{% if comment.author != user %}
-					<div class="mt-2 row">
+					<div class="mt-2 row border border-top-1 border-right-0 border-bottom-0 border-left-0">
 						<div class="col-md-5">
-							Listing
+							Listing details:
 						</div>
 						<div class="col-md-7">
 							<a href="{% url 'auctions:update_listing' user_pk=user.pk pk=comment.listing.pk %}">{{ comment.listing }}</a>
@@ -86,6 +125,47 @@
 					<a href="{% url 'auctions:answer_comment' user.pk comment.pk %}"><button class="btn btn-primary">Respond</button></a>
 				{% endif %}
 				{% endfor %}
+				<div class="mt-5 row justify-content-center">
+				  <nav aria-label="...">
+					<ul class="pagination">
+
+					  {% if received_comment_page_obj.has_previous %}
+						<li class="page-item">
+						  <a href="?page={{ received_comment_page_obj.previous_page_number }}" class="page-link">Previous</a>
+						</li>
+						<li>
+						  <a class="page-link" href="?page={{ received_comment_page_obj.previous_page_number }}">
+							{{ received_comment_page_obj.previous_page_number }}
+						  </a>
+						</li>
+					  {% else %}
+						<li class="page-item disabled">
+						  <span class="page-link">Previous</span>
+						</li>
+					  {% endif %}
+
+					  <li class="page-item active">
+						<span class="page-link">{{ received_comment_page_obj.number }}</span>
+					  </li>
+
+					  {% if received_comment_page_obj.has_next %}
+						<li class="page-item">
+						  <a class="page-link" href="?page={{ received_comment_page_obj.next_page_number }}">
+							{{ received_comment_page_obj.next_page_number }}
+						  </a>
+						</li>
+						<li class="page-item ">
+						  <a class="page-link" href="?page={{ received_comment_page_obj.next_page_number }}">Next</a>
+						</li>
+					  {% else %}
+						<li class="page-item disabled">
+						  <span class="page-link">Next</span>
+						</li>
+					  {% endif %}
+
+					</ul>
+				  </nav>
+				</div>
 			</div>
 		</div>
 	</div>
