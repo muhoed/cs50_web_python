@@ -108,7 +108,6 @@
 										</div>
 									</div>
 								</div>
-							</a>
 							{% empty %}
 								<p class="mt-1 bg-light">There are no any active listing you bidded on.</p>
 							{% endfor %}
@@ -117,38 +116,38 @@
 							<div class="collapse" id="active">
 							{% for item in active|dictsort:"listing.end_time"|slice:"10:" %}
 								<div class="listing row mt-1 ml-1 bg-light">	
-								<a class="col-md-1" href="{% url 'auctions:listing' item.listing.pk %}">
-									<div class="w-100 text-center">
-										<img src="{{ item.listing.product.image_set.first.image_url }}" height="50px" width="50px">
-									</div>
-								</a>
-								<a  class="col-md-2" href="{% url 'auctions:listing' item.listing.pk %}">
-									<div class="w-100 text-center">
-										{{ item.listing.product.name|capfirst }}
-									</div>
-								</a>
-								<a  class="col-md-2" href="{% url 'auctions:listing' item.listing.pk %}">
-                                    <div class="w-100 text-center">
-										{% for category in item.listing.product.categories.all %}
-											<p>{{ category.name }}</p>
-										{% endfor %}
-									</div>
-								</a>
-								<a  class="col-md-1" href="{% url 'auctions:listing' item.listing.pk %}">
-									<div class="w-100 text-center">
-										{{ item.listing.max_bid }}
-									</div>
-								</a>
-								<a  class="col-md-1" href="{% url 'auctions:listing' item.listing.pk %}">
-                                    <div class="w-100 text-center">
-										{{ item.value }}
-									</div>
-								</a>
-								<a  class="col-md-2" href="{% url 'auctions:listing' item.listing.pk %}">
-									<div class="w-100 text-center">
-										{{ item.listing.end_time|timeuntil }}
-									</div>
-								</a>
+									<a class="col-md-1" href="{% url 'auctions:listing' item.listing.pk %}">
+										<div class="w-100 text-center">
+											<img src="{{ item.listing.product.image_set.first.image_url }}" height="50px" width="50px">
+										</div>
+									</a>
+									<a  class="col-md-2" href="{% url 'auctions:listing' item.listing.pk %}">
+										<div class="w-100 text-center">
+											{{ item.listing.product.name|capfirst }}
+										</div>
+									</a>
+									<a  class="col-md-2" href="{% url 'auctions:listing' item.listing.pk %}">
+										<div class="w-100 text-center">
+											{% for category in item.listing.product.categories.all %}
+												<p>{{ category.name }}</p>
+											{% endfor %}
+										</div>
+									</a>
+									<a  class="col-md-1" href="{% url 'auctions:listing' item.listing.pk %}">
+										<div class="w-100 text-center">
+											{{ item.listing.max_bid }}
+										</div>
+									</a>
+									<a  class="col-md-1" href="{% url 'auctions:listing' item.listing.pk %}">
+										<div class="w-100 text-center">
+											{{ item.value }}
+										</div>
+									</a>
+									<a  class="col-md-2" href="{% url 'auctions:listing' item.listing.pk %}">
+										<div class="w-100 text-center">
+											{{ item.listing.end_time|timeuntil }}
+										</div>
+									</a>
                                     <!--<div class="col-md-2 text-center">
 										<button class="btn btn-primary" id="bid">Bid again</button>
 									</div>-->
@@ -161,10 +160,9 @@
 										</div>
 									</div>
 								</div>
-							</a>
 							{% endfor %}
 							</div>
-							<p data-toggle="collapse" data-target="#active" class="w-100 btn btn-primary text-toggle">More</p>
+							<p data-toggle="collapse" data-target="#active" class="w-100 mt-2 btn btn-primary text-toggle">More</p>
 							{% endif %}
 						</div>
 						<div class="tab-pane mt-2" id="won">
@@ -228,13 +226,12 @@
 										</a>
 									</div>
                                     <div class="col-1">
-										<button class="btn btn-primary pay" id="pay-{{ user.pk }}-{{ item.listing.pk }}" {% if item.listing.paid %}disabled{%endif%}>Pay</button>
+										<button class="btn btn-primary mark-paid" id="pay-{{ user.pk }}-{{ item.listing.pk }}" {% if item.listing.paid %}disabled{%endif%}>Pay</button>
 									</div>
                                     <div class="col-2 text-center">
 										{% if item.listing.paid %}Paid{% else %}Not paid{% endif %}
 									</div>
 								</div>
-							</a>
 							{% empty %}
 								<p class="mt-1 bg-light">You did not win any auction yet.</p>
 							{% endfor %}
@@ -271,17 +268,16 @@
 										</a>
 									</div>
                                     <div class="col-1">
-										<button class="btn btn-primary pay" id="pay-{{ user.pk }}-{{ item.listing.pk }}" {% if item.listing.paid %}disabled{%endif%}>Pay</button>
+										<button class="btn btn-primary mark-paid" id="pay-{{ user.pk }}-{{ item.listing.pk }}" {% if item.listing.paid %}disabled{%endif%}>Pay</button>
 									</div>
                                     <div class="col-2 text-center">
 										{% if item.listing.paid %}Paid{% else %}Not paid{% endif %}
 									</div>
 								</div>
-							</a>
 							{% endfor %}
 							</div>
 							
-							<p data-toggle="collapse" data-target="#bought" class="w-100 btn btn-primary text-toggle">More</p>
+							<p data-toggle="collapse" data-target="#bought" class="w-100 mt-2 btn btn-primary text-toggle">More</p>
 							{% endif %}
 						</div>
 						<div class="tab-pane mt-2" id="lost">
@@ -387,7 +383,7 @@
 							</a>
 							{% endfor %}
 							</div>
-						<p data-toggle="collapse" data-target="#lost" class="w-100 btn btn-primary text-toggle">More</p>
+						<p data-toggle="collapse" data-target="#lost" class="w-100 mt-2 btn btn-primary text-toggle">More</p>
 							{% endif %}
 						</div>
 					</div>

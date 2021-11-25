@@ -999,23 +999,13 @@ class ManageCommentsView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
     """
     Displays comments to listings of current user and comments current user left on others listings.
     """
-    page_size_num = 10
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # prepare data for pagination per list
         queryset = self.get_queryset()
-        for key, value in queryset.items():
-            self.page_kwarg = key + "_page"
-            paginator, page, qset, is_paginated = self.paginate_queryset(value, self.page_size_num)
-            ctx = {
-                key + '_paginator': paginator,
-                key + '_page_obj': page,
-                key + '_is_paginated': is_paginated,
-                key + '_list': qset
-            }
-            context.update(ctx)
+        context["received_comment"] = queryset["received_comment"]
+        context["left_comment"] = queryset["left_comment"]
             
         return context
         
@@ -1026,28 +1016,6 @@ class ManageCommentsView(LoginRequiredMixin, CorrectUserTestMixin, ListView):
             )
         self.user = User.objects.get(pk=kwargs['user_pk'])
         return super().dispatch(*args, **kwargs)
-    
-    # modified get method to support pagination of multiple querysets combined to dictionary    
-    def get(self, request, *args, **kwargs):
-        self.object_list = self.get_queryset()
-        allow_empty = self.get_allow_empty()
-
-        if not allow_empty:
-            # Checking every queryset in dictionary
-            for key, value in self.object_list.items():
-                # When pagination is enabled and object_list is a queryset,
-                # it's better to do a cheap query than to load the unpaginated
-                # queryset in memory.
-                if self.page_size_num is not None and hasattr(value, 'exists'):
-                    is_empty = not value.exists()
-                else:
-                    is_empty = not value
-                if is_empty:
-                    raise Http404(_('Empty list and “%(class_name)s.allow_empty” is False.') % {
-                        'class_name': self.__class__.__name__,
-                    })
-        context = self.get_context_data()
-        return self.render_to_response(context)
     
     def get_queryset(self):
         return {
@@ -1179,9 +1147,20 @@ class MessengerView(LoginRequiredMixin, ListView):
     """
     Displays messages received and sent by current user.
     """
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        queryset = self.get_queryset()
+        context["inbox"] = queryset["inbox"]
+        context["outbox"] = queryset["outbox"]
+            
+        return context
     
     def get_queryset(self):
-        return Message.objects.filter(Q(sender=self.request.user)|Q(recipient=self.request.user)).order_by("-time")
+        return {
+            "outbox": Message.objects.filter(sender=self.request.user).order_by("-time"),
+            "inbox": Message.objects.filter(recipient=self.request.user).order_by("-time")
+        }
         
 
 def check_unread_messages(request):

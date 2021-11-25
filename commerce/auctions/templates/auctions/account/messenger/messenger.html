@@ -31,8 +31,8 @@
 						Subject
 					</div>
 				</div>
-				{% for message in message_list %}
-				{% if message.recipient == user %}
+				<div>
+				{% for message in inbox|slice:"10" %}
 				<a href="{% url 'auctions:message' message.pk %}">
 					<div class="row mt-1 border border-top-1 border-left-0 border-right-0 border-bottom-0 {% if not message.read %}font-weight-bold{% endif %}">
 						<div class="col-2">
@@ -46,8 +46,28 @@
 						</div>
 					</div>
 				</a>
-				{% endif %}
 				{% endfor %}
+				</div>
+				{% if inbox.10 %}
+				<div class="collapse" id="received-messages">
+				{% for message in inbox|slice:"10:" %}
+				<a href="{% url 'auctions:message' message.pk %}">
+					<div class="row mt-1 border border-top-1 border-left-0 border-right-0 border-bottom-0 {% if not message.read %}font-weight-bold{% endif %}">
+						<div class="col-2">
+							{{ message.time }}
+						</div>
+						<div class="col-2">
+							{{ message.sender.username }}
+						</div>
+						<div class="col-8">
+							{{ message.subject }}
+						</div>
+					</div>
+				</a>
+				{% endfor %}
+				</div>
+				<p data-toggle="collapse" data-target="#received-messages" class="w-100 mt-2 btn btn-primary text-toggle">More</p>
+				{% endif %}
 			</div>
 			<div class="tab-pane mt-2" id="outbox">
 				<div class="row" id="tab-header">
@@ -64,8 +84,8 @@
 						Subject
 					</div>
 				</div>
-				{% for message in message_list %}
-				{% if message.sender == user %}
+				<div>
+				{% for message in outbox|slice:"10" %}
 				<a href="{% url 'auctions:message' message.pk %}">
 					<div class="row mt-1 border border-top-1 border-left-0 border-right-0 border-bottom-0">
 						<div class="col-2">
@@ -79,8 +99,28 @@
 						</div>
 					</div>
 				</a>
-				{% endif %}
 				{% endfor %}
+				</div>
+				{% if outbox.10 %}
+				<div class="collapse" id="sent-messages">
+				{% for message in outbox|slice:"10" %}
+				<a href="{% url 'auctions:message' message.pk %}">
+					<div class="row mt-1 border border-top-1 border-left-0 border-right-0 border-bottom-0">
+						<div class="col-2">
+							{{ message.time }}
+						</div>
+						<div class="col-2">
+							{{ message.recipient.username }}
+						</div>
+						<div class="col-8">
+							{{ message.subject }}
+						</div>
+					</div>
+				</a>
+				{% endfor %}
+				</div>
+				<p data-toggle="collapse" data-target="#sent-messages" class="w-100 mt-2 btn btn-primary text-toggle">More</p>
+				{% endif %}	
 			</div>
 		</div>
 	</div>

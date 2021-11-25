@@ -753,7 +753,7 @@ var purchasePage = {
 	init: function(settings) {
 		purchasePage.config = {
 			placeBidButton: $(".place-bid"),
-			markPaidButton: $(".pay")
+			markPaidButton: $(".mark-paid")
 		};
 		$.extend(purchasePage.config, settings);
 		purchasePage.setup();
@@ -762,9 +762,9 @@ var purchasePage = {
 	setup: function() {
 		purchasePage.config.placeBidButton.on("click", function(event) {
 			purchasePage.placeBid(event);
+		});
 		purchasePage.config.markPaidButton.on("click", function(event) {
 			purchasePage.markPaid(event);
-		});
 		});
 	},
 	
@@ -860,8 +860,14 @@ $(document).ready(function(){
 		    commonUtils.init();
 		    purchasePage.init();
 		    break;
+		case "Auction$ - Manage comments":
+		    commonUtils.init();
+		    break;
 		case "Auction$ - Message":
 		    messagePage.init();
+		    break;
+		case "Auction$ - Messenger":
+		    commonUtils.init();
 		    break;
 		case pageTitle.match("Auction$ - Category .+"):
 		    homePage.init();

@@ -13,9 +13,9 @@
 						{{ listing }}</a></li>
 				{% endfor %}
 			</ul>
-			{% if in_titles.5 %}
+			{% if in_titles.1 %}
 			<ul class="collapse" id="in-titles">
-				{% for listing in in_titles|slice:"5:" %}
+				{% for listing in in_titles|slice:"1:" %}
 					
 					<li><a href="{% url 'auctions:listing' listing.pk %}">
 						{{ listing }}</a></li>
@@ -52,7 +52,7 @@
 						<div class="col-6">
 						    {{ entry.1 }}<b>{{ entry.2 }}</b>{{ entry.3 }}
 						</div>
-						</li>
+					</li>
 				{% endfor %}
 			</ul>
 			<p data-toggle="collapse" data-target="#in-content" class="w-100 btn btn-primary text-toggle">More</p>
