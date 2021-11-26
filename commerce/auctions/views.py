@@ -709,7 +709,8 @@ def cancel_listing(request, user_pk, listing_pk):
     listing.save()
     message_text = f"Listing for %s was cancelled" % (listing.product.name)
     messages.success = (request, message_text)
-    return redirect(reverse('auctions:sell_activities', kwargs={'pk': user_pk}))
+    #return redirect(reverse('auctions:sell_activities', kwargs={'pk': user_pk}))
+    return HttpResponse("Completed")
     
     
 @login_required
@@ -728,7 +729,8 @@ def cancel_listings(request, user_pk):
         listing.save()
         message_text = message_text + listing.product.name + ", "
     messages.success = (request, message_text)
-    return redirect(reverse('auctions:sell_activities', kwargs={'pk': user_pk}))
+    #return redirect(reverse('auctions:sell_activities', kwargs={'pk': user_pk}))
+    return HttpResponse("Completed")
                                             
 
 @login_required

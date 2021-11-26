@@ -514,7 +514,7 @@ var createOrUpdateProductPage = {
 	reactivatePicture: function(trigger){
 		let imgUrlId = $(trigger.target).parents(".image-url").get(0).id;
 		let num = imgUrlId.split("-")[2];
-		let urlId = "#" + imgUrlId
+		let urlId = "#" + imgUrlId;
 	    let delId = "#id_image_set-" + (num - 1) + "-DELETE";
 	    let imgId = "#picture-" + num;
 	    $(imgId).find("img").attr("src", $(urlId).find("input[type='url']").val());
@@ -814,6 +814,7 @@ var messagePage = {
 
 
 $(document).ready(function(){
+    let messages_num = setInterval(function() { getUnreadMessageNumber(); }, 60000);
 	let pageTitle = $("title").text();
 	switch(pageTitle) {
 		case "Auction$ - Create profile":
@@ -869,14 +870,13 @@ $(document).ready(function(){
 		case "Auction$ - Messenger":
 		    commonUtils.init();
 		    break;
-		case pageTitle.match("Auction$ - Category .+"):
+		case /.+Category.+/.test(pageTitle) && pageTitle:
 		    homePage.init();
 		    break;
-		case pageTitle.match("Auction$ - Search results"):
+		case "Auction$ - Search results":
 		    commonUtils.init();
 			break;
 		default:
 			return false;
 	}
-    let messages_num = setInterval(function() { getUnreadMessageNumber(); }, 20000);
 });
