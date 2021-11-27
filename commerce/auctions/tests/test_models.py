@@ -66,14 +66,25 @@ class TestModels(TestCase):
         
     def test_good_credentials(self):
         self.assertTrue(authenticate(username='test_user', password='Pass&2021'))
+        
+    def test_new_category(self):
+        category = Category.objects.get(id=1)
+        self.assertEqual(str(category), 'testcategory')
+        self.assertTrue(self.product in category.products.all())
+        
+    def test_new_product(self):
+        product = Product.objects.get(id=1)
+        self.assertEqual(str(product), 'Product title: testproduct, product description: Product for testing purposes')
+        self.assertTrue(product.seller == self.testuser)
+        self.assertTrue(self.category in product.categories.all())
 	
     def test_new_listing(self):
         listing = Listing.objects.get(id=1)
         self.assertEqual(listing.end_time-listing.start_time, 
                                                         datetime.timedelta(days=10))
         self.assertEqual(listing.status, "active")
-        self.assertEqual(listing.get_absolute_url, '/listing/1/')
-        self.assertEqual(listing.max_bid, 0)
+        self.assertEqual(listing.get_absolute_url(), '/listing/1/')
+        self.assertEqual(listing.max_bid, Decimal('1.00'))
         
         
     def test_listing_not_started_status(self):
@@ -83,7 +94,7 @@ class TestModels(TestCase):
         self.assertEqual(self.testlisting.status, "not started yet")
         
     def test_listing_canceled_status(self):
-        self.testlisting.cancelled = True
+        self.testlisting.cancelled_on = timezone.now()
         self.testlisting.save()
         
         self.assertEqual(self.testlisting.status, "cancelled")
@@ -95,7 +106,7 @@ class TestModels(TestCase):
                                 password="Pass2%2021")
         bid1 = Bid.objects.create(bidder=testbidder, 
                                 listing=self.testlisting, 
-                                value=Decimal('1.00'))
+                                value=Decimal('2.00'))
         bid2 = Bid.objects.create(bidder=testbidder, 
                                 listing=self.testlisting, 
                                 value=Decimal('3.15'))
@@ -108,15 +119,15 @@ class TestModels(TestCase):
         
         bidder1 = User.objects.create(
                                 username="bidder1",
-                                email="",
+                                email="email1@test.com",
                                 password="Pass2%2021")
         bidder2 = User.objects.create(
                                 username="bidder2",
-                                email="",
+                                email="email2@test.com",
                                 password="Pass3%2021")
         bid1 = Bid.objects.create(bidder=bidder1, 
                                 listing=self.testlisting, 
-                                value=Decimal('1.00'))
+                                value=Decimal('2.00'))
         bid2 = Bid.objects.create(bidder=bidder2, 
                                 listing=self.testlisting, 
                                 value=Decimal('3.15'))

@@ -1067,7 +1067,7 @@ def bid(request, listing_pk, val):
     try:
         listing = Listing.objects.get(pk=listing_pk)
     except:
-        messages.failure = (request, "The listing was not found.")
+        messages.error = (request, "The listing was not found.")
         return HttpResponse("The listing was not found.")
     
     try:    

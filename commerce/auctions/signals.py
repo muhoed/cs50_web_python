@@ -206,10 +206,10 @@ def answer_handler(sender, instance, **kwargs):
 @receiver(pre_save, sender=Bid)
 def pre_bid_handler(sender, instance, **kwargs):
     if float(instance.value) <= float(instance.listing.max_bid):
+		
         raise ValidationError(f"Your bid is less or equal to the current \
-                            highest bid. Please increase a bid value and \
-                            try again. Current highest bid is %s" \
-                            % str(instance.listing.max_bid))
+highest bid. Please increase a bid value and \
+try again. Current highest bid is %s" % str(instance.listing.max_bid))
 
 @receiver(post_save, sender=Bid)
 def bid_handler(sender, instance, **kwargs):
