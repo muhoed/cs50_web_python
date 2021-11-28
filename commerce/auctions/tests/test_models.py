@@ -12,14 +12,23 @@ from auctions.models import *
 class TestModels(TestCase):
 	
     def setUp(self):
-        # Create test user to use in testing.
+        # Create test user to use in testing
         self.testuser = User.objects.create_user(
                                         username="test_user",
                                         email="test_email@test.com",
                                         password='Pass&2021',
                                         title="MR",
                                         first_name="John",
-                                        last_name="Smith")
+                                        last_name="Smith"
+                                        )
+        # Create test user delivery address to use in testing
+        self.testuser.address_set.add(Address.objects.create(
+                                        user=self.testuser,
+                                        line1="street 1",
+                                        zip_code="99999",
+                                        city="city"
+                                        ))
+        
         # Create test category
         self.category = Category.objects.create(
                             name="testcategory",
@@ -45,7 +54,6 @@ class TestModels(TestCase):
         self.assertEqual(self.testuser.emailaddress_set.get(pk='1').email_address, 'new_email@test.com')
         self.assertEqual(additional_email.get_email_type_display(), 'Payment')
         self.assertEqual(str(additional_email), 'Email address for payment: new_email@test.com')
-        self.assertEqual(str(self.testuser.emailaddress_set.first()), 'Email address for payment: new_email@test.com')
 
     def test_create_address(self):
         address = Address.objects.create(user=self.testuser,
@@ -58,7 +66,6 @@ class TestModels(TestCase):
         self.assertEqual(address.get_country_display(), 'Slovakia')
         self.assertEqual(address.get_address_type_display(), 'Billing address')
         self.assertEqual(str(address), 'Billing address: street 1, 00000 testcity, Slovakia')
-        self.assertEqual(str(self.testuser.address_set.first()), 'Billing address: street 1, 00000 testcity, Slovakia')
         
     
     def test_bad_credentials(self):
@@ -77,11 +84,38 @@ class TestModels(TestCase):
         self.assertEqual(str(product), 'Product title: testproduct, product description: Product for testing purposes')
         self.assertTrue(product.seller == self.testuser)
         self.assertTrue(self.category in product.categories.all())
+        
+    def test_sold_num_product(self):
+        testbidder = User.objects.create(
+                                username="testbidder",
+                                email="",
+                                password="Pass2%2021")
+        testbidder.address_set.add(Address.objects.create(
+                                        user=testbidder,
+                                        line1="street 1",
+                                        zip_code="99999",
+                                        city="city"
+                                        ))
+        bid1 = Bid.objects.create(bidder=testbidder, 
+                                listing=self.testlisting, 
+                                value=Decimal('2.00'))
+        self.testlisting.cancelled_on = timezone.now()
+        self.testlisting.save()
+        testlisting2 = Listing.objects.create(product=self.product)
+        bid2 = Bid.objects.create(bidder=testbidder, 
+                                listing=testlisting2, 
+                                value=Decimal('2.00'))
+        testlisting2.cancelled_on = timezone.now()
+        testlisting2.save()
+        
+        self.assertEqual(self.product.sold_num, 2)
 	
     def test_new_listing(self):
         listing = Listing.objects.get(id=1)
-        self.assertEqual(listing.end_time-listing.start_time, 
-                                                        datetime.timedelta(days=10))
+        self.assertEqual(
+                listing.end_time,
+                listing.start_time + datetime.timedelta(days=10)
+                )
         self.assertEqual(listing.status, "active")
         self.assertEqual(listing.get_absolute_url(), '/listing/1/')
         self.assertEqual(listing.max_bid, Decimal('1.00'))
@@ -144,6 +178,21 @@ class TestModels(TestCase):
         self.assertEqual(len(self.testuser.watchlist.all()), 1)
         self.assertEqual(self.testuser.watchlist.get(), self.testlisting)
         
+    def test_comment(self):
+        user = User.objects.create(
+                                    username="commenting_user", 
+                                    email="", 
+                                    password="Pass&2021"
+                                    )
+        comment = Comment.objects.create(
+                                    author = user,
+                                    listing = self.testlisting,
+                                    content = "test comment"
+                                    )
+                                    
+        self.assertEqual(str(comment), f"User commenting_user comments on \
+auction for testproduct at {comment.time}.")
+        
     def test_comment_pending(self):
         user = User.objects.create(
                                     username="commenting_user", 
@@ -158,7 +207,7 @@ class TestModels(TestCase):
                                     
         self.assertEqual(comment.status, "pending")
         
-    def test_comment_answered(self):
+    def test_comment_answered_answer(self):
         user = User.objects.create(
                                     username="commenting_user", 
                                     email="", 
@@ -177,4 +226,8 @@ class TestModels(TestCase):
                                     
         self.assertEqual(comment.status, "answered")
         self.assertEqual(len(comment.answer_set.all()), 1)
+        
+        #test answer __str__
+        self.assertEqual(str(answer), f"User test_user answered to \
+a comment of commenting_user at {answer.time}.")
         

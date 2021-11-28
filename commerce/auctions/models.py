@@ -521,8 +521,8 @@ class Comment(models.Model):
 	
 	def __str__(self):
 		return f"User {self.author.username} comments on \
-				auction for {self.listing.product.name} \
-				at {self.time}."
+auction for {self.listing.product.name} \
+at {self.time}."
 				
 class Answer(models.Model):
 	
@@ -534,9 +534,9 @@ class Answer(models.Model):
 	time = models.DateTimeField(auto_now_add=True)
 	
 	def __str__(self):
-		return f"User {self.respondent.name} answered to \
-				a comment of {self.comment.author.name} \
-				at {self.time}."
+		return f"User {self.respondent.username} answered to \
+a comment of {self.comment.author.username} \
+at {self.time}."
 	
 	
 class Message(models.Model):
