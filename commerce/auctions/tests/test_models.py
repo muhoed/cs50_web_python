@@ -5,6 +5,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from django.contrib.auth import authenticate
+from django.core.exceptions import ValidationError
 
 from auctions.models import *
 
@@ -171,12 +172,57 @@ class TestModels(TestCase):
         
         self.assertEqual(self.testlisting.winner, bidder1)
         
+    def test_get_active_listing(self):
+        active = Listing.get_active()
+        
+        self.assertEqual(len(active), 1)
+        self.assertTrue(self.testlisting in active)
+        
+    def test_get_ended_listing(self):
+        ended = Listing.get_ended()
+        
+        self.assertEqual(len(ended), 0)
+        
+        self.testlisting.cancelled_on = timezone.now()
+        self.testlisting.save()
+        ended = Listing.get_ended()
+        
+        self.assertEqual(len(ended), 1)
+        self.assertTrue(self.testlisting in ended)
+        
     def test_add_to_watchlist(self):
         self.testlisting.followers.add(self.testuser)
         self.testlisting.save()
         
         self.assertEqual(len(self.testuser.watchlist.all()), 1)
         self.assertEqual(self.testuser.watchlist.get(), self.testlisting)
+        
+    def test_create_bid(self):
+        bidder1 = User.objects.create(
+                                username="bidder1",
+                                email="email1@test.com",
+                                password="Pass2%2021")
+                                
+        # checks ValidationError is raised in pre-save signal callback
+        # of Bid class in case of bid's value less or equal to the existing
+        # highest bid on the listing
+        message = f"Your bid is less or equal to the current \
+highest bid. Please increase a bid value and \
+try again. Current highest bid is %s" % self.testlisting.max_bid
+        
+        with self.assertRaisesMessage(
+                            ValidationError,
+                            message):
+                                Bid.objects.create(bidder=bidder1, 
+                                                listing=self.testlisting, 
+                                                value=Decimal('1.00'))
+        
+        bid1 = Bid.objects.create(bidder=bidder1, 
+                                listing=self.testlisting, 
+                                value=Decimal('2.00'))
+        
+        # assert Bid class __str__ method works as expected
+        self.assertEqual(str(bid1), f"User bidder1 bidded 2.00 at {bid1.time}.")
         
     def test_comment(self):
         user = User.objects.create(

@@ -501,7 +501,7 @@ class Bid(models.Model):
 	
 	def __str__(self):
 		return f"User {self.bidder.username} \
-				bidded {self.value} at {self.time}."
+bidded {self.value} at {self.time}."
 		
 		
 class Comment(models.Model):
