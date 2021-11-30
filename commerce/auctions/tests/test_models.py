@@ -11,6 +11,10 @@ from auctions.models import *
 
     					
 class TestModels(TestCase):
+    """
+    Testing models logic including pre- and post-save signal handlers 
+    except built-in Django functionality.
+    """
 	
     def setUp(self):
         # Create test user to use in testing
@@ -68,23 +72,23 @@ class TestModels(TestCase):
         self.assertEqual(address.get_address_type_display(), 'Billing address')
         self.assertEqual(str(address), 'Billing address: street 1, 00000 testcity, Slovakia')
         
-    
-    def test_bad_credentials(self):
-        self.assertFalse(authenticate(username='test_user', password='somepass'))
-        
-    def test_good_credentials(self):
-        self.assertTrue(authenticate(username='test_user', password='Pass&2021'))
-        
     def test_new_category(self):
         category = Category.objects.get(id=1)
+        
+        # testing category __str__ representation
         self.assertEqual(str(category), 'testcategory')
-        self.assertTrue(self.product in category.products.all())
         
     def test_new_product(self):
         product = Product.objects.get(id=1)
+        
+        # testing product __str__ representation
         self.assertEqual(str(product), 'Product title: testproduct, product description: Product for testing purposes')
-        self.assertTrue(product.seller == self.testuser)
-        self.assertTrue(self.category in product.categories.all())
+        
+        # testing a message to  product seller was created by product post-save handler
+        message = Message.objects.filter(subject="Product testproduct was added").first()
+        self.assertTrue(message)
+        self.assertEqual(message.sender.username, "system")
+        self.assertEqual(message.recipient, self.testuser)
         
     def test_sold_num_product(self):
         testbidder = User.objects.create(
@@ -277,3 +281,20 @@ auction for testproduct at {comment.time}.")
         self.assertEqual(str(answer), f"User test_user answered to \
 a comment of commenting_user at {answer.time}.")
         
+    def test_message(self):
+        user = User.objects.create(
+                                    username="recipient", 
+                                    email="recipient@test.com", 
+                                    password="Pass&2021"
+                                    )
+        message = Message.objects.create(
+                                    sender = self.testuser,
+                                    recipient = user,
+                                    listing = self.testlisting,
+                                    subject = "test",
+                                    content = "test message content"
+                                    )
+                                    
+        
+                                    
+        self.assertEqual(str(message), f"Message from test_user to recipient regarding test sent at {message.time}.")
