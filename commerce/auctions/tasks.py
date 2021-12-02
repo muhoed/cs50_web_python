@@ -1,3 +1,4 @@
+# start worker 'celery -A commerce worker -l INFO'
 #from commerce.celery import app as celery_app
 from celery import shared_task
 
@@ -14,8 +15,8 @@ def import_django_instance():
     django.setup()
 
 
-@shared_task
-def listing_ended_handler(data):
+@shared_task(bind=True)
+def listing_ended_handler(self, data):
 	try:
 		import_django_instance()
 		from django.utils.translation import gettext, gettext_lazy as _
