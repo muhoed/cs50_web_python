@@ -15,8 +15,8 @@ def import_django_instance():
     django.setup()
 
 
-@shared_task(bind=True)
-def listing_ended_handler(self, data):
+@shared_task
+def listing_ended_handler(data):
 	try:
 		import_django_instance()
 		from django.utils.translation import gettext, gettext_lazy as _
@@ -27,6 +27,7 @@ def listing_ended_handler(self, data):
 		recipient = instance.product.seller
 		
 		if instance.winner and not instance.cancelled_on:
+			recipient1 = instance.winner
 			subject = _("The listing for %s was ended") % instance.product.name
 			content = _("The listing for %(prod)s was ended.<br>The user %(user)s placed \
 			the highest bid and is the listing winner.\
@@ -41,7 +42,6 @@ def listing_ended_handler(self, data):
 							'email': recipient1.emailaddress_set.filter(email_type='CT').values('email_address') or recipient1.email, 
 							'address': recipient1.address_set.get(address_type='DL')
 						}
-			recipient1 = instance.winner
 			subject1 = _("You just won the listing for %s.") % instance.product.name
 			content1 =_("Congratulation! You are the winner in the Auction$ listing \
 			for %(prod)s.<br>The listing was ended on %(time)s and your bid is the hishest \

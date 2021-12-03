@@ -23,16 +23,8 @@ class CeleryTasksTestCase(SimpleTestCase):
 		cls.celery_worker = start_worker(celery_app, perform_ping_check=False)
 		cls.celery_worker.__enter__()
 		
-	@classmethod
-	def tearDownClass(cls):
-		super().tearDownClass()
-
-		# Close worker
-		cls.celery_worker.__exit__(None, None, None)
-		
-	def setUp(self):
 		# Create test users to use in testing
-		self.testuser1 = User.objects.create_user(
+		cls.testuser1 = User.objects.create_user(
 										username="test_user1",
 										email="test_email1@test.com",
 										password='Pass&2021',
@@ -40,7 +32,7 @@ class CeleryTasksTestCase(SimpleTestCase):
 										first_name="John",
 										last_name="Smith"
 										)
-		self.testuser2 = User.objects.create_user(
+		cls.testuser2 = User.objects.create_user(
 										username="test_user2",
 										email="test_email2@test.com",
 										password='Pass&2021',
@@ -49,43 +41,62 @@ class CeleryTasksTestCase(SimpleTestCase):
 										last_name="Petrov"
 										)
 		# Create test users delivery addresses to use in testing
-		self.testuser1.address_set.add(Address.objects.create(
-										user=self.testuser1,
+		cls.testuser1.address_set.add(Address.objects.create(
+										user=cls.testuser1,
 										line1="street 1",
 										zip_code="99999",
 										city="city"
 										))
-		self.testuser2.address_set.add(Address.objects.create(
-										user=self.testuser2,
+		cls.testuser2.address_set.add(Address.objects.create(
+										user=cls.testuser2,
 										line1="street 2",
 										zip_code="99999",
 										city="city"
 										))
 		# Create test category
-		self.category = Category.objects.create(
+		cls.category = Category.objects.create(
 							name="testcategory",
 							description="category for testing purposes")
 		# Create test product
-		self.product = self.category.products.create(
+		cls.product = cls.category.products.create(
 							name="testproduct",
 							description="Product for testing purposes",
-							seller = self.testuser1
+							seller = cls.testuser1
 							)
+							
+	@classmethod
+	def tearDownClass(cls):
+		super().tearDownClass()
+
+		# Close worker
+		cls.celery_worker.__exit__(None, None, None)
+		
 		
 	def test_winner_ended_listing(self):
-		testlisting = Listing.objects.create(
-								product=self.product,
+		testlisting1 = Listing.objects.create(
+								product=CeleryTasksTestCase.product,
 								duration=timedelta(seconds=5))
-		bid1 = Bid.objects.create(bidder=self.testuser2, 
-								listing=testlisting, 
+		bid1 = Bid.objects.create(bidder=CeleryTasksTestCase.testuser2, 
+								listing=testlisting1, 
 								value=Decimal('2.00'))
-		sleep(10)
+		sleep(6)
 		
 		# testing a messages were sent to both seller and buyer
-		message1 = Message.objects.filter(content__contains="The user test_user2 placed the highest bid and is the listing winner").first()
+		message1 = Message.objects.filter(content__contains="is the listing winner").first()
 		self.assertTrue(message1)
-		self.assertEqual(message.recipient, self.testuser1)
+		self.assertEqual(message1.recipient, CeleryTasksTestCase.testuser1)
 		message2 = Message.objects.filter(content__contains="Congratulation! You are the winner in the Auction$ listing").first()
 		self.assertTrue(message2)
-		self.assertEqual(message2.recipient, self.testuser2)
+		self.assertEqual(message2.recipient, CeleryTasksTestCase.testuser2)
+		
+	def test_no_bid_ended_listing(self):
+		testlisting2 = Listing.objects.create(
+								product=CeleryTasksTestCase.product,
+								duration=timedelta(seconds=5))
+		sleep(6)
+		
+		# testing a message was sent to seller
+		message = Message.objects.filter(content__contains="Your listing for testproduct was ended without a winner.").first()
+		self.assertTrue(message)
+		self.assertEqual(message.recipient, CeleryTasksTestCase.testuser1)
         
