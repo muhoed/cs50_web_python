@@ -22,7 +22,10 @@ class RegisterFormTest(TestCase):
             'title': 'MR',
             'first_name': 'User',
             'last_name': 'Testoff',
-            'email': 'test@email.test'
+            'username': 'testuser',
+            'email': 'test@email.test',
+            'password1': 'Pass&2021',
+            'password2': 'Pass&2021'
         }
         
         form = RegisterForm(request.POST)
