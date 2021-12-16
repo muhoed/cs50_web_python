@@ -32,7 +32,7 @@
 						Actions
 					</div>			
 				</div>
-				{% for item in watched_list|dictsort:"end_time" %}
+				{% for item in page_obj|dictsort:"end_time" %}
 				<a href="{% url 'auctions:listing' item.pk %}">
 					<div class="listing row mt-1 bg-light" id="{{ item.id }}">
 						<div class="col-md-1 text-center align-self-center">

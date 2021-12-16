@@ -127,22 +127,29 @@ class TestIndexView(TestViews):
         product2 = get_object_or_404(Product, id=2)
         listing1 = Listing.objects.create(product=product1)
         listing2 = Listing.objects.create(product=product2)
+        
         response = self.client.get(reverse('auctions:index'))
         
         #Check two listings are in context
         self.assertEqual(len(response.context['listing_list']), 2)
         
-        #Check listing1 and related 'add to watchlist' form,
-        #'place bid' button and link are displayed
-        self.assertContains(response, '<a href="'+listing1.get_absolute_url)
+        #Check listing1, listing2 and respective products are in context
+        self.assertContains(response, '<a href="'+listing1.get_absolute_url())
         self.assertContains(response, "Testproduct1")
-        self.assertContains(response, '<form id="listing_'+str(listing1.id))
-        
-        #Check listing2 and related 'add to watchlist' form,
-        #'place bid' button and link are displayed
-        self.assertContains(response, '<a href="'+listing2.get_absolute_url)
+        self.assertContains(response, '<a href="'+listing2.get_absolute_url())
         self.assertContains(response, "Testproduct2")
-        self.assertContains(response, '<form id="listing_'+str(listing2.id))
+        
+        #Check watch and bid buttons are not displayed for anonymous user
+        self.assertNotContains(response, 'id="watch-')
+        self.assertNotContains(response, 'id="bid-')
+        
+        #log user in and check watch and bid buttons are displayed
+        self.user = User.objects.get(username="test_user3")
+        if self.user is not None:
+            self.client.force_login(self.user)
+        response = self.client.get(reverse('auctions:index'))
+        self.assertContains(response, 'id="watch-')
+        self.assertContains(response, 'id="bid-')
         
     def test_index_view_active_listings(self):
         """
@@ -154,7 +161,7 @@ class TestIndexView(TestViews):
         product2 = get_object_or_404(Product, id=2)
         listing1 = Listing.objects.create(product=product1)
         listing2 = Listing.objects.create(product=product2)
-        listing2.cancelled = True
+        listing2.cancelled_on = timezone.now()
         listing2.save()
         response = self.client.get(reverse('auctions:index'))
         
@@ -180,10 +187,11 @@ class TestIndexView(TestViews):
         self.assertEqual(response.status_code, 200)
         self.assertTrue('is_paginated' in response.context)
         self.assertTrue(response.context['is_paginated'])
+        self.assertEqual(response.context['page_obj'].paginator.num_pages, 2)
         self.assertEqual(response.context['page_obj'].number, 1)
-        self.assertTrue(response.context['page_obj'].has_next)
-        #self.assertFalse(response.context['page_obj'].has_previous)
-        self.assertEqual(len(response.context['listing_list']), 10)
+        self.assertTrue(response.context['page_obj'].has_next())
+        self.assertFalse(response.context['page_obj'].has_previous())
+        self.assertEqual(len(response.context['page_obj']), 10)
 
         # Get second page and confirm it has (exactly) remaining 3 items
         response = self.client.get(reverse('auctions:index')+'?page=2')
@@ -191,9 +199,9 @@ class TestIndexView(TestViews):
         self.assertTrue('is_paginated' in response.context)
         self.assertTrue(response.context['is_paginated'])
         self.assertEqual(response.context['page_obj'].number, 2)
-        self.assertTrue(response.context['page_obj'].has_previous)
-        self.assertFalse(response.context['page_obj'].has_next)
-        self.assertEqual(len(response.context['listing_list']), 3)
+        self.assertTrue(response.context['page_obj'].has_previous())
+        self.assertFalse(response.context['page_obj'].has_next())
+        self.assertEqual(len(response.context['page_obj']), 3)
         
         
 class TestLoginView(TestViews):
@@ -479,13 +487,14 @@ class TestRegistrationConfirmView(TestViews):
         #Issue a get request to confirm view
         response = self.client.get(reverse('auctions:registration_confirm'))
         
-        #Check is message about successfull registration is displayed
-        self.assertContains(response, '<div id="activation_message">')
+        #Check if message about successfull registration is displayed
+        self.assertContains(response, 'An email with an account activation link was sent to your email address.')
         #Check response contains URL parts of activation link and they are correct
         self.assertEqual(response.context["uid"], self.uid_test)
         self.assertEqual(response.context["token"], self.token_test)
-        self.assertContains(response, 
-            "http://" + self.domain + "/registration_complete/" + self.uid_test + "/" + self.token_test)
+        #email message text display is managed by JS
+        #self.assertContains(response, 
+        #    "http://" + self.domain + "/registration_complete/" + self.uid_test + "/" + self.token_test)
 
 
 class TestRegistrationCompleteView(TestViews):
@@ -584,7 +593,7 @@ class TestProfileView(TestViews):
         Tests url is reachable, url naming works and correct template is used.
         """
         #Issue a GET request
-        response = self.client.get('/account/' + str(self.user.pk) + '/summary')
+        response = self.client.get('/account/' + str(self.user.pk) + '/summary/')
         
         #Check if response code is 200 OK
         self.assertEqual(response.status_code, 200)
@@ -677,7 +686,7 @@ class TestCreateProfileView(TestViews):
             #fill out full name form
             self.data['title'] = 'MR'
             self.data['first_name'] = 'User'
-            self.data['last_name'] = 'useroff'
+            self.data['last_name'] = 'Useroff'
         if first_email:
             #fill out first email address form
             self.data['emailaddress_set-0-email_address'] = 'user@user.com'
@@ -717,7 +726,7 @@ class TestCreateProfileView(TestViews):
                                 status_code=302, target_status_code=200,
                                 fetch_redirect_response=True)
         #Check if success message is displayed
-        self.assertContains(response, "You profile was successfully created!")
+        self.assertContains(response, "Your profile was successfully created!")
             
         
     def test_create_profile_view_url(self):
@@ -760,7 +769,7 @@ class TestCreateProfileView(TestViews):
 
         #Check form is in content 
         self.assertContains(response, 
-                '<form action="/account/' + str(self.user.pk) + '/user_profile" method="post">'
+                '<form action="/account/' + str(self.user.pk) + '/profile" method="post">'
                 )
         #Check user full name form is in content 
         self.assertContains(response, 'id_first_name')
@@ -830,6 +839,7 @@ class TestCreateProfileView(TestViews):
                                         args=[self.user.pk,]
                                         ), self.data,
                                         follow=True)
+        
         self.check_valid_submission(response)
         
     def test_create_profile_empty_first_email(self):

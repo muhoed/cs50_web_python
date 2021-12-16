@@ -47,7 +47,7 @@
 				</div>
 		    {% endif %}
 		</div>
-			{% for listing in listing_list %}
+			{% for listing in page_obj %}
 				{% if user.is_authenticated %}
 					<div class="row mt-1 ml-1 bg-light">
 						<div class="col-md-1 text-center align-self-center">
@@ -94,7 +94,11 @@
 									{% else %}
 										{{ listing.get_absolute_url }}
 									{% endif %}">
-								{{ listing.end_time|timeuntil }}
+								{% if listing.status == "ended" %}
+									ended
+								{% else %}
+									{{ listing.end_time|timeuntil }}
+								{% endif %}
 							</a>
 						</div>
 						<div class="col-md-2 text-center align-self-center">
@@ -117,7 +121,7 @@
 										<input class="form-control" type="number" name="bid" value="{{ listing.max_bid|add:'1' }}">
 									</div>
 									<div class="w-25">
-										<button class="btn btn-success place-bid" id="bid-{{ listing.id }}">Bid</button>
+										<button class="btn btn-success place-bid" id="bid-{{ listing.id }}" {% if not user.profile_completed %}disabled{% endif %}>Bid</button>
 									</div>
 								</div>
 							{% endif %}
@@ -144,7 +148,11 @@
 							{{ listing.max_bid }}€
 						</div>
 						<div class="col-md-2 text-center align-self-center">
-						    {{ listing.end_time|timeuntil }}
+							{% if listing.status == "ended" %}
+								ended
+							{% else %}
+								{{ listing.end_time|timeuntil }}
+						    {% endif %}
 						</div>
 					</div>
 				</a>

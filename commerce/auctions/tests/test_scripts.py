@@ -57,10 +57,11 @@ class TestSeleniumCreateProfileView(StaticLiveServerTestCase):
         self.selenium.add_cookie({'name': 'sessionid', 'value': self.cookie.value, 'secure': False, 'path': '/'})
         self.selenium.refresh()
         #open create profile page in browser
-        self.selenium.get("%s%s%d" % (
+        self.selenium.get("%s%s%d%s" % (
                                     self.live_server_url, 
-                                    "/create_profile/", 
-                                    self.user.pk
+                                    "/account/", 
+                                    self.user.pk,
+                                    "/profile"
                                     ))
 
     def test_create_profile_add_remove_email_forms(self):

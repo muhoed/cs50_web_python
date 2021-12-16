@@ -353,19 +353,19 @@ class ProfileView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
     @method_decorator(sensitive_post_parameters())
     @method_decorator(never_cache)
     def post(self, request, *args, **kwargs):
-        self.post_data = self.request.POST.copy()
-        if not self.request.POST.get("title") and self.request.POST.get("titlevalue"):
-            self.post_data["title"] = self.request.POST["titlevalue"] 
+        self.post_data = request.POST.copy()
+        if not request.POST.get("title") and request.POST.get("titlevalue"):
+            self.post_data["title"] = request.POST["titlevalue"] 
         for i in range(2):
-            if not self.request.POST.get("emailaddress_set-" + str(i) + "-email_type") \
-                    and self.request.POST.get("emailtype" + str(i)):
-                self.post_data["emailaddress_set-" + str(i) + "-email_type"] = self.request.POST["emailtype" + str(i)]
-            if not self.request.POST.get("address_set-" + str(i) + "-address_type") \
-                    and self.request.POST.get("addresstype" + str(i)):
-                self.post_data["address_set-" + str(i) + "-address_type"] = self.request.POST["addresstype" + str(i)]
-            if not self.request.POST.get("address_set-" + str(i) + "-country") \
-                    and self.request.POST.get("country" + str(i)):
-                self.post_data["address_set-" + str(i) + "-country"] = self.request.POST["country" + str(i)]
+            if not request.POST.get("emailaddress_set-" + str(i) + "-email_type") \
+                    and request.POST.get("emailtype" + str(i)):
+                self.post_data["emailaddress_set-" + str(i) + "-email_type"] = request.POST["emailtype" + str(i)]
+            if not request.POST.get("address_set-" + str(i) + "-address_type") \
+                    and request.POST.get("addresstype" + str(i)):
+                self.post_data["address_set-" + str(i) + "-address_type"] = request.POST["addresstype" + str(i)]
+            if not request.POST.get("address_set-" + str(i) + "-country") \
+                    and request.POST.get("country" + str(i)):
+                self.post_data["address_set-" + str(i) + "-country"] = request.POST["country" + str(i)]
         form = self.get_form()
         email_formset = UserEmailFormset(self.post_data, instance=self.object)
         address_formset = UserAddressFormset(self.post_data, instance=self.object)
@@ -377,7 +377,7 @@ class ProfileView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
         if form.is_valid() and email_formset.is_valid() and address_formset.is_valid():
             emails = email_formset.save()
             addresses = address_formset.save()
-            messages.success(self.request, message)
+            messages.success(request, message)
             return self.form_valid(form)
             
         else:
@@ -541,9 +541,14 @@ class ActiveListingsView(ListView):
     """
     Displays all active listings.
     """
-    queryset = Listing.get_active().order_by('-end_time')
+    #queryset = Listing.get_active().order_by('-end_time')
+    #queryset = Listing.objects.active().order_by('-end_time')
     template_name = 'auctions/index.html'
     paginate_by = 10
+    
+    def get_queryset(self):
+        qset = Listing.objects.active().order_by('-end_time')
+        return qset.all()
     
     
 class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
@@ -1070,7 +1075,9 @@ def bid(request, listing_pk, val):
         messages.error = (request, "The listing was not found.")
         return HttpResponse("The listing was not found.")
     
-    try:    
+    try:
+        if not request.user.profile_completed:
+            raise ValidationError("Please complete your profile before place a bid!")    
         new_bid = Bid.objects.create(
                                 bidder=request.user,
                                 listing=listing,
