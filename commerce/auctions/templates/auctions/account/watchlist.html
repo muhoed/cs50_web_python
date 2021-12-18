@@ -61,7 +61,7 @@
 						</div>
 						<div class="col-md-3 text-center align-self-center">
 							{% if item.status == "active" %}
-								<button class="btn btn-primary bid">Bid</button>
+								<button class="btn btn-primary bid {% if not user.profile_completed %}disabled{% endif %}">Bid</button>
 							{% endif %}
 							<button class="btn btn-danger  unwatch" id="unwatch-{{ item.id }}">Unwatch</button>
 						</div>

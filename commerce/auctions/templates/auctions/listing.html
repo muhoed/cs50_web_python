@@ -4,7 +4,7 @@
 {% load static %}
 <div class="container w-100">
     <p>Listing information:</p>
-    <h3>{{ object.product.name }}</h3>
+    <h3>{{ object.product.name }}. {% if object.winner == user %}Congratulations! You won the auction for this product.{% endif %}</h3>
     <div class="row mt-2 w-100">
 		<div class="col-8">
 			<div class="row">
@@ -38,7 +38,7 @@
 								{{ form.value }}
 							</div>
 							<div class="row pl-5">
-								<input type="submit" name="place_bid" value="Place bid" class="btn btn-success">
+								<input type="submit" name="place_bid" value="Place bid" class="btn btn-success {% if not user.profile_completed %}disabled{% endif %}">
 							</div>
 						</form>
 					</div>
@@ -51,6 +51,16 @@
 							<b>{{ object.product.seller.username }}</b>
 						</div>
 					</div>
+					{% if object.status == "ended" %}
+					<div class="row">
+						<div class="col-8">
+							Winner:
+						</div>
+						<div class="col-4 text-right">
+							<b>{{ object.winner.username }}</b>
+						</div>
+					</div>
+					{% endif %}
 					<div class="row">
 						<div class="col-8">
 							Highest bid:
@@ -130,7 +140,7 @@
 					</div>
 				{% endif %}
 			</div>
-			<div class="row justify-content-start ml-1 mt-2">
+			<div class="row justify-content-start mt-2">
 				<a href="#comments"><button class="btn btn-secondary comment" id="comment-{{ object.pk }}">See/Leave comment(s)</button></a>
 			</div>
 			{% endif %}
@@ -216,7 +226,7 @@
         {% endfor %}
     {% empty %}
     <div class="row mt-5">
-        <h5>No comments yet. Fill the form above to leave one.</h5>
+        <h5>No comments yet.{% if user.is_authenticated %} Fill the form above to leave one.{% endif %}</h5>
     </div>
     {% endfor %}
 </div>
