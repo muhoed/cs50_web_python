@@ -22,7 +22,7 @@ class RequiredInlineFormSet(forms.BaseInlineFormSet):
 		super().clean()
 		if any(self.errors):
 			return
-		if (not self.forms[1].has_changed() and self.form[1].errors) or (not self.forms[1].has_changed() and self.form[1].errors):
+		if (not self.forms[0].has_changed() and self.forms[0].errors) or (not self.forms[1].has_changed() and self.forms[1].errors):
 			raise forms.ValidationError('Please complete required information.')
 
 
