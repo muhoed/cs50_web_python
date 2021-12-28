@@ -434,6 +434,7 @@ var modifyListingPage = {
 		modifyListingPage.config = {
 			allInput: $("label, input, select, textarea").not("input[placeholder='Search product']"),
 			editableInput: $("input, textarea"),
+			cancelOne: $(".cancel-listing"),
 			relistOne: $(".relist-product"),
 			editButton: $(".edit"),
 			markShippedButton: $(".mark-shipped")
@@ -448,6 +449,9 @@ var modifyListingPage = {
 					modifyListingPage.allowModify(event);
 				});
 		modifyListingPage.config.allInput.attr("readonly", true);
+		modifyListingPage.config.cancelOne.on("click", function(event){
+		    modifyListingPage.cancelOneListing(event);
+		});
 		modifyListingPage.config.relistOne.on("click", function(event){
 		    modifyListingPage.relistOneListing(event);
 		});
@@ -473,7 +477,17 @@ var modifyListingPage = {
 	    let id = trigger.target.id;
 	    let url = "/account/" + id.split("-")[1] + "/listing/" + id.split("-")[2] + "/shipped/";
 	    sendRequest(url);
-	}
+	},
+	
+	cancelOneListing: function(trigger) {
+		trigger.preventDefault();
+		var confirmation = confirm("The listing will be cancelled. Bidder who placed the highest bid up to the moment becomes a winner automatically. Do you want to continue?");
+	    if (confirmation) {
+	        let pks = trigger.target.id.split("-");
+		    var url = "/account/" + pks[1] + "/listing/" + pks[2] + "/cancel/";
+		    sendRequest(url);
+	    }
+	},
 };
 
 var createOrUpdateProductPage = {
