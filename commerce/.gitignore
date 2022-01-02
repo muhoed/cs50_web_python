@@ -1,0 +1,16 @@
+﻿.git
+*/.git
+
+*/media/
+
+venv/
+
+*.pyc
+*/*.pyc
+__pycache__
+__pycache__/*
+*/__pycache__
+*/__pycache__/*
+
+.coverage
+.gout*
