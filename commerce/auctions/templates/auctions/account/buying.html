@@ -200,7 +200,7 @@
 								<div class="listing row mt-1 ml-1 bg-light">
 									<div class="col-1">
 										<a class="text-center" href="{% url 'auctions:listing' item.listing.pk %}">
-											<img src="{{ item.product.image_set.first.image_url }}" height="50px" width="50px">
+											<img src="{{ item.listing.product.image_set.first.image_url }}" height="50px" width="50px">
 										</a>
 									</div>
 									<div class="col-3">
@@ -242,7 +242,7 @@
 								<div class="listing row mt-1 ml-1 bg-light">
 									<div class="col-1">
 										<a class="text-center" href="{% url 'auctions:listing' item.listing.pk %}">
-											<img src="{{ item.product.image_set.first.image_url }}" height="50px" width="50px">
+											<img src="{{ item.listing.product.image_set.first.image_url }}" height="50px" width="50px">
 										</a>
 									</div>
 									<div class="col-3">
@@ -315,7 +315,7 @@
                             <a href="{% url 'auctions:listing' item.listing.pk %}">
 								<div class="listing row mt-1 ml-1 bg-light">
 									<div class="col-md-1 text-center align-self-center">
-										<img src="{{ item.product.image_set.first.image_url }}" height="50px" width="50px">
+										<img src="{{ item.listing.product.image_set.first.image_url }}" height="50px" width="50px">
 									</div>
 									<div class="col-md-3 text-center align-self-center">
 										{{ item.listing.product.name|capfirst }}
@@ -353,7 +353,7 @@
                             <a href="{% url 'auctions:listing' item.listing.pk %}">
 								<div class="listing row mt-1 ml-1 bg-light">
 									<div class="col-md-1 text-center align-self-center">
-										<img src="{{ item.product.image_set.first.image_url }}" height="50px" width="50px">
+										<img src="{{ item.listing.product.image_set.first.image_url }}" height="50px" width="50px">
 									</div>
 									<div class="col-md-3 text-center align-self-center">
 										{{ item.listing.product.name|capfirst }}

@@ -10,14 +10,14 @@
 			<div class="row">
 				<div class="col-6">
 					<div class="row justify-content-center">
-						<img src="{% if object.product.image_set.0.image_url %}{{ object.product.image_set.0.image_url }}{% else %}{% static 'auctions/images/cropped-placeholder.jpg'%}{% endif %}" width="90%" height="auto"/>
+						<img src="{% if object.product.image_set.first.image_url %}{{ object.product.image_set.first.image_url }}{% else %}{% static 'auctions/images/cropped-placeholder.jpg'%}{% endif %}" width="90%" height="auto"/>
 					</div>
 					<div class="row mt-2 justify-content-center">
 						<div class="col-6 text-center">
-							<img src="{% if object.product.image_set.1.image_url %}{{ object.product.image_set.1.image_url }}{% else %}{% static 'auctions/images/cropped-placeholder.jpg'%}{% endif %}" width="98%" height="auto"/>
+							<img src="{% if object.product.image_set.second.image_url %}{{ object.product.image_set.second.image_url }}{% else %}{% static 'auctions/images/cropped-placeholder.jpg'%}{% endif %}" width="98%" height="auto"/>
 						</div>
 						<div class="col-6 text-center">
-							<img src="{% if object.product.image_set.2.image_url %}{{ object.product.image_set.2.image_url }}{% else %}{% static 'auctions/images/cropped-placeholder.jpg'%}{% endif %}" width="98%" height="auto"/>
+							<img src="{% if object.product.image_set.third.image_url %}{{ object.product.image_set.third.image_url }}{% else %}{% static 'auctions/images/cropped-placeholder.jpg'%}{% endif %}" width="98%" height="auto"/>
 						</div>
 					</div>
 				</div>
