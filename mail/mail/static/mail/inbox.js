@@ -102,10 +102,15 @@ function load_mailbox(mailbox) {
       err_msg.style.color = 'red';
       err_msg.innerHTML('Error: ' + emails.error);
       emails_view.append(err_msg);
+    } else if (emails.length === 0) {
+      err_msg = document.createElement('p');
+      err_msg.innerHTML = 'You do not have emails in this mailbox.'
+      emails_view.append(err_msg);
     } else {
       let sent = (mailbox === 'sent') ? true : false;
       emails_view.append(get_header(sent));
       emails.forEach(email => {
+        emails_view.classList += 'container';
         emails_view.append(get_msg(email, sent));
       })
     }
@@ -116,18 +121,18 @@ function load_mailbox(mailbox) {
 function get_header(sent) {
   // create header for mailbox views
   const header = document.createElement('div');
-  header.classList += 'row w-100 m-2';
+  header.classList += 'row';
 
   const hfrom = document.createElement('div');
-  hfrom.classList += 'col-4 p-1';
+  hfrom.classList += 'col-4';
   hfrom.innerHTML = (sent) ? 'To' : 'From';
 
   const hsubject = document.createElement('div');
-  hsubject.classList += 'col-5 p-1';
+  hsubject.classList += 'col-5';
   hsubject.innerHTML = 'Subject';
 
   const hdt = document.createElement('div');
-  hdt.classList += 'col-3 p-1';
+  hdt.classList += 'col-3';
   hdt.innerHTML = 'Time';
 
   header.append(...[hfrom, hsubject, hdt]);
@@ -137,23 +142,23 @@ function get_header(sent) {
 
 function get_msg(email, sent) {
   // message container
-  msg = document.createElement('div');
-  msg.classList += 'row w-100 border border-top-1 border-bottom-1 border-left-1 border-right-1 m-2';
+  let msg = document.createElement('div');
+  msg.classList += 'row mb-1 border border-top-1 border-bottom-1 border-left-1 border-right-1';
   (email.read) ? msg.classList += 'bg bg-light' : msg.classList += '';
   msg.onmouseover = () => {msg.style.opacity = '0.7'; msg.style.cursor = 'pointer'};
   msg.onmouseout = () => {msg.style.opacity = '1.0'};
   msg.addEventListener('click', () => load_email(email.id));
   // 'from' column
-  from = document.createElement('div');
-  from.classList += 'col-4 p-1';
+  let from = document.createElement('div');
+  from.classList += 'col-4';
   from.innerHTML = (sent) ? email.recipient : email.sender;
   // 'subject' column
-  subject = document.createElement('div');
-  subject.classList += 'col-5 p-1';
+  let subject = document.createElement('div');
+  subject.classList += 'col-5';
   subject.innerHTML = email.subject;
   // timestamp column
-  dt = document.createElement('div');
-  dt.classList += 'col-3 p-1';
+  let dt = document.createElement('div');
+  dt.classList += 'col-3';
   dt.innerHTML = email.timestamp;
   // create row
   msg.append(...[from, subject, dt]);
