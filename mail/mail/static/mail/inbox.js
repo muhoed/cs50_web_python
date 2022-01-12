@@ -1,3 +1,6 @@
+// declare global variables
+var emails_view, email_view, compose_view;
+
 document.addEventListener('DOMContentLoaded', function() {
 
   // Use buttons to toggle between views
@@ -5,6 +8,15 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelector('#sent').addEventListener('click', () => load_mailbox('sent'));
   document.querySelector('#archived').addEventListener('click', () => load_mailbox('archive'));
   document.querySelector('#compose').addEventListener('click', compose_email);
+
+  // Initialize global variables
+  emails_view = document.querySelector('#emails-view');
+  compose_view = document.querySelector('#compose-view');
+
+  // Add email view section
+  email_view = document.createElement('div');
+  email_view.id = '#email-view';
+  document.querySelector('.container').insertBefore(email_view, compose_view);
 
   // By default, load the inbox
   load_mailbox('inbox');
@@ -20,15 +32,15 @@ function compose_email() {
       err_msg = document.createElement('p');
       err_msg.style.color = 'red';
       err_msg.style.fontWeight= 'bold';
-      document.querySelector('#compose-view').insertBefore(err_msg, document.querySelector('form'));
+      compose_view.insertBefore(err_msg, document.querySelector('form'));
     }
     err_msg.innerHTML = error;
     window.scrollTo(0, 0);
   }
 
   // Show compose view and hide other views
-  document.querySelector('#emails-view').style.display = 'none';
-  const compose_view = document.querySelector('#compose-view');
+  emails_view.style.display = 'none';
+  email_view.style.display = 'none';
   compose_view.style.display = 'block';
 
   // Clear out composition fields
@@ -85,12 +97,12 @@ function load_mailbox(mailbox) {
   let err_msg;
   
   // Show the mailbox and hide other views
-  const emails_view = document.querySelector('#emails-view');
   emails_view.style.display = 'block';
-  document.querySelector('#compose-view').style.display = 'none';
+  email_view.style.display = 'none';
+  compose_view.style.display = 'none';
 
   // Show the mailbox name
-  document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
+  emails_view.innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
 
   // Load mailbox
   fetch('/emails/' + mailbox)
@@ -167,6 +179,36 @@ function get_msg(email, sent) {
 }
 
 function load_email(id) {
-  // TODO
-  return false;
+
+  // Show the email and hide other views
+  emails_view.style.display = 'none';
+  email_view.style.display = 'block';
+  compose_view.style.display = 'none';
+
+  // Add header
+  email_view.innerHTML = '<h3>E-mail message</h3>';
+
+  fetch(`/emails/${id}`)
+  .then(response => response.json())
+  .then(email => {
+    // prepare HTML elements
+    let from = document.createElement('p');
+    let to = document.createElement('p');
+    let subject = document.createElement('p');
+    let timestamp = document.createElement('span');
+    let body = document.createElement('p');
+    // write content to elements
+    timestamp.innerHTML = `Sent on: ${email.timestamp}`;
+    from.innerHTML = `Sender: ${email.sender}`;
+    to.innerHTML = `Recipients: ${email.recipients.join('; ')}`;
+    subject.innerHTML = `Regarding: ${email.subject}`;
+    body.innerHTML = email.body;
+    // display email message
+    email_view.append(...[timestamp, from, to, subject, body]);
+  })
+  .catch(error => {
+    let err_msg = document.createElement('p');
+    err_msg.innerHTML = `Error: ${error}`;
+    email_view.append(err_msg);
+  });
 }
