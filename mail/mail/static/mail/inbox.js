@@ -187,28 +187,59 @@ function load_email(id) {
 
   // Add header
   email_view.innerHTML = '<h3>E-mail message</h3>';
+  // store email elements
+  let elements = [];
 
   fetch(`/emails/${id}`)
   .then(response => response.json())
   .then(email => {
-    // prepare HTML elements
-    let from = document.createElement('p');
-    let to = document.createElement('p');
-    let subject = document.createElement('p');
+    // prepare email
+    // timestamp
     let timestamp = document.createElement('span');
-    let body = document.createElement('p');
-    // write content to elements
     timestamp.innerHTML = `Sent on: ${email.timestamp}`;
-    from.innerHTML = `Sender: ${email.sender}`;
-    to.innerHTML = `Recipients: ${email.recipients.join('; ')}`;
-    subject.innerHTML = `Regarding: ${email.subject}`;
-    body.innerHTML = email.body;
+    elements.push(timestamp);
+    // reply button
+    let reply_button = document.createElement('span');
+    reply_button.classList += 'btn btn-primary m-2';
+    reply_button.innerText = "Reply";
+    reply_button.addEventListener('click', () => email_reply(email));
+    elements.push(reply_button);
+    // container
+    let email_container = document.createElement('div');
+    email_container.className = 'container';
+    // email elements template
+    let email_object = {};
+    // write content to elements
+    for (var key in email) {
+      if (key === "sender" || key === "recipients" || key === "subject" || key === "body") {
+        Object.defineProperty(email_object, key, {
+          value: null,
+          writable: true,
+          enumerable: true,
+          configurable: true,
+        });
+        email_object[key] = document.createElement('div');
+        email_object[key].className = 'row';
+        if (key !== 'body') {
+          email_object[key].innerHTML = `<div class='col-4'>${key.charAt(0).toUpperCase() + key.slice(1)}:</div><div class='col-8'><b>${(key === 'recipients') ? email[key].join('; ') : email[key]}</b></div>`;
+        } else {
+          email_object[key].innerHTML = `<div class='col-12'>Message text:</div><div class='col-12 bg bg-light border'><b>${email[key]}</b></div>`;
+        }
+        elements.push(email_object[key]);
+      }
+    }
     // display email message
-    email_view.append(...[timestamp, from, to, subject, body]);
+    email_view.append(...elements);
   })
   .catch(error => {
     let err_msg = document.createElement('p');
     err_msg.innerHTML = `Error: ${error}`;
     email_view.append(err_msg);
   });
+}
+
+function email_reply(email) {
+  // todo
+  console.log('email id: ' + email.id);
+  return false;
 }
