@@ -1,6 +1,15 @@
 // declare global variables
 var emails_view, email_view, compose_view;
 
+// button
+function create_button(tag_name, classes, txt, event_name, callback_name, callback_args) {
+  let new_button = document.createElement(tag_name);
+  new_button.classList += classes;
+  new_button.innerText = txt;
+  new_button.addEventListener(event_name, () => callback_name.apply(this, callback_args));
+  return new_button;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
 
   // Use buttons to toggle between views
@@ -23,6 +32,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function compose_email(prev_email=null) {
+
+  this.event.stopPropagation();
   
   // Handle error if any
   let err_msg = null;
@@ -142,11 +153,11 @@ function get_header(sent) {
   header.classList += 'row';
 
   const hfrom = document.createElement('div');
-  hfrom.classList += 'col-4';
+  hfrom.classList += 'col-2';
   hfrom.innerHTML = (sent) ? 'To' : 'From';
 
   const hsubject = document.createElement('div');
-  hsubject.classList += 'col-5';
+  hsubject.classList += 'col-4';
   hsubject.innerHTML = 'Subject';
 
   const hdt = document.createElement('div');
@@ -163,25 +174,34 @@ function get_msg(email, sent) {
   let msg = document.createElement('div');
   msg.classList += 'row mb-1 border border-top-1 border-bottom-1 border-left-1 border-right-1';
   if (email.read) {
-    msg.classList += 'bg bg-light';
+    msg.classList += 'bg bg-light align-items-center';
    }
   msg.onmouseover = () => {msg.style.opacity = '0.7'; msg.style.cursor = 'pointer'};
   msg.onmouseout = () => {msg.style.opacity = '1.0'};
   msg.addEventListener('click', () => load_email(email.id));
   // 'from' column
   let from = document.createElement('div');
-  from.classList += 'col-4';
+  from.classList += 'col-2';
   from.innerHTML = (sent) ? email.recipients.join('; ') : email.sender;
   // 'subject' column
   let subject = document.createElement('div');
-  subject.classList += 'col-5';
+  subject.classList += 'col-4';
   subject.innerHTML = email.subject;
   // timestamp column
   let dt = document.createElement('div');
   dt.classList += 'col-3';
   dt.innerHTML = email.timestamp;
+  // buttons column
+  let actions = document.createElement('div');
+  actions.classList += 'col-3';
+  if (!sent) {
+    actions.append(...[
+      create_button('span', 'btn btn-primary m-2', 'Reply', 'click', compose_email, [email]),
+      create_button('span', 'btn btn-info m-2', (!email.archived) ? 'Archive' : 'Unarchive', 'click', archive_email, [email])
+    ]);
+  }
   // create row
-  msg.append(...[from, subject, dt]);
+  msg.append(...[from, subject, dt, actions]);
 
   return msg;
 }
@@ -207,11 +227,16 @@ function load_email(id) {
     timestamp.innerHTML = `Sent on: ${email.timestamp}`;
     elements.push(timestamp);
     // reply button
-    let reply_button = document.createElement('span');
-    reply_button.classList += 'btn btn-primary m-2';
-    reply_button.innerText = "Reply";
-    reply_button.addEventListener('click', () => compose_email(email));
-    elements.push(reply_button);
+    elements.push(create_button('span', 'btn btn-primary m-2', 'Reply', 'click', compose_email, [email]));
+    // archive button
+    elements.push(create_button(
+      'span', 
+      'btn btn-info m-2', 
+      (!email.archived) ? 'Archive' : 'Unarchive', 
+      'click', 
+      archive_email, 
+      [email]
+    ));
     // container
     let email_container = document.createElement('div');
     email_container.className = 'container';
@@ -231,7 +256,6 @@ function load_email(id) {
         if (key !== 'body') {
           email_object[key].innerHTML = `<div class='col-4'>${key.charAt(0).toUpperCase() + key.slice(1)}:</div><div class='col-8'><b>${(key === 'recipients') ? email[key].join('; ') : email[key]}</b></div>`;
         } else {
-          console.log(email[key]);
           email_object[key].innerHTML = `<div class='col-12'>Message text:</div><div class='col-12 bg bg-light border' style='height: 100px;'>${email[key].replace(/\r?\n/g, '<br />')}</div>`;
         }
         elements.push(email_object[key]);
@@ -252,4 +276,17 @@ function load_email(id) {
     err_msg.innerHTML = `Error: ${error}`;
     email_view.append(err_msg);
   });
+}
+
+function archive_email(email) {
+  this.event.stopPropagation();
+  // archive / unarchive email
+  email.archived = (!email.archived) ? true : false;
+  fetch(`/emails/${email.id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+        archived: email.archived
+    })
+  });
+  window.location.reload();
 }
