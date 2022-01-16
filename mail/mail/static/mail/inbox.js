@@ -178,7 +178,7 @@ function get_msg(email, sent) {
    }
   msg.onmouseover = () => {msg.style.opacity = '0.7'; msg.style.cursor = 'pointer'};
   msg.onmouseout = () => {msg.style.opacity = '1.0'};
-  msg.addEventListener('click', () => load_email(email.id));
+  msg.addEventListener('click', () => load_email(email.id, sent));
   // 'from' column
   let from = document.createElement('div');
   from.classList += 'col-2';
@@ -206,7 +206,7 @@ function get_msg(email, sent) {
   return msg;
 }
 
-function load_email(id) {
+function load_email(id, sent) {
 
   // Show the email and hide other views
   emails_view.style.display = 'none';
@@ -226,17 +226,19 @@ function load_email(id) {
     let timestamp = document.createElement('span');
     timestamp.innerHTML = `Sent on: ${email.timestamp}`;
     elements.push(timestamp);
-    // reply button
-    elements.push(create_button('span', 'btn btn-primary m-2', 'Reply', 'click', compose_email, [email]));
-    // archive button
-    elements.push(create_button(
-      'span', 
-      'btn btn-info m-2', 
-      (!email.archived) ? 'Archive' : 'Unarchive', 
-      'click', 
-      archive_email, 
-      [email]
-    ));
+    if (!sent) {
+      // reply button
+      elements.push(create_button('span', 'btn btn-primary m-2', 'Reply', 'click', compose_email, [email]));
+      // archive button
+      elements.push(create_button(
+        'span', 
+        'btn btn-info m-2', 
+        (!email.archived) ? 'Archive' : 'Unarchive', 
+        'click', 
+        archive_email, 
+        [email]
+      ));
+    }
     // container
     let email_container = document.createElement('div');
     email_container.className = 'container';
