@@ -120,9 +120,22 @@ class SearchForm(forms.Form):
 	search_query = forms.CharField(label="Search", max_length=100)
 	
 class PlaceBidForm(forms.ModelForm):
-	class Meta():
-		model = Bid
-		fields = ["bidder", "listing", "value"]
+    def clean_value(self):
+        data = self.cleaned_data['value']
+        max_bid = self.cleaned_data['listing'].max_bid
+        if float(data) <= float(max_bid):
+            raise ValidationError(_("Your bid is less or equal to the current highest bid. Please increase a bid value and try again. Current highest bid is %(value)s"),
+                                    code='invalid',
+                                    params={'value': str(max_bid)},
+                                )
+        return data
+
+    class Meta():
+        model = Bid
+        fields = ["bidder", "listing", "value"]
+        widgets = {
+            'value': forms.NumberInput(attrs={'step': 1.00}),
+        }
 	
 class CommentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):

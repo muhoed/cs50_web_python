@@ -652,7 +652,7 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
                                                         
     def success_handler(self, form):
         #redirect to success url if form is valid
-        messages.success = (self.request, "Listing was successfully created.")
+        messages.success(self.request, "Listing was successfully created.")
         return self.form_valid(form)
         
     
@@ -691,7 +691,7 @@ class UpdateListingView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
         return super().dispatch(*args, **kwargs)
         
     def get_success_url(self):
-        messages.success = (self.request, "Listing was successfully modified.")
+        messages.success(self.request, "Listing was successfully modified.")
         return reverse('auctions:update_listing', kwargs={
                                                     'user_pk':self.user.pk,
                                                     'pk':self.object.pk
@@ -713,7 +713,7 @@ def cancel_listing(request, user_pk, listing_pk):
     listing.cancelled_on = timezone.now()
     listing.save()
     message_text = f"Listing for %s was cancelled" % (listing.product.name)
-    messages.success = (request, message_text)
+    messages.success(request, message_text)
     #return redirect(reverse('auctions:sell_activities', kwargs={'pk': user_pk}))
     return HttpResponse("Completed")
     
@@ -733,7 +733,7 @@ def cancel_listings(request, user_pk):
         listing.cancelled_on = timezone.now()
         listing.save()
         message_text = message_text + listing.product.name + ", "
-    messages.success = (request, message_text)
+    messages.success(request, message_text)
     #return redirect(reverse('auctions:sell_activities', kwargs={'pk': user_pk}))
     return HttpResponse("Completed")
                                             
@@ -752,7 +752,7 @@ def mark_shipped(request, user_pk, listing_pk):
     listing.shipment_status = 1
     listing.save()
     message_text = f"Product %s was marked as shipped and respective message was sent to the buyer." % (listing.product.name)
-    messages.success = (request, message_text)
+    messages.success(request, message_text)
     return HttpResponse("Completed")
     
     
@@ -770,7 +770,7 @@ def mark_paid(request, user_pk, listing_pk):
     listing.paid = True
     listing.save()
     message_text = f"Product %s was marked as paid and respective message was sent to the seller." % (listing.product.name)
-    messages.success = (request, message_text)
+    messages.success(request, message_text)
     return HttpResponse("Completed")
     
 
@@ -788,7 +788,7 @@ def mark_delivered(request, user_pk, listing_pk):
     listing.shipment_status = 2
     listing.save()
     message_text = f"Product %s was marked as delivered and respective message was sent to the seller." % (listing.product.name)
-    messages.success = (request, message_text)
+    messages.success(request, message_text)
     return HttpResponse("Completed")
     
     
@@ -842,7 +842,7 @@ class CreateProductView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
             image_formset = ImageFormset(request.POST, instance=self.object)
             if image_formset.is_valid():
                 images = image_formset.save()
-                messages.success = (request, "New product was successfully created.")
+                messages.success(request, "New product was successfully created.")
                 return redirect(reverse('auctions:update_product', kwargs={
                                                     'user_pk':self.user.pk,
                                                     'pk':self.object.pk
@@ -903,7 +903,7 @@ class UpdateProductView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
             
         
     def get_success_url(self):
-        messages.success = (self.request, "Product was successfully modified.")
+        messages.success(self.request, "Product was successfully modified.")
         return reverse('auctions:update_product', kwargs={
                                                     'user_pk':self.user.pk,
                                                     'pk':self.object.pk
@@ -926,7 +926,7 @@ class DeleteProductView(LoginRequiredMixin, CorrectUserTestMixin, DeleteView):
         return super().dispatch(*args, **kwargs)
     
     def get_success_url(self):
-        messages.success = (self.request, "Product was deleted.")
+        messages.success(self.request, "Product was deleted.")
         return reverse('auctions:sell_activities', kwargs={
                                                     'pk':self.user.pk,
                                                     }
@@ -963,7 +963,7 @@ class ListingView(DetailView):
             comment = CommentForm(data)
             if comment.is_valid():
                 new_comment = comment.save()
-                messages.success = (request, "Comment was sent and published.")
+                messages.success(request, "Comment was sent and published.")
                 return HttpResponseRedirect(self.get_success_url())
             else:
                 return self.render_to_response(self.get_context_data(comment_form=comment))
@@ -973,9 +973,11 @@ class ListingView(DetailView):
             bid = PlaceBidForm(data)
             if bid.is_valid():
                 new_bid = bid.save()
-                messages.success = (request, "Bid was placed.")
+                messages.success(request, "Bid was placed.")
                 return HttpResponseRedirect(self.get_success_url())
             else:
+                if float(request.POST["value"]) <= float(self.object.max_bid):
+                    messages.error(request, "Your bid is less or equal to the current highest bid. Please increase a bid value and try again. Current highest bid is %s." % str(self.object.max_bid))
                 return self.render_to_response(self.get_context_data(form=bid))
                 
     def get_success_url(self):
@@ -994,11 +996,11 @@ def change_watchlist(request, listing_pk, action):
         return HttpResponse("The listing was not found.")
     if action == "add":
         request.user.watchlist.add(listing)
-        messages.success = (request, "Listing was added to your watchlist")
+        messages.success(request, "Listing was added to your watchlist")
     elif action == "remove":
         if listing in request.user.watchlist.all():
             request.user.watchlist.remove(listing)
-            messages.success = (request, "Listing was removed from your watchlist.")
+            messages.success(request, "Listing was removed from your watchlist.")
     return HttpResponse("Completed")
         
     
@@ -1060,7 +1062,7 @@ class CreateRespondToCommentView(LoginRequiredMixin, CorrectUserTestMixin, Creat
         return super().dispatch(*args, **kwargs)
         
     def get_success_url(self):
-        messages.success = (self.request, "Your answer was published.")
+        messages.success(self.request, "Your answer was published.")
         return reverse_lazy('auctions:update_listing', kwargs={
                                                         'user_pk': self.user.pk,
                                                         'pk': self.comment.listing.pk 
@@ -1072,7 +1074,7 @@ def bid(request, listing_pk, val):
     try:
         listing = Listing.objects.get(pk=listing_pk)
     except:
-        messages.error = (request, "The listing was not found.")
+        messages.error(request, "The listing was not found.")
         return HttpResponse("The listing was not found.")
     
     try:
@@ -1086,7 +1088,7 @@ def bid(request, listing_pk, val):
     except Exception as e:
         return HttpResponse(e)
         
-    messages.success = (request, "Your bid was accepted.")
+    messages.success(request, "Your bid was accepted.")
     return HttpResponse("Completed")
     
     
@@ -1277,7 +1279,7 @@ class SearchView(FormView):
             return self.form_invalid(form)
         
         #display listings matching search criteria     
-        messages.success = (self.request, f"Total of {len(self.title_matches) + len(self.text_matches)} results was found")
+        messages.success(self.request, f"Total of {len(self.title_matches) + len(self.text_matches)} results was found")
         return render(self.request, "auctions/search.html", {
             "title": "search results",
             "in_titles": self.title_matches,
