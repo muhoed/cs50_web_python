@@ -559,7 +559,7 @@ at {self.time}."
 	
 	
 class Message(models.Model):
-	
+
 	sender = models.ForeignKey(User, on_delete=models.CASCADE,
 				verbose_name="user who sent the message",
 				related_name="sent_messages")
@@ -575,10 +575,10 @@ class Message(models.Model):
 	content = models.TextField("comment's text")
 	time = models.DateTimeField(auto_now_add=True)
 	read = models.BooleanField(default=False)
-	
+
 	def get_absolute_url(self):
-	    return reverse('auctions:message', kwargs={'pk': self.id})
-	
+		return reverse('auctions:message', kwargs={'pk': self.id})
+
 	def __str__(self):
 		return f"Message from {self.sender.username} to {self.recipient.username} regarding {self.subject} sent at {self.time}."
 

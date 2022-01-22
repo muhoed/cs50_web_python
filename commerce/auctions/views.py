@@ -27,7 +27,7 @@ from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic import TemplateView, ListView, DetailView
 from django.views.generic.edit import FormView, CreateView, UpdateView, DeleteView, FormMixin
 from django.views.decorators.cache import never_cache
-from django.core.exceptions import ImproperlyConfigured, ValidationError
+from django.core.exceptions import ImproperlyConfigured, ValidationError, PermissionDenied
 from django.template import loader
 from django.core.paginator import Paginator
 
@@ -992,7 +992,7 @@ def change_watchlist(request, listing_pk, action):
     try:
         listing = Listing.objects.get(pk=listing_pk)
     except:
-        message.failure = (request, "The listing was not found.")
+        messages.error(request, "The listing was not found.")
         return HttpResponse("The listing was not found.")
     if action == "add":
         request.user.watchlist.add(listing)
@@ -1184,7 +1184,7 @@ def check_unread_messages(request):
             num_unread = Message.objects.filter(recipient=request.user, read=False).count()
             return HttpResponse(num_unread)
         else:
-            raise AuthenticationError
+            raise PermissionDenied
     except:
         return HttpResponse(0)
 
