@@ -22,4 +22,15 @@ My solutions and implementations of CS50's Web Programming with Python and JS co
   - listing management: create/modify product, list product/mofidy listing/cancel listing, bid on active listings, comment on active listing/answer comments, watch/unwatch listings, mark listing as paid/sent/delivered
   - messenger: communication between product's seller and buyer, system messages
   - general: product categories, full text search in products/listings title and description (implemented using RegEx; could be extended with additional functionality in case of PostgreSQL usage), admin website
+
+  ### Mail:
+  - Python's Django based back-end wed-application with a simple web API
+  - Plain JavaScript (ES6) realization of SPA to implement simple email client
+  - Available functionality:
+    - separate Inbox, Sent and Archived mailboxes
+    - compose new email
+    - view email message
+    - reply email message
+    - message can be sent to a list of recipients
+    - archive / unarchive email messaage
   
