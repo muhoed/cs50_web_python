@@ -377,7 +377,7 @@ class ProfileView(LoginRequiredMixin, CorrectUserTestMixin, UpdateView):
         if form.is_valid() and email_formset.is_valid() and address_formset.is_valid():
             emails = email_formset.save()
             addresses = address_formset.save()
-            messages.success(request, message)
+            messages.success = (request, message)
             return self.form_valid(form)
             
         else:

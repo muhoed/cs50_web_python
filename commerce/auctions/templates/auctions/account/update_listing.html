@@ -151,11 +151,9 @@
 		{% endif %}
 	</form>
 	{% if object.status == "active" %}
-		<a href="{% url 'auctions:cancel_listing' user.pk object.pk %}">
-			<button class="btn btn-danger cancel" id="{{ object.pk }}">Cancel</button>
-		</a>
+		<button class="bnt btn-danger cancel-listing" id="cancel-{{ user.pk }}-{{ object.pk }}">Cancel</button>
 	{% else %}
-		<button class="btn btn-secondary relist-product" id="relist-{{ user.pk }}-{{ listing.pk }}">Relist</button>
+		<button class="btn btn-secondary relist-product" id="relist-{{ user.pk }}-{{ object.pk }}">Relist</button>
 	{% endif %}
 	</div>
 	<div class="tab-pane info mt-2" id="comments">
