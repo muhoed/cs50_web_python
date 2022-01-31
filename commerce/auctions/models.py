@@ -1,5 +1,6 @@
 import datetime
 from decimal import Decimal
+from typing_extensions import Required
 
 from django.conf import settings as conf_settings
 from django.contrib.auth.models import AbstractUser
@@ -423,7 +424,8 @@ class Listing(models.Model):
     followers = models.ManyToManyField(
         User, verbose_name="users following the listing", 
         help_text="Users who add the listing in their watch lists.", 
-        related_name="watchlist"
+        related_name="watchlist",
+		blank=True
         )
 
     payment_policy = models.TextField(default=PAYMENT)
@@ -437,8 +439,8 @@ class Listing(models.Model):
     duration = models.DurationField("duration of the listing",
                 default = datetime.timedelta(days=10),
                 help_text="Duration of the listing in days. Default to 10 days.")
-    end_time = models.DateTimeField(null=True) #pre_save calculated field
-    cancelled_on = models.DateTimeField(null=True)
+    end_time = models.DateTimeField(null=True, blank=True) #pre_save calculated field
+    cancelled_on = models.DateTimeField(null=True, blank=True)
     shipment_status = models.IntegerField("shipment status", 
                 choices=ShipmentStatus.choices, default=ShipmentStatus.NOT_SHIPPED)
     paid = models.BooleanField("payment status", default=False)
