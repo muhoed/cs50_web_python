@@ -608,6 +608,8 @@ class CreateListingView(LoginRequiredMixin, CorrectUserTestMixin, CreateView):
                 "The URL path must contain 'pk' parameter."
             )
         self.user = User.objects.get(pk=kwargs['pk'])
+        if not self.user.profile_completed:
+            return redirect(reverse('sell_activities', kwargs={'pk':self.user.pk}))
         return super().dispatch(*args, **kwargs)
         
     def post(self, request, *args, **kwargs):
@@ -1079,7 +1081,9 @@ def bid(request, listing_pk, val):
     
     try:
         if not request.user.profile_completed:
-            raise ValidationError("Please complete your profile before place a bid!")    
+            raise ValidationError("Please complete your profile before place a bid!")
+        if float(listing.max_bid) == float(val):
+            raise ValueError("Your bid is less or equal to the current highest bid. Please increase a bid value and try again. Current highest bid is %s€." % str(listing.max_bid))    
         new_bid = Bid.objects.create(
                                 bidder=request.user,
                                 listing=listing,
@@ -1088,7 +1092,7 @@ def bid(request, listing_pk, val):
     except Exception as e:
         return HttpResponse(e)
         
-    messages.success(request, "Your bid was accepted.")
+    messages.success(request, "Your bid in amount of %s€ was accepted." % str(new_bid.value))
     return HttpResponse("Completed")
     
     
