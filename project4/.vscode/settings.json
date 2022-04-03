@@ -1,0 +1,5 @@
+{
+    "python.analysis.extraPaths": [
+        "C:\\Users\\Argunov\\OneDrive\\Documents\\Programming\\cs50_web_python\\venv\\Lib\\site-packages"
+    ]
+}
