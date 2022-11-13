@@ -1,0 +1,46 @@
+{% load network_tags %}
+
+{% if post_list %}
+
+<h3>All published posts</h3>
+
+{% for post in post_list %}
+
+<single-post
+    post-id="{{ post.id }}"
+    post-author="{{ post.created_by.username }}"
+    post-date="{{ post.updated_on }}"
+    post-update-date="{% if post.updated_on %}{{ post.updated_on|date:'Y/m/d H:i:s' }}{% else %}{{ post.created_on|date:'Y/m/d H:i:s' }}{% endif %}"
+    post-text="{{ post.text }}"
+    post-text-short="{{ post.text|truncatechars:20 }}"
+    post-comments-num="{{ post.comments|queryset_count }}"
+    post-comment-open="enabled"
+    post-commented="0"
+    post-likes-num="{{ post.likes }}"
+    post-dislikes-num="{{ post.dislikes }}"
+    post-view="collapsed"
+    post-minimized="true"
+    post-own="{{ post.own }}"></single-post>
+
+{% endfor %}
+
+{% if page_obj.paginator.num_pages > 1 %}
+
+<nav aria-label="Navigation in {{ scope }} posts" class="mt-2">
+    <ul class="pagination justify-content-center">
+        <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+            <a class="page-link" href="" {% if page_obj.has_previous %}id="{{ scope }}_{{ page_obj.previous_page_number }}"{% endif %}>Previous</a>
+        </li>
+        <li class="page-item  {% if not page_obj.has_next %}disabled{% endif %}">
+            <a class="page-link" href="" {% if page_obj.has_next %}id="{{ scope }}_{{ page_obj.next_page_number }}"{% endif %}>Next</a>
+        </li>
+    </ul>
+</nav>
+
+{% endif %}
+
+{% else %}
+
+<p>No posts in the category yet.</p>
+
+{% endif %}

@@ -1,0 +1,22 @@
+{% load network_tags %}
+
+<single-post
+    post-id="{{ post.id }}"
+    post-author="{{ post.created_by.username }}"
+    post-date="{{ post.updated_on }}"
+    post-update-date="{% if post.updated_on %}{{ post.updated_on|date:'Y/m/d H:i:s' }}{% else %}{{ post.created_on|date:'Y/m/d H:i:s' }}{% endif %}"
+    post-text="{{ post.text }}"
+    post-text-short="{{ post.text|truncatechars:20 }}"
+    post-comments-num="{{ post.comments|queryset_count }}"
+    post-comment-open="disabled"
+    post-commented="0"
+    post-likes-num="{{ post.likes }}"
+    post-dislikes-num="{{ post.dislikes }}"
+    post-view="full"
+    post-minimized="false"
+    post-own="{{ post.own }}"></single-post>
+<comment-form post-id="{{ post.id }}"></comment-form>
+<comments-list
+    post-id="{{ post.id }}"
+    limit="{{ post.id }}"
+    modified="0"></comments-list>

@@ -1,0 +1,79 @@
+/* .modal-container {
+    position: absolute;
+    width: 1%;
+    height: 1%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+  @media (max-width: 640px) {
+    .modal-container {
+      position: relative;
+      width: 1%;
+    }
+  }
+
+  .media-container .modal {
+    z-index: 2;
+    opacity: 0;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    -webkit-transition: opacity 500ms ease-in-out;
+    transition: opacity 500ms ease-in-out;
+  }
+
+  .modal-container .modal .modal-inner {
+    -webkit-transform: translate(-50%, -50%) scale(0.75);
+            transform: translate(-50%, -50%) scale(0.75);
+    top: 50%;
+    left: 50%;
+    width: 50%;
+    padding: 30px;
+    position: absolute;
+  }
+  @media (max-width: 640px) {
+    .modal-container .modal .modal-inner {
+      width: 100%;
+    }
+  }
+
+.btn-close {
+    color: black;
+    text-align: center;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.open {
+  z-index: 1;
+  opacity: 1;
+  height: 50%;
+  width: 50%;
+}
+
+.open .modal-inner {
+  -webkit-transform: translate(-50%, -50%) scale(1);
+          transform: translate(-50%, -50%) scale(1);
+  -webkit-transition: all 200ms ease-in-out;
+  transition: all 200ms ease-in-out;
+}
+
+.modal-container .open .btn-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 30px;
+  width: 30px;
+  background: #666666;
+  -webkit-transition: all 200ms ease-in-out;
+  transition: all 200ms ease-in-out;
+}
+
+.modal-container .open .btn-close:hover {
+  background: #333333;
+} */

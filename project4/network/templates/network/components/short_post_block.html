@@ -1,0 +1,17 @@
+{% for post in post_list %}
+
+<min-post
+    post-id="{{ post.id }}"
+    post-author="{{ post.created_by.username }}"
+    post-date="{{ post.updated_on }}"
+    post-update-date="{% if post.updated_on %}
+    {{ post.updated_on|date:'Y/m/d H:i:s' }}
+    {% else %}
+    {{ post.created_on|date:'Y/m/d H:i:s' }}
+    {% endif %}"></min-post>
+
+{% empty %}
+
+<div class="d-flex nowrap justify-content-center">No posts in the category yet.</div>
+
+{% endfor %}

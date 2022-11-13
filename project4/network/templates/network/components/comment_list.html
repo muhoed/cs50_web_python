@@ -1,0 +1,40 @@
+{% if comment_list %}
+
+{% for comment in comment_list %}
+
+<p class="w-100 bg-light mt-3 ml-2 mr-3 p-2 mb-0">
+    Commented by <b>{{ comment.created_by.username }}</b> on <i>{{ comment.created_on|date:'Y/m/d H:i:s' }}</i>
+</p>
+<p class="w-100 border border-top-1 mt-0 mb-1 ml-2 mr-3 p-2">{{ comment.body }}</p>
+
+{% endfor %}
+
+{% if page_obj.paginator.num_pages > 1 %}
+
+<nav aria-label="Navigation in comments" class="mt-2">
+    <ul class="pagination justify-content-center">
+        <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+            <a class="page-link" href="" {% if page_obj.has_previous %}id="comments_1" title="Fisrt page"{% endif %}>&lt;&lt; </a>
+        </li>
+        <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+            <a class="page-link" href="" {% if page_obj.has_previous %}id="comments_{{ page_obj.previous_page_number }}" title="Previous"{% endif %}>&lt; </a>
+        </li>
+        <li class="page-item disabled">
+            <a class="page-link" href="" id="comments_{{ page_obj.number }}" title="Current page">{{ page_obj.number }}</a>
+        </li>
+        <li class="page-item  {% if not page_obj.has_next %}disabled{% endif %}">
+            <a class="page-link" href="" {% if page_obj.has_next %}id="comments_{{ page_obj.next_page_number }}" title="Next"{% endif %}> &gt;</a>
+        </li>
+        <li class="page-item  {% if not page_obj.has_next %}disabled{% endif %}">
+            <a class="page-link" href="" {% if page_obj.has_next %}id="comments_{{ page_obj.paginator.num_pages }}"{% endif %}> &gt;&gt;</a>
+        </li>
+    </ul>
+</nav>
+
+{% endif %}
+
+{% else %}
+
+<p>No comments yet.</p>
+
+{% endif %}

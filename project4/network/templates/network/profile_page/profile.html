@@ -1,0 +1,39 @@
+{% extends "network/layout.html" %}
+{% load static %}
+{% block body %}
+    <script src="{% static 'network/scripts/controllers/network.page.controller.js' %}" type="module"></script>
+    <script src="{% static 'network/scripts/controllers/profile.controller.js' %}" type="module"></script>
+    <script src="{% static 'network/scripts/components/post-form.component.js' %}" type="module"></script>
+    <script src="{% static 'network/scripts/components/post-list.component.js' %}" type="module"></script>
+    <script src="{% static 'network/scripts/components/single-post.component.js' %}" type="module"></script>
+    <script src="{% static 'network/scripts/components/min-post.component.js' %}" type="module"></script>
+    <script src="{% static 'network/scripts/components/post-view.component.js' %}" type="module"></script>
+    <script src="{% static 'network/scripts/components/comment-form.component.js' %}" type="module"></script>
+    <script src="{% static 'network/scripts/components/comments-list.component.js' %}" type="module"></script>
+    <script src="{% static 'network/scripts/components/modal-popup.component.js' %}" type="module"></script>
+    <script src="{% static 'network/scripts/components/profile-detail.component.js' %}" type="module"></script>
+
+    <div class="container row justify-content-center ml-auto mr-auto mt-5 mb-2">
+        <post-form class="w-100"></post-form>
+    </div>
+
+    <div class="container row justfy-content-space ml-auto mr-auto">
+        <profile-detail user-id="{{ profile_user }}" class="col-8"></profile-detail>
+        <div class="col-4">
+            {% if profile_user == user.pk %}
+                <h3>Your posts</h3>
+                <post-list classes="w-100 mb-3" scope="own-posts" limit="5" refresh="60000" modified="0"></post-list>
+            {% else %}
+                <h3>Most popular posts</h3>
+                <post-list classes="w-100 mb-3" scope="popular" limit="{% if user.is_authenticated %}5{% else %}10{% endif %}" refresh="60000"></post-list>
+            {% endif %}
+            {% if user.is_authenticated %}
+            <h3>Recently viewed posts</h3>
+                <post-list classes="w-100" scope="recently-viewed" limit="5" refresh="30000"></post-list>
+            {% endif %}
+        </div>
+    </div>
+
+    <!--Modal window to view an entire post and add / view comments-->
+    <modal-popup post-id="" state="closed"></modal-popup>
+{% endblock %}
