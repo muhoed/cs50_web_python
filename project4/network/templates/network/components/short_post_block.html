@@ -3,11 +3,12 @@
 <min-post
     post-id="{{ post.id }}"
     post-author="{{ post.created_by.username }}"
-    post-date="{{ post.updated_on }}"
+    {% if post.created_by %}post-author-profile-link="{% url 'profile' pk=post.created_by.id %}"{% endif %}
+    post-date="{{ post.created_on|date:'M d, Y' }}"
     post-update-date="{% if post.updated_on %}
-    {{ post.updated_on|date:'Y/m/d H:i:s' }}
+    {{ post.updated_on|date:'M d, Y' }}
     {% else %}
-    {{ post.created_on|date:'Y/m/d H:i:s' }}
+    {{ post.created_on|date:'M d, Y' }}
     {% endif %}"></min-post>
 
 {% empty %}
@@ -15,3 +16,18 @@
 <div class="d-flex nowrap justify-content-center">No posts in the category yet.</div>
 
 {% endfor %}
+
+{% if page_obj.paginator.num_pages > 1 %}
+
+<nav aria-label="Navigation in {{ scope }} posts" class="mt-2">
+    <ul class="pagination justify-content-center">
+        <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+            <a class="page-link" href="" {% if page_obj.has_previous %}id="{{ scope }}_{{ page_obj.previous_page_number }}"{% endif %}>Previous</a>
+        </li>
+        <li class="page-item  {% if not page_obj.has_next %}disabled{% endif %}">
+            <a class="page-link" href="" {% if page_obj.has_next %}id="{{ scope }}_{{ page_obj.next_page_number }}"{% endif %}>Next</a>
+        </li>
+    </ul>
+</nav>
+
+{% endif %}

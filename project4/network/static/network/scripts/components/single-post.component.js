@@ -45,13 +45,16 @@ class SinglePost extends HTMLElement {
         this.wrapper.setAttribute("class", "w-100 mt-2 p-0");
         this.wrapper.setAttribute("id", "post-" + this.getAttribute("post-id"));
 
+        // set link to author profile
+        let authorLink = this.getAttribute('post-author-profile-link') ? this.getAttribute('post-author-profile-link') : "";
+
         if (this.getAttribute("post-view") == "short" || this.getAttribute("post-view") == "collapsed")
         {
             // create a post preview view
             let postPreviewHTML = `<div class="w-100 border m-0 post-preview" id="post-preview-${this.getAttribute('post-id')}" style="height: ${this.getAttribute('post-minimized') == 'true' ? '40px' : '0' }; overflow: hidden;">
                     <div class="short-post-block d-flex nowrap" title="View post">
-                        <p class="flex-grow-1 m-2"><b>${this.getAttribute('post-date').slice(0,this.getAttribute('post-date').length-12)}
-                        ${this.getAttribute('post-author') ? 'by ' + this.getAttribute('post-author') + ':' : ""} </b>
+                        <p class="flex-grow-1 m-2"><b>${this.getAttribute('post-date')}
+                        ${this.getAttribute('post-author') ? 'by ' + `<a href="${authorLink}" title="View profile">${this.getAttribute('post-author')}</a>` + ':' : ""} </b>
                         ${this.getAttribute('post-text-short')}</p>
                         <p class="comment-sign mt-2 mb-2 mr-4" ${this.getAttribute('post-view') == 'short' ? 'title="Add / view comments"' : ''}><i class="bi bi-chat-text"></i> ${this.getAttribute('post-comments-num') ? this.getAttribute('post-comments-num') : 0}</p>
                         <p class="like-sign m-2" ${this.getAttribute('post-view') == 'short' ? 'title="Add like"' : ''}><i class="bi bi-hand-thumbs-up"></i><span>${this.getAttribute('post-likes-num') ? this.getAttribute('post-likes-num') : 0}</span></p>
@@ -77,7 +80,7 @@ class SinglePost extends HTMLElement {
             let postHTML = `<div class="w-100 border m-0 post-full" id="post-full-${this.getAttribute('post-id')}" style="height: ${this.getAttribute('post-minimized') == 'true' ? '0' : '154px'}; overflow: hidden;">
                                 <div class="post-header d-flex nowrap border-bottom-2 bg-light"${this.getAttribute('post-view') == 'collapsed' ? ' title="Collapse"' : ''}>
                                     <div class="post-author flex-grow-1 align-self-start m-2">
-                                        Posted by: ${this.getAttribute('post-author') ? this.getAttribute('post-author') : ''}
+                                        Posted by: ${this.getAttribute('post-author') ? `<a href="${authorLink}" title="View profile">${this.getAttribute('post-author')}</a>` : ''}
                                     </div>
                                     <div class="post-date align-self-end m-2">
                                         On: ${this.getAttribute('post-date')}

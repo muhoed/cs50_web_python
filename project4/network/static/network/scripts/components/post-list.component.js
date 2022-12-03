@@ -25,7 +25,7 @@ class PostList extends HTMLElement {
             this.wrapper.innerHTML = result;
             this.addPagination();
             // add event listener to collapse posts
-            this.wrapper.addEventListener("post-opened", event => this.collapsePosts(event));
+            this.wrapper.addEventListener("post-opened", event => this.handlePostOpen(event));
             // append posts list to shadow root
             shadow.appendChild(this.wrapper);
         });
@@ -40,7 +40,7 @@ class PostList extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ["modified", "commented"];
+        return ["modified", "commented", "reload"];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
@@ -58,6 +58,9 @@ class PostList extends HTMLElement {
                     post.setAttribute("post-commented", Math.random() * 100);
                 }
             });             
+        }
+        if (name == "reload" && newValue != "0") {
+            setTimeout(() => this.loadPostList().then(result => this.wrapper.innerHTML = result), 1000);
         }
     }
 
@@ -78,7 +81,8 @@ class PostList extends HTMLElement {
         );
     }
 
-    collapsePosts(event) {
+    handlePostOpen(event) {
+        // collapse other open posts
         this.wrapper.querySelectorAll("single-post")
             .forEach(post => {
                 if (post.getAttribute("post-id") != event.detail) {

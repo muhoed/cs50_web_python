@@ -2,7 +2,7 @@
 {% load static %}
 {% block body %}
     <script src="{% static 'network/scripts/controllers/network.page.controller.js' %}" type="module"></script>
-    <script src="{% static 'network/scripts/controllers/index.controller.js' %}" type="module"></script>
+    <script src="{% static 'network/scripts/controllers/following.controller.js' %}" type="module"></script>
     <script src="{% static 'network/scripts/components/post-form.component.js' %}" type="module"></script>
     <script src="{% static 'network/scripts/components/post-list.component.js' %}" type="module"></script>
     <script src="{% static 'network/scripts/components/single-post.component.js' %}" type="module"></script>
@@ -11,6 +11,7 @@
     <script src="{% static 'network/scripts/components/comment-form.component.js' %}" type="module"></script>
     <script src="{% static 'network/scripts/components/comments-list.component.js' %}" type="module"></script>
     <script src="{% static 'network/scripts/components/modal-popup.component.js' %}" type="module"></script>
+    <script src="{% static 'network/scripts/components/user-list.component.js' %}" type="module"></script>
 
     <!-- add new post form -->
     <div class="container row justify-content-center ml-auto mr-auto mt-5 mb-2">
@@ -19,15 +20,15 @@
 
     <!-- main content -->
     <div class="container row justfy-content-space ml-auto mr-auto post-block">
-        <post-list class="col-8" scope="strip" limit="0" modified="0" commented=""></post-list>
-        <div class="right-side-bar col-4">
-            <h3>Most popular posts</h3>
-            <post-list classes="w-100 mb-3" scope="popular" limit="{% if user.is_authenticated %}5{% else %}10{% endif %}" refresh="60000"></post-list>
-            {% if user.is_authenticated %}
-            <h3>Recently viewed posts</h3>
-                <post-list classes="w-100" scope="recently-viewed" reload="0" limit="5" refresh="30000"></post-list>
-            {% endif %}
+        <div class="left-side-bar col-4">
+            <h3>Following</h3>
+            <!-- <p class="following-all">Display all followings' posts</p>
+            <h4>Following users:</h4> -->
+            <user-list class="mt-4 w-100" type="following" current-user="{{ user.id }}" limit="0"></user-list>
+            <h3 class="mt-5">Recently viewed posts</h3>
+            <post-list classes="w-100" scope="recently-viewed" reload="0" limit="5" refresh="30000"></post-list>
         </div>
+        <post-list class="col-8" scope="following" limit="0" modified="0" commented=""></post-list>
     </div>
 
     <!--Modal window to view an entire post and add / view comments-->

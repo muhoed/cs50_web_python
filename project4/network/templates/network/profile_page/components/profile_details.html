@@ -1,0 +1,77 @@
+{% load static %}
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+
+<style>
+    .avatar {
+        min-width: 200px;
+        min-height: 200px;
+        border: 2px dashed lightgray;
+        border-radius: 10px;
+    }
+
+    .avatar-container {
+        position: relative;
+    }
+
+    .change-avatar {
+        position: absolute;
+        top: 17px;
+        right: 15px;
+    }
+
+    .clickable:hover {
+        cursor: pointer;
+        color: blue;
+    }
+
+    .clickable.disabled {
+        opacity: 0.7;
+        color: grey;
+    }
+
+    .clickable.disabled:hover {
+        cursor: default;
+        color: grey;
+    }
+</style>
+
+<div class="row m-0 w-100">
+    <div class="col-4 p-2">
+        <avatar-form-view id="{{ UserDetail.id }}"></avatar-form-view>
+        <div class="row">
+            <div class="followers col-6 pb-2 border-bottom border-primary" id="followers">
+                <p class="text-center font-weight-bold">Followers</p>
+                <p class="text-white text-center bg-success w-25 rounded-pill m-auto clickable" id="followers-count">{{ followers_count }}</p>
+            </div>
+            <div class="following pb-2 col-6" id="following">
+                <p class="text-center font-weight-bold">Following</p>
+                <p class="text-white text-center bg-primary w-25 rounded-pill m-auto clickable" id="following-count">{{ following_count }}</p>
+            </div>
+        </div>
+        <user-list class="mt-4 w-100" type="followers" current-user="{{ UserDetail.id }}" limit="10"></user-list>
+    </div>
+    <div class="col-8 p-2">
+        <div class="about-header p-2">
+            {% if UserDetail == user %}
+                <span class="align-top"><i class="bi bi-pencil-square clickable" id="editInfo" title="Edit about info"></i></span>
+            {% endif %}
+            <h3 class="d-inline-block">About {{ UserDetail.username }}:</h3>
+            <span class="cancel-button d-none float-right mb-2 ml-1 font-weight-bold clickable"><i class="bi bi-x-square" title="Discard changes"></i></span>
+            <span class="save-button d-none float-right mb-2 clickable font-weight-bold disabled"><i class="bi bi-check-square" title="Save changes"></i></span>
+            {% if UserDetail != user %}
+                <span class="follow-switcher float-right mb-2 clickable font-weight-bold">
+                        <!-- <i class="bi bi-plus-square" title="Follow"></i> -->
+                        <button class="btn btn-primary {% if follow_status %}d-none{% endif %}" id="follow-btn">Follow</button>
+                        <!-- <i class="bi bi-dash-square" title="Unfollow"></i> -->
+                        <button class="btn btn-secondary {% if not follow_status %}d-none{% endif %}" id="unfollow-btn">Unfollow</button>
+                </span>
+            {% endif %}
+        </div>
+        <textarea class="profile-about w-100 p-2 border-0" 
+                rows="20"
+                {% if UserDetail == user %}owner="{{ UserDetail.pk }}"{% endif %}
+                disabled>{% if UserDetail.about and UserDetail.about|length > 0 %}{{ UserDetail.about }}{% elif UserDetail == user %}&#13;&#10;  Click Edit button above to add some info about yourself{% else %}No about info{% endif %}
+        </textarea>
+    </div>
+</div>

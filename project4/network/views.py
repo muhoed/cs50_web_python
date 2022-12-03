@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView, DeleteView
 
 from .models import User, Post, Comment, Reaction, ViewedPost
+from .forms import AvatarUploadForm
 
 
 #def index(request):
@@ -70,6 +71,10 @@ class HomePage(LoginRequiredMixin, TemplateView):
     template_name = "network/home_page/index.html"
     login_url = "register"
 
+class FollowingPage(LoginRequiredMixin, TemplateView):
+    template_name = "network/following_page/following.html"
+    login_url = "register"
+
 class ProfileMain(LoginRequiredMixin, TemplateView):
     template_name = "network/profile_page/profile.html"
     login_url = "register"
@@ -80,29 +85,76 @@ class ProfileMain(LoginRequiredMixin, TemplateView):
         return context
 
 class ProfileDetail(LoginRequiredMixin, DetailView):
-    template_name = "network/components/profile_details.html"
+    template_name = "network/profile_page/components/profile_details.html"
+    login_url = "register"
     context_object_name = "UserDetail"
     model = User
 
-class ListFollowing(LoginRequiredMixin, ListView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        object = self.get_object()
+        context["following_count"] = object.following.count()
+        context["followers_count"] = User.objects.filter(following__id=self.kwargs["pk"]).count()
+        context["follow_status"] = True if object in User.objects.get(pk=self.request.user.id).following.all() else False
+        return context
+
+
+def upload_avatar(request, pk):
+    # view to render and edit profile avatar picture
+    user = get_object_or_404(User, pk=pk)
+    original_form = AvatarUploadForm(initial={'id': user.pk, 'avatar': user.avatar})
+    if request.method == "POST":
+        form = AvatarUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            user.avatar = form.cleaned_data["avatar"]
+            user.save()
+            new_form = AvatarUploadForm(initial={'id': user.pk, 'avatar': user.avatar})
+            return render(request, "network/profile_page/components/avatar_form_view.html", {
+                "message": "Avatar was successfully updated.",
+                "form": new_form
+            })
+        else:
+            return render(request, "network/profile_page/components/avatar_form_view.html", {
+                "message": "File upload error.",
+                "form": original_form
+            })
+    return render(request, "network/profile_page/components/avatar_form_view.html", {
+        "form": original_form
+    })
+
+class ListUsers(LoginRequiredMixin, ListView):
+    template_name = "network/components/user_list.html"
+    login_url = "register"
     model = User
-    context_object_name = "following_list"
+    context_object_name = "users"
+    paginate_by = 10
 
-class ModifyFollowing(LoginRequiredMixin, UpdateView):
-    model = User
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["type"] = self.kwargs["type"]
+        context["limit"] = self.kwargs["limit"]
+        context["target_user"] = self.kwargs["pk"]
+        return context
 
-    def follow(self, id):
-        if self.object.following.get(pk=id):
-            return
-        user = get_object_or_404(User, pk=id)
-        self.object.following.add(user)
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        limit = self.kwargs["limit"]
 
-    def unfollow(self, id):
-        if self.object.following.get(pk=id):
-            self.object.following.remove(pk=id)
+        if self.kwargs["type"] == "followers":
+            result = queryset.filter(following__id=self.kwargs["pk"])
+            if limit and isinstance(limit, int):
+                return result[:limit]
+            return result
+        elif self.kwargs["type"] == "following":
+            result = User.objects.get(id=self.kwargs["pk"])
+            result = result.following.all()
+            if limit and isinstance(limit, int):
+                return result[:limit]
+            return result
 
-class ListPosts(ListView):
+class ListPosts(LoginRequiredMixin, ListView):
     template_name = "network/components/short_post_block.html"
+    login_url = "register"
     queryset = Post.objects.annotate(
         likes=Count('reactions', filter=Q(reactions__status='L'), distinct=True),
         dislikes=Count('reactions', filter=Q(reactions__status='D'), distinct=True)
@@ -114,6 +166,18 @@ class ListPosts(ListView):
         context = super().get_context_data(**kwargs)
         context["scope"] = self.kwargs["scope"]
         context["limit"] = self.kwargs["limit"]
+        if context["scope"] == "popular":
+            context["title"] = ""
+        elif context["scope"] == "recently-viewed":
+            context["title"] = "Recently viewed posts"
+        elif context["scope"] == "own-posts":
+            context["title"] = "Your posts"
+        elif context["scope"][:4] == "user":
+            context["title"] = "User's posts"
+        elif context["scope"] == "following":
+            context["title"] = "All following users' posts"
+        elif context["scope"] == "strip":
+            context["title"] = "All published posts"
         return context
 
     def get_queryset(self):
@@ -131,7 +195,9 @@ class ListPosts(ListView):
                 return result[:limit]
             return result[:5]
         elif self.kwargs["scope"] == "recently-viewed":
-            sorted_posts = queryset.filter(viewers__username=self.request.user.username).order_by("-viewedpost__viewed_on")
+            sorted_posts = queryset.filter(
+                                    viewers_list__username=self.request.user.username
+                                ).order_by("-viewedpost__viewed_on")
             distinct_posts = []
             i =  0
             if limit and isinstance(limit, int):
@@ -139,7 +205,7 @@ class ListPosts(ListView):
             else:
                 j = 4
             for post in sorted_posts:
-                if post.id not in distinct_posts:
+                if post not in distinct_posts:
                     distinct_posts.append(post)
                     i += 1
                     if i > j:
@@ -150,15 +216,34 @@ class ListPosts(ListView):
             if limit and isinstance(limit, int):
                 return result[:limit]
             return result[:5]
+        elif self.kwargs["scope"][:4] == "user":
+            result = queryset.filter(created_by__id=int(self.kwargs["scope"][5:]))
+            if limit and isinstance(limit, int):
+                return result[:limit]
+            return result[:5]
+        elif self.kwargs["scope"] == "following":
+            self.template_name = "network/home_page/components/post_list.html"
+            following = User.objects.get(pk=self.request.user.pk).following.all()
+            queryset = queryset.filter(created_by__in=following)
+            if limit and isinstance(limit, int):
+                return queryset[:limit]
+            return queryset
+        elif self.kwargs["scope"][:9] == "following" and len(self.kwargs["scope"]) > 9:
+            self.template_name = "network/home_page/components/post_list.html"
+            id = self.kwargs["scope"][10:]
+            queryset = queryset.filter(created_by__id=id)
+            if limit and isinstance(limit, int):
+                return queryset[:limit]
+            return queryset
         else:
-            self.template_name = "network/components/post_list.html"
+            self.template_name = "network/home_page/components/post_list.html"
             if limit and isinstance(limit, int):
                 return queryset[:limit]
             return queryset
 
-
-class ShowPost(DetailView):
+class ShowPost(LoginRequiredMixin, DetailView):
     template_name = "network/components/post_view.html"
+    login_url = "register"
     model = Post
 
     def get_object(self, queryset=None):
@@ -213,17 +298,9 @@ class CreatePost(CreateView):
     template_name = "network/components/post_form.html"
     model = Post
 
-class DeletePost(DeleteView):
-    model = Post
-
-class CreateReaction(CreateView):
-    model = Reaction
-
-class CommentDetails(DetailView):
-    model = Comment
-
-class ListComments(ListView):
+class ListComments(LoginRequiredMixin, ListView):
     template_name = "network/components/comment_list.html"
+    login_url = "register"
     queryset = Comment.objects.all()
     context_object_name = "comment_list"
     pagination = 10
@@ -232,12 +309,3 @@ class ListComments(ListView):
         queryset = super().get_queryset()
         post_pk = self.kwargs["post_pk"]
         return queryset.filter(post__pk=post_pk).order_by("-created_on")
-
-class CreateComment(CreateView):
-    model = Comment
-
-class ModifyComment(UpdateView):
-    model = Comment
-
-class DeleteComment(DeleteView):
-    model = Comment

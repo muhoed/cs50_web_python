@@ -18,8 +18,8 @@ class MinPost extends HTMLElement {
         this.wrapper.setAttribute("id", "post-" + this.getAttribute("post-id"));
         // create a post preview view
         let postPreviewHTML = `<div class="w-100 border m-0 post-preview" id="${this.getAttribute("post-id")}" style="height: 40px; overflow: hidden;">
-                                    <div class="minimized-post d-flex nowrap">
-                                        <p class="m-2">Posted by <b>${this.getAttribute("post-author") ? this.getAttribute("post-author") + ' ' : "an user "}</b> on ${this.getAttribute("post-date").slice(0,this.getAttribute("post-date").length-12)}</p>
+                                    <div class="minimized-post d-flex nowrap" title="View post">
+                                        <p class="m-2">Posted by <b>${this.getAttribute("post-author") ? `<a href="${this.getAttribute('post-author-profile-link')}" title="View profile">${this.getAttribute('post-author')}</a>` + ' ' : "an user "}</b> on ${this.getAttribute("post-date")}</p>
                                     </div>
                                 </div>`
         this.wrapper.innerHTML = postPreviewHTML;

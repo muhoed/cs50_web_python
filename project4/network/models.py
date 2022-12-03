@@ -12,7 +12,8 @@ def get_avatar_upload_path(instance, filename):
 class User(AbstractUser):
     following = models.ManyToManyField(
         "self", verbose_name="Users the user follows", 
-        related_name="follower", blank=True
+        related_name="follower", blank=True,
+        symmetrical=False
         )
     avatar = models.ImageField(
         verbose_name="User's avatar", upload_to=get_avatar_upload_path, 
@@ -48,6 +49,8 @@ class Post(models.Model):
         blank=True, null=True,
         on_delete=models.DO_NOTHING
         )
+
+    viewers_list = models.ManyToManyField(User, related_name="viewed", through='ViewedPost')
 
     def __str__(self):
         return f"Post by {self.created_by}. Published on {self.created_on.strftime('%Y-%m-%d')}"

@@ -1,0 +1,15 @@
+<div class="row w-100 m-auto text-center avatar-container pt-3">
+    {% if form.avatar.value %}
+        <img src="{{ form.avatar.value.url }}" alt="Avatar" class="w-100 h-auto avatar-picture" height="200px" width="200px" />
+    {% else %}
+        <div class="avatar m-auto text-center align-middle">No Image</div>
+    {% endif %}
+    {% if form.id.value == user.id %}
+        <form class="avatar-form" enctype="multipart/form-data" method="POST">
+            {% csrf_token %}
+            <label for="id_avatar"><i class="bi bi-pencil-square change-avatar clickable" title="Change avatar picture"></i></label>
+            <input type="file" name="avatar" accept="image/*" id="id_avatar" required class="d-none">
+            <input type="hidden" name="id" id="id_id" value="{{ form.id.value }}" required>
+        </form>
+    {% endif %}
+</div>

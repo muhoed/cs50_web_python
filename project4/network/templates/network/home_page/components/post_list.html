@@ -2,15 +2,16 @@
 
 {% if post_list %}
 
-<h3>All published posts</h3>
+<h3>{{ title }}</h3>
 
 {% for post in post_list %}
 
 <single-post
     post-id="{{ post.id }}"
     post-author="{{ post.created_by.username }}"
-    post-date="{{ post.updated_on }}"
-    post-update-date="{% if post.updated_on %}{{ post.updated_on|date:'Y/m/d H:i:s' }}{% else %}{{ post.created_on|date:'Y/m/d H:i:s' }}{% endif %}"
+    {% if post.created_by %}post-author-profile-link="{% url 'profile' pk=post.created_by.id %}"{% endif %}
+    post-date="{{ post.created_on|date:'M d, Y' }}"
+    post-update-date="{% if post.updated_on %}{{ post.updated_on|date:'M d, Y' }}{% else %}{{ post.created_on|date:'M d, Y' }}{% endif %}"
     post-text="{{ post.text }}"
     post-text-short="{{ post.text|truncatechars:20 }}"
     post-comments-num="{{ post.comments|queryset_count }}"
