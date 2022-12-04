@@ -21,6 +21,7 @@ class ProfileDetail extends HTMLElement {
             this.followingBadge = this.shadowRoot.querySelector("#following-count");
             this.followButton = this.shadowRoot.querySelector("#follow-btn");
             this.unfollowButton = this.shadowRoot.querySelector("#unfollow-btn");
+            this.userList = this.shadowRoot.querySelector("user-list");
             this.textField.addEventListener("input", (event) => this.validateProfileInput());
             this.saveButton.addEventListener("click", (event) => this.saveAboutInfo());
             this.cancelButton.addEventListener("click", (event) => this.cancelAboutInfoChange());
@@ -52,7 +53,6 @@ class ProfileDetail extends HTMLElement {
 
     editProfileInfo() {
         this.textField.disabled = false;
-        this.textField.value = "";
         this.toFocus();
         this.saveButton.classList.remove("d-none");
         this.cancelButton.classList.remove("d-none");
@@ -137,8 +137,8 @@ class ProfileDetail extends HTMLElement {
         }
         getFollowCountsByUserId(this.getAttribute("user-id"))
             .then(res => {
-                console.log(res.message);
                 this.followersBadge.innerText = res.message;
+                this.userList.setAttribute("updated", +this.userList.getAttribute("updated")+1);
             });
     }
 }

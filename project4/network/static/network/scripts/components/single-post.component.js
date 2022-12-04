@@ -221,7 +221,23 @@ class SinglePost extends HTMLElement {
                 res.then((resolve) => {
                     let parsedResolve = JSON.parse(resolve);
                     this.postText = parsedResolve.text;
-                    console.log(parsedResolve);
+                    if (parsedResolve.message) {
+                        this.dispatchEvent(new CustomEvent(
+                            "posted",
+                            {
+                                bubbles: true,
+                                composed: true,
+                                detail: parsedResolve.message
+                            }));
+                    } else if (parsedResolve.error) {
+                        this.dispatchEvent(new CustomEvent(
+                            "notposted",
+                            {
+                                bubbles: true,
+                                composed: true,
+                                detail: parsedResolve.error
+                            }));
+                    }
                 },
                 (reject) => {
                     let parsedReject = JSON.parse(reject);

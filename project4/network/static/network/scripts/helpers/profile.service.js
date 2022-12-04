@@ -48,6 +48,7 @@ async function switchFollowingStatus(id) {
 }
 
 async function getFollowCountsByUserId(id) {
+    const url = `/profile/follow/${id}/followers`;
     return await fetch(url).then(response => response.json());
 }
 

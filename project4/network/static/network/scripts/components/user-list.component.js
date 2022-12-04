@@ -36,12 +36,14 @@ class UserList extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ["type"];
+        return ["type", "updated"];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
         // if new type of users is selected, show respective list
         if (name == "type" && newValue !== "" && oldValue !== newValue) {
+            this.render();
+        } else if (name == "updated" && newValue !== "" && newValue !== "0" && oldValue !== newValue) {
             this.render();
         }
     }

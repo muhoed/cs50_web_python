@@ -94,8 +94,8 @@ def update_post(request, pk):
             except:
                 return JsonResponse({"error": "Not authorized.", "text": init_text}, status=401)
             return JsonResponse({"message": "Post was successfully updated.", "text": text}, status=200)
-        return JsonResponse({"error": "Not authorized.", "text": init_text}, status=401)
-    return JsonResponse({"error": "PUT request method is required.", "text": init_text}, status=400)
+        return JsonResponse({"error": "Not authorized.", "text": text}, status=401)
+    return JsonResponse({"error": "PUT request method is required.", "text": ""}, status=400)
 
 @csrf_exempt
 def create_comment(request, post_pk):
@@ -142,8 +142,8 @@ def update_profile_about(request, pk):
             except:
                 return JsonResponse({"error": "Not authorized.", "text": init_text}, status=401)
             return JsonResponse({"message": "Profile About info was successfully updated.", "text": text}, status=200)
-        return JsonResponse({"error": "Not authorized.", "text": init_text}, status=401)
-    return JsonResponse({"error": "PUT request method is required.", "text": init_text}, status=400)
+        return JsonResponse({"error": "Not authorized.", "text": text}, status=401)
+    return JsonResponse({"error": "PUT request method is required.", "text": ""}, status=400)
 
 @csrf_exempt
 def switch_following_status(request, pk):
@@ -171,9 +171,13 @@ def switch_following_status(request, pk):
         return JsonResponse({"error": "Not authorized."}, status=401)
     return JsonResponse({"error": "PUT request method is required."}, status=400)
 
+@csrf_exempt
 def get_followers_counts(request, pk):
     try:
         user = User.objects.get(pk=pk)
     except:
         return JsonResponse({"error": "Invalid user."}, status=404)
-    return JsonResponse({"message": User.objects.filter(following__id=pk).count()}, status=200)
+    
+    followers = User.objects.filter(following__id=pk).count()
+
+    return JsonResponse({"message": followers}, status=200)
