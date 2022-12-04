@@ -10,8 +10,8 @@
     post-id="{{ post.id }}"
     post-author="{{ post.created_by.username }}"
     {% if post.created_by %}post-author-profile-link="{% url 'profile' pk=post.created_by.id %}"{% endif %}
-    post-date="{{ post.created_on|date:'M d, Y' }}"
-    post-update-date="{% if post.updated_on %}{{ post.updated_on|date:'M d, Y' }}{% else %}{{ post.created_on|date:'M d, Y' }}{% endif %}"
+    post-date="{{ post.created_on|date:'M d, Y h:m:s' }}"
+    post-update-date="{% if post.updated_on %}{{ post.updated_on|date:'M d, Y h:m:s' }}{% else %}{{ post.created_on|date:'M d, Y h:m:s' }}{% endif %}"
     post-text="{{ post.text }}"
     post-text-short="{{ post.text|truncatechars:20 }}"
     post-comments-num="{{ post.comments|queryset_count }}"
