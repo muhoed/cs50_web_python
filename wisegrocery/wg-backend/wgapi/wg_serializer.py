@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from .models import WiseGroceryUser
+from .models import *
 
 
 class WGTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -36,7 +36,8 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = WiseGroceryUser.objects.create(
-            username=validated_data['username']
+            username=validated_data['username'],
+            email = validated_data['email']
         )
 
         user.set_password(validated_data['password'])
@@ -44,6 +45,105 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         return user
 
+class EquipmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Equipment
+        fields = [
+            'name', 'description', 'type', 'height', 'width', 'depth', 'volume', 
+            'rated_size', 'min_tempreture', 'max_tempreture', 'created_on', 'updated_on'
+            ]
+        read_only_fields = ['created_on', 'updated_on']
 
 class EquipmentTypeSerializer(serializers.ModelSerializer):
+    equipment_set = serializers.EquipmentSetField(many=True)
 
+    class Meta:
+        model = EquipmentType
+        fields = [
+            'name', 'description', 'base_type', 'min_temp', 'max_temp', 'equipment_set',
+            'created_on', 'updated_on'
+            ]
+        read_only_fields = ['equipment_set', 'created_on', 'updated_on']
+
+class ProductSerializer(serializers.ModelSerializer):
+    replacement_products = serializers.ReplacementProductsField(many=True)
+    class Meta:
+        model = Product
+        fields = [
+            'name', 'description', 'category', 'manufacturer', 'picture', 
+            'minimal_stock_volume', 'minimal_stock_unit', 'alternative_to', 
+            'replacement_products', 'created_on', 'updated_on'
+        ]
+        read_only_fields = ['created_on', 'updated_on']
+        depth = 1
+
+class StockItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StockItem
+        fields = [
+            'product', 'equipment', 'unit', 'volume', 'use_till', 'status', 'created_on',
+            'updated_on'
+        ]
+        read_only_fields = ['created_on', 'updated_on']
+        depth = 1
+
+class RecipeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Recipe
+        fields = ['name', 'description', 'items', 'num_persons', 'created_on', 'updated_on']
+        read_only_fields = ['created_on', 'updated_on']
+        depth = 1
+
+class RecipeProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RecipeProduct
+        fields = ['recipe', 'product', 'unit', 'volume', 'created_on', 'updated_on']
+        read_only_fields = ['created_on', 'updated_on']
+        depth = 1
+
+class CookingPlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CookingPlan
+        fields = ['date', 'meal', 'persons', 'recipe', 'created_on', 'updated_on']
+        read_only_fields = ['created_on', 'updated_on']
+        depth = 1
+
+class PurchaseItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PurchaseItem
+        fields = [
+            'product', 'shop_plan', 'unit', 'volume', 'status', 'created_on', 
+            'updated_on'
+            ]
+        read_only_fields = ['created_on', 'updated_on']
+        depth = 1
+
+class ShoppingPlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ShoppingPlan
+        fields = ['date', 'note', 'created_on', 'updated_on']
+        read_only_fields = ['created_on', 'updated_on']
+        depth = 1
+
+class ConversionRuleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ConversionRule
+        fields = [
+            'name', 'description', 'product', 'from_unit', 'to_unit', 'ratio',
+            'created_on', 'updated_on'
+            ]
+        read_only_fields = ['created_on', 'updated_on']
+        depth = 1
+
+class ConfigSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Config
+        fields = [
+            'notify_by_email', 'notify_on_expiration', 'notify_on_expiration_for',
+            'default_expired_action', 'prolong_expired_for', 'notify_on_min_stock',
+            'notify_on_min_stock_for', 'nofity_on_shopping_plan_generated',
+            'auto_generate_shopping_plan', 'allow_replacement_use',
+            'gen_shop_plan_on_min_stock', 'gen_shop_plan_on_historic_data',
+            'gen_shop_plan_on_cook_plan', 'created_on', 'updated_on'
+        ]
+        read_only_fields = ['created_on', 'updated_on']

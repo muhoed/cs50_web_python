@@ -28,7 +28,7 @@ class EquipmentType(models.Model):
 
     created_on = models.DateTimeField(auto_now_add=True, db_column="EqType_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="EqType_Updated_On")
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=False, null=False, db_column="EqType_Created_By")
+    created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="EqType_Created_By")
 
     def save(self, *args, **kwargs):
         if self.min_temp is None:
@@ -71,7 +71,7 @@ class Equipment(models.Model):
 
     created_on = models.DateTimeField(auto_now_add=True, db_column="Eq_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="Eq_Updated_On")
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=False, null=False, db_column="Eq_Created_By")
+    created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="Eq_Created_By")
 
     def get_volume(self):
         if self.volume is None and self.height is not None and self.width is not None and self.depth is not None:
@@ -115,14 +115,14 @@ class Product(models.Model):
         )
     minimal_stock_unit = models.IntegerField(choices=wg_enumeration.Units, blank=False, null=False, db_column="Prod_Min_Unit")
 
-    alternative = models.ForeignKey(
-        'Product', related_name="replacement_product", on_delete=models.SET_NULL, 
+    alternative_to = models.ForeignKey(
+        'Product', related_name="replacement_products", on_delete=models.SET_NULL, 
         blank=True, null=True, db_column="Prod_Alternative"
         )
 
     created_on = models.DateTimeField(auto_now_add=True, db_column="Prod_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="Prod_Updated_On")
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=False, null=False, db_column="Prod_Created_By")
+    created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="Prod_Created_By")
 
     def save(self, *args, **kwargs):
         if self.pisture is None:
@@ -144,7 +144,7 @@ class StockItem(models.Model):
 
     created_on = models.DateTimeField(auto_now_add=True, db_column="StkItem_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="StkItem_Updated_On")
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=False, null=False, db_column="StkItem_Created_By")
+    created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="StkItem_Created_By")
 
     def __str__(self):
         return f'{self.volume}{self.unit} of {self.product.name} stored at {self.equipment.name}.'
@@ -159,7 +159,7 @@ class Recipe(models.Model):
         )
     created_on = models.DateTimeField(auto_now_add=True, db_column="Rcp_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="Rcp_Updated_On")
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=False, null=False, db_column="Rcp_Created_By")
+    created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="Rcp_Created_By")
 
     def __str__(self):
         return f'Recipe of {self.name} for {self.output} persons.'
@@ -175,6 +175,10 @@ class RecipeProduct(models.Model):
         )
     unit = models.IntegerField(choices=wg_enumeration.Units, blank=False, null=False, db_column="RcpProd_Unit")
     volume = models.FloatField(validators=[MinValueValidator(0)], blank=False, null=False, db_column="RcpProd_Volume")
+    
+    created_on = models.DateTimeField(auto_now_add=True, db_column="RcpProd_Created_On")
+    updated_on = models.DateTimeField(auto_now=True, db_column="RcpProd_Updated_On")
+    created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="RcpProd_Created_By")
 
     def __str__(self):
         return f'{self.volume}{self.unit} of {self.product.name} required for recipe {self.recipe.name}.'
@@ -187,15 +191,17 @@ class CookingPlan(models.Model):
         )
     persons = models.IntegerField(validators=[MinValueValidator(0)], blank=False, null=False, db_column="CookPlan_Persons")
     recipe = models.ManyToManyField(blank=False, null=False, db_column="CookPlan_Recipe")
+    
     created_on = models.DateTimeField(auto_now_add=True, db_column="CookPlan_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="CookPlan_Updated_On")
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=False, null=False, db_column="CookPlan_Created_By")
+    created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="CookPlan_Created_By")
 
     def __str__(self):
         return f'Cooking plan for {self.persons} on {self.date}.'
 
 class PurchaseItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, db_index=True, blank=False, null=False, db_column="PurchItem_Prod")
+    shop_plan = models.ForeignKey('ShoppingPlan', on_delete=models.CASCADE, db_index=True, blank=False, null=False, db_column="PurchItem_Shop_Plan")
     unit = models.IntegerField(choices=wg_enumeration.Units, blank=False, null=False, db_column="PurchItem_Unit")
     volume = models.FloatField(blank=False, null=False, validators=[MinValueValidator(0)], db_column="PurchItem_Volume")
     status = models.IntegerField(
@@ -203,7 +209,7 @@ class PurchaseItem(models.Model):
         blank=False, null=False, db_column="PurchItem_Status", db_index=True)
     created_on = models.DateTimeField(db_index=True, auto_now_add=True, db_column="PurchItem_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="PurchItem_Updated_On")
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=False, null=False, db_column="PurchItem_Created_By")
+    created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="PurchItem_Created_By")
 
     def __str__(self):
         return f'{self.volume}{self.unit} of {self.product.name} \
@@ -211,10 +217,10 @@ class PurchaseItem(models.Model):
 
 class ShoppingPlan(models.Model):
     date = models.DateField(db_index=True, blank=False, null=False, db_column="ShopPlan_Date")
-    items = models.ManyToManyField(PurchaseItem, blank=False, null=False, db_column="ShopPlan_Item")
+    note = models.TextField(blank=True, null=True, db_column="ShopPlan_Note")
     created_on = models.DateTimeField(db_index=True, auto_now_add=True, db_column="ShopPlan_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="ShopPlan_Updated_On")
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=False, null=False, db_column="ShopPlan_Created_By")
+    created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="ShopPlan_Created_By")
 
     def __str__(self):
         return f'Shopping plan for {self.date}'
@@ -231,7 +237,7 @@ class ConversionRule(models.Model):
         )
     created_on = models.DateTimeField(db_index=True, auto_now_add=True, db_column="ConvRule_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="ConvRule_Updated_On")
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=False, null=False, db_column="ConvRule_Created_By")
+    created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="ConvRule_Created_By")
 
     def clean(self):
         # 'from_unit' and 'to_unit' cannot be the same
@@ -284,4 +290,4 @@ class Config(models.Model):
 
     created_on = models.DateTimeField(db_index=True, auto_now_add=True, db_column="Conf_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="Conf_Updated_On")
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=False, null=False, db_column="Conf_Created_By")
+    created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="Conf_Created_By")
