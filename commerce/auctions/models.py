@@ -384,7 +384,7 @@ class Image(models.Model):
 
 class ListingManager(models.Manager):
     """
-    Custom manager for Kisting model provides Active and Ended listings querysets.
+    Custom manager for Listing model provides Active and Ended listings querysets.
     """
     def active(self):
         return self.filter(
