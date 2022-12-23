@@ -46,13 +46,16 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 class EquipmentSerializer(serializers.ModelSerializer):
+    stockitem_set = serializers.StockItemSetField(many=True)
     class Meta:
         model = Equipment
         fields = [
             'name', 'description', 'type', 'height', 'width', 'depth', 'volume', 
-            'rated_size', 'min_tempreture', 'max_tempreture', 'created_on', 'updated_on'
+            'rated_size', 'min_tempreture', 'max_tempreture', 'stokitem_set', 
+            'created_on', 'updated_on'
             ]
         read_only_fields = ['created_on', 'updated_on']
+        depth = 1
 
 class EquipmentTypeSerializer(serializers.ModelSerializer):
     equipment_set = serializers.EquipmentSetField(many=True)
@@ -67,12 +70,15 @@ class EquipmentTypeSerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
     replacement_products = serializers.ReplacementProductsField(many=True)
+    recipeproduct_set = serializers.RecipeProductField(many=True)
+    conversionrule_set = serializers.ConversionRuleSetField(many=True)
     class Meta:
         model = Product
         fields = [
             'name', 'description', 'category', 'manufacturer', 'picture', 
             'minimal_stock_volume', 'minimal_stock_unit', 'alternative_to', 
-            'replacement_products', 'created_on', 'updated_on'
+            'replacement_products', 'recipeproduct_set', 'conversionrule_set',
+            'created_on', 'updated_on'
         ]
         read_only_fields = ['created_on', 'updated_on']
         depth = 1
@@ -88,9 +94,14 @@ class StockItemSerializer(serializers.ModelSerializer):
         depth = 1
 
 class RecipeSerializer(serializers.ModelSerializer):
+    items = serializers.RecipeProductField(many=True)
+
     class Meta:
         model = Recipe
-        fields = ['name', 'description', 'items', 'num_persons', 'created_on', 'updated_on']
+        fields = [
+            'name', 'description', 'items', 'num_persons', 'cookingplan_set',
+            'created_on', 'updated_on'
+            ]
         read_only_fields = ['created_on', 'updated_on']
         depth = 1
 
@@ -121,7 +132,7 @@ class PurchaseItemSerializer(serializers.ModelSerializer):
 class ShoppingPlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShoppingPlan
-        fields = ['date', 'note', 'created_on', 'updated_on']
+        fields = ['date', 'note', 'purchaseitem_set', 'created_on', 'updated_on']
         read_only_fields = ['created_on', 'updated_on']
         depth = 1
 

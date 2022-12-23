@@ -17,3 +17,21 @@ class ReplacementProductsField(rest_serializers.RelatedField):
         return serializers.serialize(
             'json', [ value, ], fields=['name', 'category']
         )
+
+class StockItemSetField(rest_serializers.RelatedField):
+    def to_representation(self, value):
+        return serializers.serialize(
+            'json', [ value, ], fields=['product', 'unit', 'volume', 'use_till', 'status']
+        )
+
+class RecipeProductField(rest_serializers.RelatedField):
+    def to_representation(self, value):
+        return serializers.serialize(
+            'json', [ value, ], fields=['recipe', 'product', 'unit', 'volume']
+        )
+
+class ConversionRuleSetField(rest_serializers.RelatedField):
+    def to_representation(self, value):
+        return serializers.serialize(
+            'json', [ value, ], fields=['name', 'from_unit', 'to_unit', 'ratio']
+        )
