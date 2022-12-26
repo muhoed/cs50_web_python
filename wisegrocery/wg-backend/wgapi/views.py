@@ -1,4 +1,5 @@
-from django.db.models import F, OuterRef, Subquery, Sum
+import json
+from django.db.models import Case, F, Q, OuterRef, Subquery, Sum, When
 from django.http import JsonResponse
 from django.shortcuts import render
 from rest_framework import generics, viewsets
@@ -8,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from wgapi.wg_serializer import WGTokenObtainPairSerializer, RegisterSerializer
 
+from .filters import *
 from .models import *
 from .permissions import *
 from .wg_serializer import *
@@ -39,41 +41,57 @@ class EquipmentViewSet(viewsets.ModelViewSet):
     queryset = Equipment.objects.prefetch_related('stockitem_set')
     serializer_class = EquipmentSerializer
     permission_classes = [IsAuthenticated, IsOwner]
+    filterset_class = EquipmentFilterSet
 
-    @action(detail=False)
-    def get_equipment_with_free_space_by_tempreture(self, request, min_temp=None, max_temp=None):
-        stock_items = StockItem.objects.filter(
-            pk=OuterRef('pk'),
-            status_not_in=[
-                wg_enumeration.STOCK_STATUSES.COOKED, 
-                wg_enumeration.STOCK_STATUSES.WASTED,
-                ]
-            )
-        conv_rule = ConversionRule.objects.filter(
-            product=OuterRef('product'),
-            unit_to=wg_enumeration.VolumeUnits.LITER,
-            unit_from=OuterRef('unit')
-            ).values('ratio')
-        stock_items.annotate(conv_ratio=Subquery(conv_rule))
-        selected_equipment = Equipment.objects.annotate(
-            used_volume=Sum(Subquery(stock_items.volume * stock_items.conv_ratio))
-        ).filter(volume__gt=F('used_volume'))
+class ProductViewSet(viewsets.ModelViewSet):
+    queryset = Product.objects.prefetch_related('replacement_products', 'stockitem_set', 'recipeproduct_set')
+    serializer_class = ProductSerializer
+    permission_classes = [IsAuthenticated, IsOwner]
+    filterset_class = ProductFilterSet
 
-        if min_temp and max_temp:
-            selected_equipment = selected_equipment.filter(
-                min_temperature__gte=min_temp,
-                max_temperature__lte=max_temp
-            )
-        elif min_temp:
-            selected_equipment = selected_equipment.filter(
-                min_temperature__gte=min_temp
-            )
-        elif max_temp:
-            selected_equipment = selected_equipment.filter(
-                max_temperature__lte=max_temp
-            )
+class StockItemViewSet(viewsets.ModelViewSet):
+    queryset = StockItem.objects.prefetch_related('product', 'equipment')
+    serializer_class = StockItemSerializer
+    permission_classes = [IsAuthenticated, IsOwner]
+    filterset_class = StockItemFilterSet
 
-        selected_equipment = selected_equipment.prefetch_related('stockitem_set')
+class RecipeViewSet(viewsets.ModelViewSet):
+    queryset = Recipe.objects.prefetch_related('items')
+    serializer_class = RecipeSerializer
+    permission_classes = [IsAuthenticated, IsOwner]
+    filterset_class = RecipeFilterSet
 
-        serializer = self.get_serializer(selected_equipment, many=True)
-        return Response(serializer.data)
+class RecipeProductViewSet(viewsets.ModelViewSet):
+    queryset = RecipeProduct.objects.prefetch_related('recipe', 'product')
+    serializer_class = RecipeProductSerializer
+    permission_classes = [IsAuthenticated, IsOwner]
+
+class CookingPlanViewSet(viewsets.ModelViewSet):
+    queryset = CookingPlan.objects.prefetch_related('recipe')
+    serializer_class = CookingPlanSerializer
+    permission_classes = [IsAuthenticated, IsOwner]
+    filterset_class = CookingPlanFilterSet
+
+class PurchaseItemViewSet(viewsets.ModelViewSet):
+    queryset = PurchaseItem.objects.prefetch_related('product', 'shop_plan')
+    serializer_class = PurchaseItemSerializer
+    permission_classes = [IsAuthenticated, IsOwner]
+    filterset_class = PurchaseItemFilterSet
+
+class ShoppingPlanViewSet(viewsets.ModelViewSet):
+    queryset = ShoppingPlan.objects.prefetch_related('purchaseitem_set')
+    serializer_class = ShoppingPlanSerializer
+    permission_classes = [IsAuthenticated, IsOwner]
+    filterset_class = ShoppingPlanFilterSet
+
+class ConversionRuleViewSet(viewsets.ModelViewSet):
+    queryset = ConversionRule.objects.prefetch_related('purchaseitem_set')
+    serializer_class = ConversionRuleSerializer
+    permission_classes = [IsAuthenticated, IsOwner]
+    filterset_fields = ('product', 'from_unit', 'to_unit', 'created_by')
+
+class ConfigViewSet(viewsets.ModelViewSet):
+    queryset = Config.objects.prefetch_related('purchaseitem_set')
+    serializer_class = ConfigSerializer
+    permission_classes = [IsAuthenticated, IsOwner]
+    filterset_fields = ('created_by')

@@ -51,10 +51,10 @@ class EquipmentSerializer(serializers.ModelSerializer):
         model = Equipment
         fields = [
             'name', 'description', 'type', 'height', 'width', 'depth', 'volume', 
-            'rated_size', 'min_tempreture', 'max_tempreture', 'stokitem_set', 
+            'rated_size', 'free_space', 'min_tempreture', 'max_tempreture', 'stokitem_set', 
             'created_on', 'updated_on'
             ]
-        read_only_fields = ['created_on', 'updated_on']
+        read_only_fields = ['free_space', 'created_on', 'updated_on']
         depth = 1
 
 class EquipmentTypeSerializer(serializers.ModelSerializer):
@@ -76,21 +76,21 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = [
             'name', 'description', 'category', 'manufacturer', 'picture', 
-            'minimal_stock_volume', 'minimal_stock_unit', 'alternative_to', 
+            'minimal_stock_volume', 'unit', 'current_stock', 'alternative_to', 
             'replacement_products', 'recipeproduct_set', 'conversionrule_set',
             'created_on', 'updated_on'
         ]
-        read_only_fields = ['created_on', 'updated_on']
+        read_only_fields = ['current_stock', 'created_on', 'updated_on']
         depth = 1
 
 class StockItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = StockItem
         fields = [
-            'product', 'equipment', 'unit', 'volume', 'use_till', 'status', 'created_on',
-            'updated_on'
+            'product', 'equipment', 'unit', 'volume', 'initial_volume', 'use_till', 
+            'status', 'created_on', 'updated_on'
         ]
-        read_only_fields = ['created_on', 'updated_on']
+        read_only_fields = ['initial_volume', 'created_on', 'updated_on']
         depth = 1
 
 class RecipeSerializer(serializers.ModelSerializer):

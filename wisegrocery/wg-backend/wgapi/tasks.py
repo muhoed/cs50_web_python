@@ -1,6 +1,5 @@
 # start worker 'celery -A commerce worker -l INFO'
 #from commerce.celery import app as celery_app
-import datetime
 from celery import shared_task
 
 
@@ -25,10 +24,8 @@ def stockitem_expired_handler(data):
 		from wgapi.wg_enumeration import STOCK_STATUSES
 		
 		instance = StockItem.objects.get(pk=int(data.get('pk')))
-		
-		if instance.use_till < datetime.date.today():
-			instance.status = STOCK_STATUSES.EXPIRED
-			instance.save()
+		instance.status = STOCK_STATUSES.EXPIRED
+		instance.save()
 
-	except instance.DoesNotExist:
-		pass
+	except instance.DoesNotExist as e:
+		print(e)

@@ -66,6 +66,8 @@ class Equipment(models.Model):
     volume = models.FloatField(help_text=_("Volume, liters"), blank=True, null=True, db_column="Eq_Volume")
     rated_size = models.FloatField(blank=False, null=False, default=0.85, db_column="Eq_Rated_Size")
 
+    free_space = models.FloatField(balnk=True, null=True, db_column="Eq_Free_Space")
+
     min_tempreture = models.FloatField(help_text=_("Minimal tempreture"), blank=True, null=True, db_column="Eq_Min_Temp")
     max_tempreture = models.FloatField(help_text=_("Maximum tempreture"), blank=True, null=True, db_column="Eq_Max_Temp")
 
@@ -113,7 +115,8 @@ class Product(models.Model):
         help_text="Minimum amount of product to be maintained in stock.", validators=[MinValueValidator(0)],
         blank=True, null=True, db_column="Prod_Min_Stock"
         )
-    minimal_stock_unit = models.IntegerField(choices=wg_enumeration.Units, blank=False, null=False, db_column="Prod_Min_Unit")
+    unit = models.IntegerField(choices=wg_enumeration.Units, blank=False, null=False, db_column="Prod_Min_Unit")
+    current_stock = models.FloatField(blank=True, null=True, db_column="Prod_Current_Stock")
 
     alternative_to = models.ForeignKey(
         'Product', related_name="replacement_products", on_delete=models.SET_NULL, 
@@ -136,6 +139,7 @@ class StockItem(models.Model):
     equipment = models.ForeignKey(Equipment, blank=False, null=False, db_column="StkItem_Equip", db_index=True)
     unit = models.IntegerField(choices=wg_enumeration.Units, blank=False, null=False, db_column="StkItem_Unit")
     volume = models.FloatField(blank=False, null=False, db_column="StkItem_Volume")
+    initial_volume = models.FloatField(blank=False, null=False, db_column="StkItem_Init_Volume")
     use_till = models.DateField(blank=True, null=True, db_column="StkItem_Use_Till_Date", db_index=True)
     status = models.CharField(
         choices=wg_enumeration.STOCK_STATUSES, default=wg_enumeration.STOCK_STATUSES.ACTIVE,
@@ -145,6 +149,10 @@ class StockItem(models.Model):
     created_on = models.DateTimeField(auto_now_add=True, db_column="StkItem_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="StkItem_Updated_On")
     created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="StkItem_Created_By")
+
+    def save(self, *args, **kwargs):
+        if self.initial_volume is None:
+            self.initial_volume = self.volume
 
     def __str__(self):
         return f'{self.volume}{self.unit} of {self.product.name} stored at {self.equipment.name}.'
@@ -157,6 +165,8 @@ class Recipe(models.Model):
         validators=[MinValueValidator(0)], blank=False, null=False, 
         db_column="Rcp_Output_Portions"
         )
+    cooking_time = models.DurationField(blank=False, null=False, db_column="Rcp_Cook_Time")
+    
     created_on = models.DateTimeField(auto_now_add=True, db_column="Rcp_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="Rcp_Updated_On")
     created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="Rcp_Created_By")
@@ -190,7 +200,7 @@ class CookingPlan(models.Model):
         db_column="CookPlan_Meal", db_index=True
         )
     persons = models.IntegerField(validators=[MinValueValidator(0)], blank=False, null=False, db_column="CookPlan_Persons")
-    recipe = models.ManyToManyField(blank=False, null=False, db_column="CookPlan_Recipe")
+    recipes = models.ManyToManyField(blank=False, null=False, db_column="CookPlan_Recipe")
     
     created_on = models.DateTimeField(auto_now_add=True, db_column="CookPlan_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="CookPlan_Updated_On")
@@ -290,4 +300,4 @@ class Config(models.Model):
 
     created_on = models.DateTimeField(db_index=True, auto_now_add=True, db_column="Conf_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="Conf_Updated_On")
-    created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="Conf_Created_By")
+    created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, unique=True, db_column="Conf_Created_By")
