@@ -66,14 +66,32 @@ class Meals(models.IntegerChoices):
 class PurchaseStatuses(models.IntegerChoices):
     TOBUY = 0, _('to buy')
     BOUGHT = 1, _('bougth')
+    STORED = 2, _('stored')
+    MOVED = 3, _('moved')
 
 class STOCK_STATUSES(models.IntegerChoices):
     ACTIVE = 0, _('Active')
     COOKED = 1, _('Cooked')
     EXPIRED = 2, _('Expired')
     WASTED = 3, _('Wasted')
+    NOTPLACED = 4, _('Not placed')
 
 class EXPIRED_ACTIONS(models.IntegerChoices):
     TRASH = 0, _('Trash')
     ALLOW = 1, _('Allow')
     PROLONG = 2, _('Prolong')
+
+class NotificationTypes(models.IntegerChoices):
+    EXPIRATION = 0, _('Expiration')
+    OUTAGE = 1, _('Outage')
+    PURCHASEPLAN = 2, _('Purchase plan generated')
+    SHOPPINGPLAN = 3, _('Shopping plan generated')
+
+class CookPlanStatuses(models.IntegerChoices):
+    ENTERED = 0, _('Entered')
+    COOKED = 1, _('Cooked')
+
+class ShopPlanStatuses(models.IntegerChoices):
+    ENTERED = 0, _('Entered')
+    FULFILLED = 1, _('Fulfilled')
+    PARTIALLY_FULFILLED = 3, _('Partially fulfilled')

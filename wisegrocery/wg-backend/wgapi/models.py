@@ -108,7 +108,7 @@ class Product(models.Model):
         null=False, db_column="Prod_Category"
         )
 
-    manufacturer = models.CharField(max_length=50, blank=True, null=True, db_column="Prod_Manufacturer")
+    supplier = models.CharField(max_length=50, blank=True, null=True, db_column="Prod_Supplier")
     picture = models.ImageField(upload_to=get_icon_upload_path, blank=False, null=False, db_column="Prod_Picture")
     
     minimal_stock_volume = models.FloatField(
@@ -117,6 +117,9 @@ class Product(models.Model):
         )
     unit = models.IntegerField(choices=wg_enumeration.Units, blank=False, null=False, db_column="Prod_Min_Unit")
     current_stock = models.FloatField(blank=True, null=True, db_column="Prod_Current_Stock")
+
+    min_tempreture = models.FloatField(help_text=_("Minimal storing tempreture"), blank=False, null=False, db_column="Prod_Min_Temp")
+    max_tempreture = models.FloatField(help_text=_("Maximum storing tempreture"), blank=False, null=False, db_column="Prod_Max_Temp")
 
     alternative_to = models.ForeignKey(
         'Product', related_name="replacement_products", on_delete=models.SET_NULL, 
@@ -139,8 +142,11 @@ class StockItem(models.Model):
     equipment = models.ForeignKey(Equipment, blank=False, null=False, db_column="StkItem_Equip", db_index=True)
     unit = models.IntegerField(choices=wg_enumeration.Units, blank=False, null=False, db_column="StkItem_Unit")
     volume = models.FloatField(blank=False, null=False, db_column="StkItem_Volume")
-    initial_volume = models.FloatField(blank=False, null=False, db_column="StkItem_Init_Volume")
-    use_till = models.DateField(blank=True, null=True, db_column="StkItem_Use_Till_Date", db_index=True)
+    initial_volume = models.FloatField(blank=True, null=True, db_column="StkItem_Init_Volume")
+    use_till = models.DateField(
+        blank=False, null=False, default=datetime.now()+datetime.timedelta(days=7), 
+        db_column="StkItem_Use_Till_Date", db_index=True
+        )
     status = models.CharField(
         choices=wg_enumeration.STOCK_STATUSES, default=wg_enumeration.STOCK_STATUSES.ACTIVE,
         blank=False, null=False, db_column="StkItem_Status"
@@ -201,6 +207,10 @@ class CookingPlan(models.Model):
         )
     persons = models.IntegerField(validators=[MinValueValidator(0)], blank=False, null=False, db_column="CookPlan_Persons")
     recipes = models.ManyToManyField(blank=False, null=False, db_column="CookPlan_Recipe")
+    status = models.IntegerField(
+        choices=wg_enumeration.CookPlanStatuses, blank=False, null=False, 
+        default=wg_enumeration.CookPlanStatuses.ENTERED, db_column="CookPlan_Status"
+        )
     
     created_on = models.DateTimeField(auto_now_add=True, db_column="CookPlan_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="CookPlan_Updated_On")
@@ -215,8 +225,9 @@ class PurchaseItem(models.Model):
     unit = models.IntegerField(choices=wg_enumeration.Units, blank=False, null=False, db_column="PurchItem_Unit")
     volume = models.FloatField(blank=False, null=False, validators=[MinValueValidator(0)], db_column="PurchItem_Volume")
     status = models.IntegerField(
-        choices=wg_enumeration.PurchaseStatuses, default=wg_enumeration.PurchaseStatuses.TOBUY,
-        blank=False, null=False, db_column="PurchItem_Status", db_index=True)
+            choices=wg_enumeration.PurchaseStatuses, default=wg_enumeration.PurchaseStatuses.TOBUY,
+            blank=False, null=False, db_column="PurchItem_Status", db_index=True
+        )
     created_on = models.DateTimeField(db_index=True, auto_now_add=True, db_column="PurchItem_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="PurchItem_Updated_On")
     created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="PurchItem_Created_By")
@@ -228,6 +239,10 @@ class PurchaseItem(models.Model):
 class ShoppingPlan(models.Model):
     date = models.DateField(db_index=True, blank=False, null=False, db_column="ShopPlan_Date")
     note = models.TextField(blank=True, null=True, db_column="ShopPlan_Note")
+    status = models.IntegerField(
+            choices=wg_enumeration.ShopPlanStatuses, default=wg_enumeration.ShopPlanStatuses.ENTERED,
+            blank=False, null=False, db_column="ShopPlan_Status", db_index=True
+        )
     created_on = models.DateTimeField(db_index=True, auto_now_add=True, db_column="ShopPlan_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="ShopPlan_Updated_On")
     created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="ShopPlan_Created_By")
@@ -262,7 +277,7 @@ class Config(models.Model):
     notify_by_email = models.BooleanField(blank=False, null=False, default=False, db_column="Conf_Notify_By_Email")
 
     notify_on_expiration = models.BooleanField(blank=False, null=False, default=True, db_column="Conf_Notify_Expire")
-    notify_on_expiration_for = models.DurationField(
+    notify_on_expiration_before = models.DurationField(
         blank=True, null=True, db_column="Conf_Notify_Expired_Days"
         )
     default_expired_action = models.IntegerField(
@@ -275,9 +290,10 @@ class Config(models.Model):
         )
 
     notify_on_min_stock = models.BooleanField(blank=False, null=False, default=True, db_column="Conf_Notify_Min_Stock")
-    notify_on_min_stock_for = models.DurationField(
-        blank=True, null=True, db_column="Conf_Notify_Min_Stock_Days"
-    )
+
+    nofity_on_purchase_plan_generated = models.BooleanField(
+        blank=False, null=False, default=False, db_column="Conf_Notify_Purchase_Plan_Gen"
+        )
 
     nofity_on_shopping_plan_generated = models.BooleanField(
         blank=False, null=False, default=False, db_column="Conf_Notify_Shop_Plan_Gen"
@@ -287,14 +303,28 @@ class Config(models.Model):
     auto_generate_shopping_plan = models.BooleanField(
         blank=False, null=False, default=False, db_column="Conf_Gen_Shop_Plan"
         )
-    allow_replacement_use = models.BooleanField(blank=False, null=False, default=True, db_column="Conf_Allow_Replacement")
+    allow_replacement_use = models.BooleanField(
+        blank=False, null=False, default=True, db_column="Conf_Allow_Replacement"
+        )
     gen_shop_plan_on_min_stock = models.BooleanField(
         blank=False, null=False, default=True, db_column="Conf_Gen_ShopPlan_MinStock"
         )
-    gen_shop_plan_on_historic_data = models.BooleanField(
+    gen_shop_plan_repeatedly = models.BooleanField(
+        blank=False, null=False, default=True, db_column="Conf_Gen_ShopPlan_Repeatedly"
+        )
+    gen_shop_plan_periodicity = models.DurationField(
+        blank=True, null=True, validators=[MinValueValidator(datetime.timedelta(days=3))], 
+        db_column="Conf_GenShopPlan_Periodicity"
+        )
+    base_shop_plan_on_historic_data = models.BooleanField(
         blank=False, null=False, default=True, db_column="Conf_Gen_ShopPlan_Historic"
         )
-    gen_shop_plan_on_cook_plan = models.BooleanField(
+    historic_period = models.DurationField(
+        blank=False, null=False, default=datetime.timedelta(days=30),
+        validators=[MinValueValidator(datetime.timedelta(days=10))], 
+        db_column="Conf_Hst_Period"
+    )
+    base_shop_plan_on_cook_plan = models.BooleanField(
         blank=False, null=False, default=True, db_column="Conf_Gen_ShopPlan_CookPlan"
         )
 

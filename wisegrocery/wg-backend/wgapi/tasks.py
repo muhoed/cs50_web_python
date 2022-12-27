@@ -20,12 +20,41 @@ def stockitem_expired_handler(data):
 	try:
 		import_django_instance()
 		from django.utils.translation import gettext_lazy as _
-		from wgapi.models import StockItem
-		from wgapi.wg_enumeration import STOCK_STATUSES
+		from wgapi.models import Config, StockItem
+		from wgapi.helpers import send_notification
+		from wgapi.wg_enumeration import STOCK_STATUSES, EXPIRED_ACTIONS, NotificationTypes
 		
 		instance = StockItem.objects.get(pk=int(data.get('pk')))
-		instance.status = STOCK_STATUSES.EXPIRED
+		config = Config.objects.get(created_by=instance.created_by)
+		if config.default_expired_action == EXPIRED_ACTIONS.TRASH:
+			instance.status = STOCK_STATUSES.WASTED
+		elif config.default_expired_action == EXPIRED_ACTIONS.PROLONG:
+			instance.use_till += config.prolong_expired_for
+		else:
+			instance.status = STOCK_STATUSES.EXPIRED
 		instance.save()
 
-	except instance.DoesNotExist as e:
+		if config.notify_on_expiration:
+			send_notification(instance, NotificationTypes.EXPIRATION, config.notify_by_email)
+
+	except instance.DoesNotExist as e1:
+		print(e1)
+
+	except config.DoesNotExist as e2:
+		print(e2)
+
+	except Exception as e3:
+		print(e3)
+
+@shared_task
+def repeat_shopping_plan_generator(data):
+	try:
+		import_django_instance()
+		from wgapi.models import Config
+		from wgapi.helpers import generate_shopping_plan
+
+		config = Config.objects.get(pk=data['config'])
+		generate_shopping_plan(config)
+	except Exception as e:
 		print(e)
+

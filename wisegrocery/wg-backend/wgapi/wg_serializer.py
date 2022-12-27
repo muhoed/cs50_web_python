@@ -75,10 +75,10 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = [
-            'name', 'description', 'category', 'manufacturer', 'picture', 
+            'name', 'description', 'category', 'supplier', 'picture', 
             'minimal_stock_volume', 'unit', 'current_stock', 'alternative_to', 
             'replacement_products', 'recipeproduct_set', 'conversionrule_set',
-            'created_on', 'updated_on'
+            'min_tempreture', 'max_tempreture', 'created_on', 'updated_on'
         ]
         read_only_fields = ['current_stock', 'created_on', 'updated_on']
         depth = 1
@@ -100,7 +100,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = [
             'name', 'description', 'items', 'num_persons', 'cookingplan_set',
-            'created_on', 'updated_on'
+            'recipeproduct_set', 'cooking_time', 'created_on', 'updated_on'
             ]
         read_only_fields = ['created_on', 'updated_on']
         depth = 1
@@ -132,7 +132,7 @@ class PurchaseItemSerializer(serializers.ModelSerializer):
 class ShoppingPlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShoppingPlan
-        fields = ['date', 'note', 'purchaseitem_set', 'created_on', 'updated_on']
+        fields = ['date', 'note', 'purchaseitem_set', 'status', 'created_on', 'updated_on']
         read_only_fields = ['created_on', 'updated_on']
         depth = 1
 
@@ -150,11 +150,13 @@ class ConfigSerializer(serializers.ModelSerializer):
     class Meta:
         model = Config
         fields = [
-            'notify_by_email', 'notify_on_expiration', 'notify_on_expiration_for',
+            'notify_by_email', 'notify_on_expiration', 'notify_on_expiration_before',
             'default_expired_action', 'prolong_expired_for', 'notify_on_min_stock',
-            'notify_on_min_stock_for', 'nofity_on_shopping_plan_generated',
+            'nofity_on_purchase_plan_generated','nofity_on_shopping_plan_generated',
             'auto_generate_shopping_plan', 'allow_replacement_use',
-            'gen_shop_plan_on_min_stock', 'gen_shop_plan_on_historic_data',
-            'gen_shop_plan_on_cook_plan', 'created_on', 'updated_on'
+            'gen_shop_plan_on_min_stock', 'gen_shop_plan_repeatedly', 
+            'gen_shop_plan_periodicity', 'base_shop_plan_on_historic_data',
+            'historic_period', 'base_shop_plan_on_cook_plan', 'created_on', 
+            'updated_on'
         ]
         read_only_fields = ['created_on', 'updated_on']

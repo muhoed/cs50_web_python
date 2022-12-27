@@ -43,7 +43,7 @@ class CookingPlanFilterSet(filters.FilterSet):
 
     class Meta:
         model = CookingPlan
-        fields = ['meal', 'date', 'persons', 'recipe', 'created_by']
+        fields = ['meal', 'date', 'persons', 'recipe', 'status', 'created_by']
 
 class PurchaseItemFilterSet(filters.FilterSet):
     class Meta:
