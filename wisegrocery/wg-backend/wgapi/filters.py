@@ -34,7 +34,7 @@ class RecipeFilterSet(filters.FilterSet):
 
     class Meta:
         model = Recipe
-        fields = ['product', 'num_persons', 'cooking_time', 'created_by']
+        fields = ['items', 'num_persons', 'cooking_time', 'created_by']
 
 class CookingPlanFilterSet(filters.FilterSet):
     meal = filters.MultipleChoiceFilter(choices=Meals, conjoined=False)
@@ -43,7 +43,7 @@ class CookingPlanFilterSet(filters.FilterSet):
 
     class Meta:
         model = CookingPlan
-        fields = ['meal', 'date', 'persons', 'recipe', 'status', 'created_by']
+        fields = ['meal', 'date', 'persons', 'recipes', 'status', 'created_by']
 
 class PurchaseItemFilterSet(filters.FilterSet):
     class Meta:
@@ -55,4 +55,4 @@ class ShoppingPlanFilterSet(filters.FilterSet):
 
     class Meta:
         model = ShoppingPlan
-        fields = ['date', 'purchaseitem_set', 'created_by']
+        fields = ['date', 'created_by']

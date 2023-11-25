@@ -11,17 +11,16 @@ class BaseEquipmentTypes(models.TextChoices):
 
 BASE_EQUIPMENT_TEMPS = {
     BaseEquipmentTypes.FREEZER.value: (-25.0, -15.0),
-    BaseEquipmentTypes.FRIDGE.value: (-15.0, -8.0),
+    BaseEquipmentTypes.FRIDGE.value: (7.0, 12.0),
     BaseEquipmentTypes.BUFFET.value: (15, 25),
     BaseEquipmentTypes.CUPBOARD.value: (15, 30),
 }
 
-# TBD
 BASE_EQUIPMENT_ICONS = {
-    BaseEquipmentTypes.FREEZER.value: (-25.0, -15.0),
-    BaseEquipmentTypes.FRIDGE.value: (-15.0, -8.0),
-    BaseEquipmentTypes.BUFFET.value: (15, 25),
-    BaseEquipmentTypes.CUPBOARD.value: (15, 30),
+    BaseEquipmentTypes.FREEZER.value: ('freezer.png', _('Freezer')),
+    BaseEquipmentTypes.FRIDGE.value: ('fridge.png', _('Fridge')),
+    BaseEquipmentTypes.BUFFET.value: ('buffet.png', _('Buffet')),
+    BaseEquipmentTypes.CUPBOARD.value: ('cupboard.png', _('Cupboard')),
 }
 
 class ProductCategories(models.IntegerChoices):
@@ -57,6 +56,9 @@ class VolumeUnits(models.IntegerChoices):
     PACK = 9, _('Pack')
     CAN = 10, _('Can')
     BOTTLE = 11, _('Bottle')
+    CUP = 12, _('Cup')
+    SPOON = 13, _('Spoon')
+    TEASPOON = 14, _('Teaspoon')
 
 class Meals(models.IntegerChoices):
     BREAKFAST = 1, _('Breakfast')
@@ -95,3 +97,8 @@ class ShopPlanStatuses(models.IntegerChoices):
     ENTERED = 0, _('Entered')
     FULFILLED = 1, _('Fulfilled')
     PARTIALLY_FULFILLED = 3, _('Partially fulfilled')
+    CLOSED = 4, _('Closed')
+
+class ConversionRuleTypes(models.IntegerChoices):
+    COMMON = 0, _('Common conversion rule')
+    SPECIFIC = 1, _('Product specific conversion rule')

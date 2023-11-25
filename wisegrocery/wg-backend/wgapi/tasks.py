@@ -1,5 +1,5 @@
-# start worker 'celery -A commerce worker -l INFO'
-#from commerce.celery import app as celery_app
+# start worker 'celery -A wgbackend worker -l INFO'
+#from wgbackend.celery import app as celery_app
 from celery import shared_task
 
 

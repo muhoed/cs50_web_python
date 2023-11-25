@@ -1,4 +1,3 @@
-import datetime
 import json
 
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
@@ -7,10 +6,20 @@ from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 
 from .helpers import generate_shopping_plan, handle_cooking_plan_fulfillment, handle_stock_change, send_notification, store_purchased_item
-from .models import Config, CookingPlan, Product, PurchaseItem, ShoppingPlan, StockItem
-from .tasks import repeat_shopping_plan_generator, stockitem_expired_handler
-from .wg_enumeration import STOCK_STATUSES, CookPlanStatuses, NotificationTypes, PurchaseStatuses, ShopPlanStatuses
+from .models import Config, ConversionRule, CookingPlan, Product, PurchaseItem, StockItem, WiseGroceryUser
+from .tasks import stockitem_expired_handler
+from .wg_enumeration import STOCK_STATUSES, ConversionRuleTypes, CookPlanStatuses, NotificationTypes, PurchaseStatuses
 
+
+@receiver(post_save, sender=WiseGroceryUser)
+def wisegroceryuser_handler(sender, instance, created, **kwargs):
+    if created:
+        #create default config for a new user
+        try:
+            Config.objects.create(created_by=instance)
+            print(f'Config for {instance.username} was created.')
+        except Exception as e:
+            print(e)
 
 @receiver(post_save, sender=StockItem)
 def stockitem_handler(sender, instance, created, update_fields, **kwargs):
@@ -53,8 +62,14 @@ def cookingplan_status_change_handler(sender, instance, update_fields, **kwargs)
         except Exception as e:
             print(e)
 
-@receiver(post_save, Product)
-def product_low_stock_handler(sender, instance, update_fields, **kwargs):
+@receiver(post_save, sender=Product)
+def product_post_save_handler(sender, instance, created, update_fields, **kwargs):
+    if 'created':
+        common_conv_rules = ConversionRule.objects.filter(type=ConversionRuleTypes.COMMON)
+        for rule in common_conv_rules:
+            rule.products.add(instance)
+            rule.save()
+
     if 'current_stock' in update_fields \
         and instance.minimal_stock_volume <= instance.current_stock:
         try:
@@ -87,11 +102,11 @@ def config_genshopplan_handler(sender, instance, created, update_fields, **kwarg
             except Exception as e:
                 print(e)
 
-    elif 'gen_shop_plan_repeatedly' in update_fields or 'gen_shop_plan_periodicity' in update_fields:
-        if instance.gen_shop_plan_periodicity and instance.gen_shop_plan_periodicity:
-            if instance.gen_shop_plan_periodicity > 0:
+    elif 'gen_shop_plan_repeatedly' in update_fields or 'gen_shop_plan_period' in update_fields:
+        if instance.gen_shop_plan_repeatedly and instance.gen_shop_plan_period:
+            if instance.gen_shop_plan_period > 0:
                 schedule, schdl_created = IntervalSchedule.objects.get_or_create(
-                                            every=instance.gen_shop_plan_periodicity,
+                                            every=instance.gen_shop_plan_period,
                                             period=IntervalSchedule.DAYS,
                                         )
             #initiate task to repeatedly generate shopping plans
@@ -101,14 +116,14 @@ def config_genshopplan_handler(sender, instance, created, update_fields, **kwarg
                         name=f'{instance.created_by}-gen-shop-plan-repeat'
                     )
                 if existing_task:
-                    if instance.gen_shop_plan_periodicity > 0:
+                    if instance.gen_shop_plan_period > 0:
                         existing_task.interval = schedule
                         existing_task.enabled = True
                     else:
                         existing_task.enabled = False
                     existing_task.save()
                 # create new a scheduled task if not exist
-                elif instance.gen_shop_plan_periodicity > 0:
+                elif instance.gen_shop_plan_period > 0:
                     PeriodicTask.objects.create(
                             interval=schedule,
                             name=f'{instance.created_by}-gen-shop-plan-repeat',

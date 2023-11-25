@@ -1,8 +1,6 @@
 from django.core import serializers
 from rest_framework import serializers as rest_serializers
 
-from .models import Equipment
-
 
 class EquipmentSetField(rest_serializers.RelatedField):
     def to_representation(self, value):
@@ -34,4 +32,10 @@ class ConversionRuleSetField(rest_serializers.RelatedField):
     def to_representation(self, value):
         return serializers.serialize(
             'json', [ value, ], fields=['name', 'from_unit', 'to_unit', 'ratio']
+        )
+
+class ConversionRuleProductSetField(rest_serializers.RelatedField):
+    def to_representation(self, value):
+        return serializers.serialize(
+            'json', [ value, ], fields=['id', 'name', 'category']
         )

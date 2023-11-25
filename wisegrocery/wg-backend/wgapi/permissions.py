@@ -1,5 +1,7 @@
 from rest_framework import permissions
 
+from .models import WiseGroceryUser
+
 
 class IsOwner(permissions.BasePermission):
     """
@@ -8,4 +10,6 @@ class IsOwner(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         # All permissions are only allowed to the owner of the snippet.
-        return obj.created_by == request.user
+        sysuser = WiseGroceryUser.objects.get(username='sysuser')
+        return obj.created_by == request.user or obj.created_by == sysuser
+        

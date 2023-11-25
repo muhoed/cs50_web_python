@@ -1,13 +1,9 @@
-import json
-from django.db.models import Case, F, Q, OuterRef, Subquery, Sum, When
-from django.http import JsonResponse
-from django.shortcuts import render
+from django.urls import reverse
 from rest_framework import generics, viewsets
-from rest_framework.decorators import api_view, action
+from rest_framework.decorators import api_view
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
-from wgapi.wg_serializer import WGTokenObtainPairSerializer, RegisterSerializer
 
 from .filters import *
 from .models import *
@@ -22,13 +18,23 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = (AllowAny,)
     serializer_class = RegisterSerializer
 
-
 @api_view(['GET'])
 def getRoutes(request):
     routes = [
-        '/api/login/',
-        '/api/register/',
-        '/api/token/refresh/'
+        request.build_absolute_uri('/api/login/'),
+        request.build_absolute_uri('/api/register/'),
+        request.build_absolute_uri('/api/token/refresh/'),
+        request.build_absolute_uri('/api/equipment_types/'),
+        request.build_absolute_uri('/api/equipments/'),
+        request.build_absolute_uri('/api/products/'),
+        request.build_absolute_uri('/api/stock_items/'),
+        request.build_absolute_uri('/api/recipes/'),
+        request.build_absolute_uri('/api/recipe_product/'),
+        request.build_absolute_uri('/api/cooking_plans/'),
+        request.build_absolute_uri('/api/purchase_items/'),
+        request.build_absolute_uri('/api/shopping_plans/'),
+        request.build_absolute_uri('/api/conversion_rules/'),
+        request.build_absolute_uri('/api/config/'),
     ]
     return Response(routes)
 
@@ -37,11 +43,17 @@ class EquipmentTypeViewSet(viewsets.ModelViewSet):
     serializer_class = EquipmentTypeSerializer
     permission_classes = [IsAuthenticated, IsOwner]
 
+    def perform_create(self, serializer):
+        serializer.save(creaated_by=self.request.user)
+
 class EquipmentViewSet(viewsets.ModelViewSet):
     queryset = Equipment.objects.prefetch_related('stockitem_set')
     serializer_class = EquipmentSerializer
     permission_classes = [IsAuthenticated, IsOwner]
     filterset_class = EquipmentFilterSet
+
+    def perform_create(self, serializer):
+        serializer.save(creaated_by=self.request.user)
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.prefetch_related('replacement_products', 'stockitem_set', 'recipeproduct_set')
@@ -49,11 +61,17 @@ class ProductViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsOwner]
     filterset_class = ProductFilterSet
 
+    def perform_create(self, serializer):
+        serializer.save(creaated_by=self.request.user)
+
 class StockItemViewSet(viewsets.ModelViewSet):
     queryset = StockItem.objects.prefetch_related('product', 'equipment')
     serializer_class = StockItemSerializer
     permission_classes = [IsAuthenticated, IsOwner]
     filterset_class = StockItemFilterSet
+
+    def perform_create(self, serializer):
+        serializer.save(creaated_by=self.request.user)
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.prefetch_related('items')
@@ -61,10 +79,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsOwner]
     filterset_class = RecipeFilterSet
 
+    def perform_create(self, serializer):
+        serializer.save(creaated_by=self.request.user)
+
 class RecipeProductViewSet(viewsets.ModelViewSet):
     queryset = RecipeProduct.objects.prefetch_related('recipe', 'product')
     serializer_class = RecipeProductSerializer
     permission_classes = [IsAuthenticated, IsOwner]
+
+    def perform_create(self, serializer):
+        serializer.save(creaated_by=self.request.user)
 
 class CookingPlanViewSet(viewsets.ModelViewSet):
     queryset = CookingPlan.objects.prefetch_related('recipe')
@@ -72,11 +96,17 @@ class CookingPlanViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsOwner]
     filterset_class = CookingPlanFilterSet
 
+    def perform_create(self, serializer):
+        serializer.save(creaated_by=self.request.user)
+
 class PurchaseItemViewSet(viewsets.ModelViewSet):
     queryset = PurchaseItem.objects.prefetch_related('product', 'shop_plan')
     serializer_class = PurchaseItemSerializer
     permission_classes = [IsAuthenticated, IsOwner]
     filterset_class = PurchaseItemFilterSet
+
+    def perform_create(self, serializer):
+        serializer.save(creaated_by=self.request.user)
 
 class ShoppingPlanViewSet(viewsets.ModelViewSet):
     queryset = ShoppingPlan.objects.prefetch_related('purchaseitem_set')
@@ -84,14 +114,23 @@ class ShoppingPlanViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsOwner]
     filterset_class = ShoppingPlanFilterSet
 
+    def perform_create(self, serializer):
+        serializer.save(creaated_by=self.request.user)
+
 class ConversionRuleViewSet(viewsets.ModelViewSet):
-    queryset = ConversionRule.objects.prefetch_related('purchaseitem_set')
+    queryset = ConversionRule.objects.prefetch_related('products')
     serializer_class = ConversionRuleSerializer
     permission_classes = [IsAuthenticated, IsOwner]
-    filterset_fields = ('product', 'from_unit', 'to_unit', 'created_by')
+    filterset_fields = ('products', 'from_unit', 'to_unit', 'created_by')
+
+    def perform_create(self, serializer):
+        serializer.save(creaated_by=self.request.user)
 
 class ConfigViewSet(viewsets.ModelViewSet):
-    queryset = Config.objects.prefetch_related('purchaseitem_set')
+    queryset = Config.objects.all()
     serializer_class = ConfigSerializer
     permission_classes = [IsAuthenticated, IsOwner]
     filterset_fields = ('created_by')
+
+    def perform_create(self, serializer):
+        serializer.save(creaated_by=self.request.user)

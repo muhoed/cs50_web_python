@@ -1,15 +1,10 @@
 import datetime
-from django.db.models import Case, F, OuterRef, Q, Subquery, Sum, When
+from django.db.models import F
 from django.template.defaultfilters import slugify
 
-from .models import Config, CookingPlan, Equipment, Product, ShoppingPlan, StockItem, ConversionRule
-from .wg_enumeration import STOCK_STATUSES, CookPlanStatuses, ShopPlanStatuses, VolumeUnits
+from .models import CookingPlan, Equipment, Product, PurchaseItem, ShoppingPlan, StockItem, ConversionRule
+from .wg_enumeration import STOCK_STATUSES, CookPlanStatuses, NotificationTypes, ShopPlanStatuses, VolumeUnits, PurchaseStatuses
 
-
-def get_icon_upload_path(stock_item, filename):
-    instance_type = type(stock_item).__name__.lower()
-    slug = slugify(stock_item.name)
-    return "icons/%s/%s-%s" % (instance_type, slug, filename)
 
 def handle_stock_change(stock_item, quantity):
     product = Product.objects.get(pk=stock_item.product, created_by=stock_item.created_by)
@@ -41,7 +36,7 @@ def store_purchased_item(item):
                 created_by=item.created_by
             ).prefetch_related('stockitem_set').order_by('-free_space')
         if item.unit != VolumeUnits.LITER:
-            conv_ratio = get_conversion_ratio(product, item.unit, VolumeUnits.LITER, item.created_by)
+            conv_ratio = get_conversion_ratio(product.pk, item.unit, VolumeUnits.LITER, item.created_by)
         quantity = item.volume
         # first try to put purchased item to equipment where similar items are already stored
         for e in equipment:
@@ -112,9 +107,12 @@ def handle_cooking_plan_fulfillment(obj):
                     break
 
 def generate_shopping_plan(config):
+    all_products = Product.objects.filter(created_by=config.created_by)
     # get shopping plans in Entered or Partially fulfilled status to avoid duplicates
-    open_shop_plans = ShoppingPlan.objects.filter(created_by=config.created_by, status=ShopPlanStatuses.ENTERED)
-    partial_shop_plans = ShoppingPlan.objects.filter(created_by=config.created_by, status=ShopPlanStatuses.PARTIALLY_FULFILLED)
+    open_shop_plans = ShoppingPlan.objects.filter(
+        created_by=config.created_by, 
+        status__in=[ShopPlanStatuses.ENTERED, ShopPlanStatuses.PARTIALLY_FULFILLED]
+        ).prefetch_related('purchaseitem_set')
     # get active cooking plans if Base on cooking plans option enabled
     open_cook_plans = None
     if config.base_shop_plan_on_cook_plan:
@@ -126,25 +124,90 @@ def generate_shopping_plan(config):
                 created_by=config.created_by,
                 created_on__gte=datetime.now()-config.historic_period
             ).exclude(volume=F('initial_volume'))
-    # to be done:
-    # - calculate needed products' quantities based on cook.plans if enabled
-    # - calculate needed products' quantities based on hist.data if enabled
-    # - compare and grab only highest needed quantity pre product
-    # - close all open/partially fulfilled shopping plans
+    # dictionary to keep products for purchase
+    needed_products = {}
+    # calculate needed products' quantities based on cook.plans if enabled
+    if open_cook_plans:
+        for plan in open_cook_plans:
+            for recipe in plan.recipes.all():
+                for rec_prod in recipe.recipeproduct_set.all():
+                    prod = all_products.get(pk=rec_prod.pk)
+                    if rec_prod.unit != prod.unit:
+                        conv_ratio = get_conversion_ratio(prod.pk, rec_prod.unit, prod.unit, rec_prod.created_by)
+                    if rec_prod.pk not in needed_products.keys():
+                        needed_products[rec_prod.pk] = rec_prod.volume * conv_ratio
+                    else:
+                        needed_products[rec_prod.pk] += rec_prod.volume * conv_ratio
+    # calculate needed products' quantities based on hist.data if enabled
+    consumed_totals_per_product = {}
+    if consumed_stock_items:
+        for item in consumed_stock_items:
+            prod = all_products.get(pk=item.product)
+            if item.unit != prod.unit:
+                conv_ratio = get_conversion_ratio(prod.pk, item.unit, prod.unit, item.created_by)
+            if prod.pk not in consumed_totals_per_product.keys():
+                consumed_totals_per_product[prod.pk] = (item.initial_volume - item.volume) * conv_ratio
+            else:
+                consumed_totals_per_product[prod.pk] += (item.initial_volume - item.volume) * conv_ratio
+    # forecast consumption based on historic data averages
+    for key, value in consumed_totals_per_product.items():
+        consumed_totals_per_product[key] = value / config.historic_period.days * config.gen_shop_plan_period
+    # compare and grab only highest needed quantity per product
+    for key, value in needed_products.items():
+        if key in consumed_totals_per_product.keys():
+            needed_products[key] = consumed_totals_per_product[key] if value < consumed_totals_per_product[key] else value
+    # compare with min_stock values per product and amend if needed
+    if config.gen_shop_plan_on_min_stock:
+        for prod in all_products:
+            if prod.minimal_stock_volume and prod.minimal_stock_volume > 0:
+                if prod.pk in needed_products.keys():
+                    needed_products[prod.pk] = prod.minimal_stock_volume if prod.minimal_stock_volume > needed_products[key] else value
+                else:
+                    needed_products[prod.pk] = prod.minimal_stock_volume
+    # close all open/partially fulfilled shopping plans
+    for plan in open_shop_plans:
+        for item in plan.purchaseitem_set:
+            item.status = PurchaseStatuses.MOVED
+            item.save()
+        plan.status = ShopPlanStatuses.CLOSED
+        plan.save()
     # - generate a new shopping plan (-s)
-    # - send notification
+    new_shop_plan = ShoppingPlan.objects.create(
+        date = datetime.now() + datetime.timedalte(days=1),
+        note = f'Shopping plan generated on {datetime.now()}. \
+            Generation settings: \
+             - Autogeneration  = {"Yes" if config.auto_generate_shopping_plan else "No"} \
+             - Generate shopping plan repeatedly = {"Yes" if config.gen_shop_plan_repeatedly else "No"} \
+             - Base on minimal stock level = {"Yes" if config.gen_shop_plan_on_min_stock else "No"} \
+             - Base on historic consumtion = {"Yes" if config.base_shop_plan_on_historic_data else "No"} \
+             - Base on cooking plans = {"Yes" if config.base_shop_plan_on_cook_plan else "No"}',
+        created_by = config.created_by
+    )
+    for key, value in needed_products.items():
+        prod = all_products.get(pk=key)
+        purch_item = PurchaseItem.objects.create(
+            product = prod,
+            shop_plan = new_shop_plan.pk,
+            unit = prod.unit,
+            volume = value,
+            status = PurchaseStatuses.TOBUY,
+            created_by = config.created_by
+        )
+        purch_item.save()
+    # send notification
+    send_notification(new_shop_plan, NotificationTypes.SHOPPINGPLAN, config.notify_by_email)
 
-def get_conversion_ratio(product, unit1, unit2, owner):
+def get_conversion_ratio(prod_pk, unit1, unit2, owner):
     try:
-        conv_rule = ConversionRule.objects.get(
-                                product=product,
+        conv_rule = ConversionRule.objects.filter(
+                                products__pk=prod_pk,
                                 unit_from=unit1,
                                 unit_to=unit2,
                                 created_by=owner
-                            ).values('ratio')
+                            ).values('ratio').first()
         if not conv_rule:
             conv_rule = ConversionRule.objects.get(
-                                product=product,
+                                products__pk=prod_pk,
                                 unit_from=unit2,
                                 unit_to=unit1,
                                 created_by=owner
