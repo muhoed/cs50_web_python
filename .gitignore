@@ -2,4 +2,6 @@
 */venv
 */.venv
 */.vs
-
+.env
+.venv
+.vs

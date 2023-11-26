@@ -1,4 +1,5 @@
 */*.pyc
+**/*.pyc
 */venv
 */.venv
 */.vs

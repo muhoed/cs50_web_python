@@ -59,4 +59,4 @@ class WgapiConfig(AppConfig):
                 max_temp = BASE_EQUIPMENT_TEMPS[BaseEquipmentTypes.CUPBOARD.value][1],
                 created_by = sysuser
             )
-
+            

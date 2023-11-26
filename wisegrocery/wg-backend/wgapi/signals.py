@@ -86,9 +86,9 @@ def product_post_save_handler(sender, instance, created, update_fields, **kwargs
 @receiver(post_save, sender=Config)
 def config_genshopplan_handler(sender, instance, created, update_fields, **kwargs):
     if created:
-        if instance.gen_shop_plan_periodicity and instance.gen_shop_plan_periodicity > 0:
+        if instance.gen_shop_plan_period and instance.gen_shop_plan_period > 0:
             schedule, schdl_created = IntervalSchedule.objects.get_or_create(
-                                        every=instance.gen_shop_plan_periodicity,
+                                        every=instance.gen_shop_plan_period,
                                         period=IntervalSchedule.DAYS,
                                     )
             #initiate task to repeatedly generate shopping plans
