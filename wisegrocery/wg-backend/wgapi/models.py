@@ -146,32 +146,6 @@ class Product(models.Model):
     def __str__(self):
         return f'{self.name} / {self.category.label}'
 
-class StockItem(models.Model):
-    purchase_item = models.ForeignKey(PurchaseItem, on_delete=models.CASCADE, blank=False, null=False, db_column="StkItem_Prod", db_index=True)
-    equipment = models.ForeignKey(Equipment, on_delete=models.CASCADE, blank=False, null=False, db_column="StkItem_Equip", db_index=True)
-    unit = models.IntegerField(choices=wg_enumeration.VolumeUnits.choices, blank=False, null=False, db_column="StkItem_Unit")
-    volume = models.FloatField(blank=False, null=False, db_column="StkItem_Volume")
-    initial_volume = models.FloatField(blank=False, null=False, db_column="StkItem_Init_Volume")
-    use_till = models.DateField(
-        blank=False, null=False, default=datetime.datetime.now()+datetime.timedelta(days=7), 
-        db_column="StkItem_Use_Till_Date", db_index=True
-        )
-    status = models.IntegerField(
-        choices=wg_enumeration.STOCK_STATUSES.choices, default=wg_enumeration.STOCK_STATUSES.ACTIVE,
-        blank=False, null=False, db_column="StkItem_Status"
-        )
-
-    created_on = models.DateTimeField(auto_now_add=True, db_column="StkItem_Created_On")
-    updated_on = models.DateTimeField(auto_now=True, db_column="StkItem_Updated_On")
-    created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="StkItem_Created_By")
-
-    def save(self, *args, **kwargs):
-        if self.initial_volume is None:
-            self.initial_volume = self.volume
-
-    def __str__(self):
-        return f'{self.volume}{self.unit} of {self.product.name} stored at {self.equipment.name}.'
-
 class Recipe(models.Model):
     name = models.CharField(max_length=50, blank=False, null=False, db_column="Rcp_Name", db_index=True)
     description = models.TextField(max_length=1000, blank=False, null=False, db_column="Rcp_Description")
@@ -232,18 +206,18 @@ class Purchase(models.Model):
     date = models.DateField(blank=False, null=False, db_column="Purchase_Date", db_index=True)
     #shop_plan = models.ForeignKey('ShoppingPlan', on_delete=models.SET_NULL, blank=True, null=True, db_column="Purchase_ShoppingPlan")
     store = models.CharField(max_length=100, blank=True, null=True, db_column="Purchase_Store", db_index=True)
-    total_amount = models.DecimalField(blank=True, null=True, db_column="Purchase_TotalAmount")
+    total_amount = models.DecimalField(decimal_places=2, max_digits=10, blank=True, null=True, db_column="Purchase_TotalAmount")
 
     created_on = models.DateTimeField(db_index=True, auto_now_add=True, db_column="Purchase_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="Purchase_Updated_On")
     created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="Purchase_Created_By")
 
 class PurchaseItem(models.Model):
-    purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE, db_index=True, blank=False, null=False, db_column="PurchItem_Purchase")
+    purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE, db_index=True, blank=True, null=True, db_column="PurchItem_Purchase")
     product = models.ForeignKey(Product, on_delete=models.CASCADE, db_index=True, blank=False, null=False, db_column="PurchItem_Product")
     unit = models.IntegerField(choices=wg_enumeration.VolumeUnits.choices, blank=False, null=False, db_column="PurchItem_Unit")
     quantity = models.FloatField(blank=False, null=False, validators=[MinValueValidator(0)], db_column="PurchItem_Qty")
-    price = models.DecimalField(blank=True, null=True, validators=[MinValueValidator(0)], db_column="PurchItem_Price")
+    price = models.DecimalField(decimal_places=2, max_digits=10, blank=True, null=True, validators=[MinValueValidator(0)], db_column="PurchItem_Price")
     status = models.IntegerField(
             choices=wg_enumeration.PurchaseStatuses.choices, default=wg_enumeration.PurchaseStatuses.TOBUY,
             blank=False, null=False, db_column="PurchItem_Status", db_index=True
@@ -255,6 +229,32 @@ class PurchaseItem(models.Model):
     def __str__(self):
         return f'{self.volume}{self.unit} of {self.product.name} \
             {wg_enumeration.PurchaseStatuses.TOBUY.label if self.status == wg_enumeration.PurchaseStatuses.TOBUY else wg_enumeration.PurchaseStatuses.BOUGHT.label}.'
+
+class StockItem(models.Model):
+    purchase_item = models.ForeignKey(PurchaseItem, on_delete=models.CASCADE, blank=False, null=False, db_column="StkItem_Prod", db_index=True)
+    equipment = models.ForeignKey(Equipment, on_delete=models.CASCADE, blank=False, null=False, db_column="StkItem_Equip", db_index=True)
+    unit = models.IntegerField(choices=wg_enumeration.VolumeUnits.choices, blank=False, null=False, db_column="StkItem_Unit")
+    volume = models.FloatField(blank=False, null=False, db_column="StkItem_Volume")
+    initial_volume = models.FloatField(blank=False, null=False, db_column="StkItem_Init_Volume")
+    use_till = models.DateField(
+        blank=False, null=False, default=datetime.datetime.now()+datetime.timedelta(days=7), 
+        db_column="StkItem_Use_Till_Date", db_index=True
+        )
+    status = models.IntegerField(
+        choices=wg_enumeration.STOCK_STATUSES.choices, default=wg_enumeration.STOCK_STATUSES.ACTIVE,
+        blank=False, null=False, db_column="StkItem_Status"
+        )
+
+    created_on = models.DateTimeField(auto_now_add=True, db_column="StkItem_Created_On")
+    updated_on = models.DateTimeField(auto_now=True, db_column="StkItem_Updated_On")
+    created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="StkItem_Created_By")
+
+    def save(self, *args, **kwargs):
+        if self.initial_volume is None:
+            self.initial_volume = self.volume
+
+    def __str__(self):
+        return f'{self.volume}{self.unit} of {self.product.name} stored at {self.equipment.name}.'
 
 # class ShoppingPlan(models.Model):
 #     date = models.DateField(db_index=True, blank=False, null=False, db_column="ShopPlan_Date")

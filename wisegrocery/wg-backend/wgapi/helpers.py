@@ -2,8 +2,8 @@ import datetime
 from django.db.models import F
 from django.template.defaultfilters import slugify
 
-from .models import CookingPlan, Equipment, Product, PurchaseItem, ShoppingPlan, StockItem, ConversionRule
-from .wg_enumeration import STOCK_STATUSES, CookPlanStatuses, NotificationTypes, ShopPlanStatuses, VolumeUnits, PurchaseStatuses
+from .models import *
+from .wg_enumeration import *
 
 
 def handle_stock_change(stock_item, quantity):

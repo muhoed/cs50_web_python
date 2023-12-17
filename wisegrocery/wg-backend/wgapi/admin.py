@@ -15,6 +15,6 @@ class StockManagementAdmin(admin.ModelAdmin):
 class CookingPlanAdmin(admin.ModelAdmin):
     pass
 
-@admin.register(PurchaseItem, ShoppingPlan)
+@admin.register(PurchaseItem, Purchase)
 class ShoppingPlanAdmin(admin.ModelAdmin):
     pass
