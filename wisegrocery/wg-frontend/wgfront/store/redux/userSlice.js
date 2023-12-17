@@ -16,8 +16,8 @@ const initialState = {
 export const registerUser = createAsyncThunk('user/registerUser', async ({username, email, password1, password2}) => {
   try {
     const response = await AuthService.register(username, email, password1, password2);
-    console.log('Response: ');
-    console.log(response);
+    //console.log('Response: ');
+    //console.log(response);
     return Promise.resolve(response.data);
   } catch (error) {
     if (error.response?.data) {

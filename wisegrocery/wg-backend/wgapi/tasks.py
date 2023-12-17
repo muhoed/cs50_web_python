@@ -46,15 +46,15 @@ def stockitem_expired_handler(data):
 	except Exception as e3:
 		print(e3)
 
-@shared_task
-def repeat_shopping_plan_generator(data):
-	try:
-		import_django_instance()
-		from wgapi.models import Config
-		from wgapi.helpers import generate_shopping_plan
+# @shared_task
+# def repeat_shopping_plan_generator(data):
+# 	try:
+# 		import_django_instance()
+# 		from wgapi.models import Config
+# 		from wgapi.helpers import generate_shopping_plan
 
-		config = Config.objects.get(pk=data['config'])
-		generate_shopping_plan(config)
-	except Exception as e:
-		print(e)
+# 		config = Config.objects.get(pk=data['config'])
+# 		generate_shopping_plan(config)
+# 	except Exception as e:
+# 		print(e)
 

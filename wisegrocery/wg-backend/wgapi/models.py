@@ -147,11 +147,11 @@ class Product(models.Model):
         return f'{self.name} / {self.category.label}'
 
 class StockItem(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, blank=False, null=False, db_column="StkItem_Prod", db_index=True)
+    purchase_item = models.ForeignKey(PurchaseItem, on_delete=models.CASCADE, blank=False, null=False, db_column="StkItem_Prod", db_index=True)
     equipment = models.ForeignKey(Equipment, on_delete=models.CASCADE, blank=False, null=False, db_column="StkItem_Equip", db_index=True)
     unit = models.IntegerField(choices=wg_enumeration.VolumeUnits.choices, blank=False, null=False, db_column="StkItem_Unit")
     volume = models.FloatField(blank=False, null=False, db_column="StkItem_Volume")
-    initial_volume = models.FloatField(blank=True, null=True, db_column="StkItem_Init_Volume")
+    initial_volume = models.FloatField(blank=False, null=False, db_column="StkItem_Init_Volume")
     use_till = models.DateField(
         blank=False, null=False, default=datetime.datetime.now()+datetime.timedelta(days=7), 
         db_column="StkItem_Use_Till_Date", db_index=True
@@ -228,11 +228,22 @@ class CookingPlan(models.Model):
     def __str__(self):
         return f'Cooking plan for {self.persons} on {self.date}.'
 
+class Purchase(models.Model):
+    date = models.DateField(blank=False, null=False, db_column="Purchase_Date", db_index=True)
+    #shop_plan = models.ForeignKey('ShoppingPlan', on_delete=models.SET_NULL, blank=True, null=True, db_column="Purchase_ShoppingPlan")
+    store = models.CharField(max_length=100, blank=True, null=True, db_column="Purchase_Store", db_index=True)
+    total_amount = models.DecimalField(blank=True, null=True, db_column="Purchase_TotalAmount")
+
+    created_on = models.DateTimeField(db_index=True, auto_now_add=True, db_column="Purchase_Created_On")
+    updated_on = models.DateTimeField(auto_now=True, db_column="Purchase_Updated_On")
+    created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="Purchase_Created_By")
+
 class PurchaseItem(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, db_index=True, blank=False, null=False, db_column="PurchItem_Prod")
-    shop_plan = models.ForeignKey('ShoppingPlan', on_delete=models.CASCADE, db_index=True, blank=False, null=False, db_column="PurchItem_Shop_Plan")
+    purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE, db_index=True, blank=False, null=False, db_column="PurchItem_Purchase")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, db_index=True, blank=False, null=False, db_column="PurchItem_Product")
     unit = models.IntegerField(choices=wg_enumeration.VolumeUnits.choices, blank=False, null=False, db_column="PurchItem_Unit")
-    volume = models.FloatField(blank=False, null=False, validators=[MinValueValidator(0)], db_column="PurchItem_Volume")
+    quantity = models.FloatField(blank=False, null=False, validators=[MinValueValidator(0)], db_column="PurchItem_Qty")
+    price = models.DecimalField(blank=True, null=True, validators=[MinValueValidator(0)], db_column="PurchItem_Price")
     status = models.IntegerField(
             choices=wg_enumeration.PurchaseStatuses.choices, default=wg_enumeration.PurchaseStatuses.TOBUY,
             blank=False, null=False, db_column="PurchItem_Status", db_index=True
@@ -245,21 +256,21 @@ class PurchaseItem(models.Model):
         return f'{self.volume}{self.unit} of {self.product.name} \
             {wg_enumeration.PurchaseStatuses.TOBUY.label if self.status == wg_enumeration.PurchaseStatuses.TOBUY else wg_enumeration.PurchaseStatuses.BOUGHT.label}.'
 
-class ShoppingPlan(models.Model):
-    date = models.DateField(db_index=True, blank=False, null=False, db_column="ShopPlan_Date")
-    note = models.TextField(blank=True, null=True, db_column="ShopPlan_Note")
-    status = models.IntegerField(
-            choices=wg_enumeration.ShopPlanStatuses.choices, default=wg_enumeration.ShopPlanStatuses.ENTERED,
-            blank=False, null=False, db_column="ShopPlan_Status", db_index=True
-        )
-    created_on = models.DateTimeField(db_index=True, auto_now_add=True, db_column="ShopPlan_Created_On")
-    updated_on = models.DateTimeField(auto_now=True, db_column="ShopPlan_Updated_On")
-    created_by = models.ForeignKey(
-        WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="ShopPlan_Created_By"
-        )
+# class ShoppingPlan(models.Model):
+#     date = models.DateField(db_index=True, blank=False, null=False, db_column="ShopPlan_Date")
+#     note = models.TextField(blank=True, null=True, db_column="ShopPlan_Note")
+#     status = models.IntegerField(
+#             choices=wg_enumeration.ShopPlanStatuses.choices, default=wg_enumeration.ShopPlanStatuses.ENTERED,
+#             blank=False, null=False, db_column="ShopPlan_Status", db_index=True
+#         )
+#     created_on = models.DateTimeField(db_index=True, auto_now_add=True, db_column="ShopPlan_Created_On")
+#     updated_on = models.DateTimeField(auto_now=True, db_column="ShopPlan_Updated_On")
+#     created_by = models.ForeignKey(
+#         WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="ShopPlan_Created_By"
+#         )
 
-    def __str__(self):
-        return f'Shopping plan for {self.date}'
+#     def __str__(self):
+#         return f'Shopping plan for {self.date}'
 
 class ConversionRule(models.Model):
     name = models.CharField(max_length=50, blank=False, null=False, unique=True, db_column="ConvRule_Name")
@@ -310,26 +321,26 @@ class Config(models.Model):
 
     notify_on_min_stock = models.BooleanField(blank=False, null=False, default=True, db_column="Conf_Notify_Min_Stock")
 
-    nofity_on_shopping_plan_generated = models.BooleanField(
-        blank=False, null=False, default=True, db_column="Conf_Notify_Shop_Plan_Gen"
-        )
+    # nofity_on_shopping_plan_generated = models.BooleanField(
+    #     blank=False, null=False, default=True, db_column="Conf_Notify_Shop_Plan_Gen"
+    #     )
 
-    auto_generate_shopping_plan = models.BooleanField(
-        blank=False, null=False, default=False, db_column="Conf_Gen_Shop_Plan"
-        )
+    # auto_generate_shopping_plan = models.BooleanField(
+    #     blank=False, null=False, default=False, db_column="Conf_Gen_Shop_Plan"
+    #     )
     allow_replacement_use = models.BooleanField(
         blank=False, null=False, default=False, db_column="Conf_Allow_Replacement"
         )
-    gen_shop_plan_on_min_stock = models.BooleanField(
-        blank=False, null=False, default=False, db_column="Conf_Gen_ShopPlan_MinStock"
-        )
-    gen_shop_plan_repeatedly = models.BooleanField(
-        blank=False, null=False, default=False, db_column="Conf_Gen_ShopPlan_Repeatedly"
-        )
-    gen_shop_plan_period = models.DurationField(
-        blank=True, null=True, validators=[MinValueValidator(datetime.timedelta(days=3))], 
-        default=datetime.timedelta(days=7), db_column="Conf_GenShopPlan_Periodicity"
-        )
+    # gen_shop_plan_on_min_stock = models.BooleanField(
+    #     blank=False, null=False, default=False, db_column="Conf_Gen_ShopPlan_MinStock"
+    #     )
+    # gen_shop_plan_repeatedly = models.BooleanField(
+    #     blank=False, null=False, default=False, db_column="Conf_Gen_ShopPlan_Repeatedly"
+    #     )
+    # gen_shop_plan_period = models.DurationField(
+    #     blank=True, null=True, validators=[MinValueValidator(datetime.timedelta(days=3))], 
+    #     default=datetime.timedelta(days=7), db_column="Conf_GenShopPlan_Periodicity"
+    #     )
     base_shop_plan_on_historic_data = models.BooleanField(
         blank=False, null=False, default=True, db_column="Conf_Gen_ShopPlan_Historic"
         )

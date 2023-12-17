@@ -93,11 +93,11 @@ class CookPlanStatuses(models.IntegerChoices):
     ENTERED = 0, _('Entered')
     COOKED = 1, _('Cooked')
 
-class ShopPlanStatuses(models.IntegerChoices):
-    ENTERED = 0, _('Entered')
-    FULFILLED = 1, _('Fulfilled')
-    PARTIALLY_FULFILLED = 3, _('Partially fulfilled')
-    CLOSED = 4, _('Closed')
+# class ShopPlanStatuses(models.IntegerChoices):
+#     ENTERED = 0, _('Entered')
+#     FULFILLED = 1, _('Fulfilled')
+#     PARTIALLY_FULFILLED = 3, _('Partially fulfilled')
+#     CLOSED = 4, _('Closed')
 
 class ConversionRuleTypes(models.IntegerChoices):
     COMMON = 0, _('Common conversion rule')

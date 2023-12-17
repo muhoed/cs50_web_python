@@ -83,52 +83,52 @@ def product_post_save_handler(sender, instance, created, update_fields, **kwargs
         except Exception as e:
             print(e)
 
-@receiver(post_save, sender=Config)
-def config_genshopplan_handler(sender, instance, created, update_fields, **kwargs):
-    if created:
-        if instance.gen_shop_plan_period and instance.gen_shop_plan_period > 0:
-            schedule, schdl_created = IntervalSchedule.objects.get_or_create(
-                                        every=instance.gen_shop_plan_period,
-                                        period=IntervalSchedule.DAYS,
-                                    )
-            #initiate task to repeatedly generate shopping plans
-            try:
-                PeriodicTask.objects.create(
-                        interval=schedule,
-                        name=f'{instance.created_by}-gen-shop-plan-repeat',
-                        task='wgapi.tasks.repeat_shopping_plan_generator',
-                        kwargs=json.dumps({'config': instance.pk,})
-                    )
-            except Exception as e:
-                print(e)
+# @receiver(post_save, sender=Config)
+# def config_genshopplan_handler(sender, instance, created, update_fields, **kwargs):
+#     if created:
+#         if instance.gen_shop_plan_period and instance.gen_shop_plan_period > 0:
+#             schedule, schdl_created = IntervalSchedule.objects.get_or_create(
+#                                         every=instance.gen_shop_plan_period,
+#                                         period=IntervalSchedule.DAYS,
+#                                     )
+#             #initiate task to repeatedly generate shopping plans
+#             try:
+#                 PeriodicTask.objects.create(
+#                         interval=schedule,
+#                         name=f'{instance.created_by}-gen-shop-plan-repeat',
+#                         task='wgapi.tasks.repeat_shopping_plan_generator',
+#                         kwargs=json.dumps({'config': instance.pk,})
+#                     )
+#             except Exception as e:
+#                 print(e)
 
-    elif 'gen_shop_plan_repeatedly' in update_fields or 'gen_shop_plan_period' in update_fields:
-        if instance.gen_shop_plan_repeatedly and instance.gen_shop_plan_period:
-            if instance.gen_shop_plan_period > 0:
-                schedule, schdl_created = IntervalSchedule.objects.get_or_create(
-                                            every=instance.gen_shop_plan_period,
-                                            period=IntervalSchedule.DAYS,
-                                        )
-            #initiate task to repeatedly generate shopping plans
-            try:
-                # first try to update existing scheduled task if any
-                existing_task = PeriodicTask.objects.get(
-                        name=f'{instance.created_by}-gen-shop-plan-repeat'
-                    )
-                if existing_task:
-                    if instance.gen_shop_plan_period > 0:
-                        existing_task.interval = schedule
-                        existing_task.enabled = True
-                    else:
-                        existing_task.enabled = False
-                    existing_task.save()
-                # create new a scheduled task if not exist
-                elif instance.gen_shop_plan_period > 0:
-                    PeriodicTask.objects.create(
-                            interval=schedule,
-                            name=f'{instance.created_by}-gen-shop-plan-repeat',
-                            task='wgapi.tasks.repeat_shopping_plan_generator',
-                            kwargs=json.dumps({'config': instance.pk,})
-                        )
-            except Exception as e:
-                print(e)
+#     elif 'gen_shop_plan_repeatedly' in update_fields or 'gen_shop_plan_period' in update_fields:
+#         if instance.gen_shop_plan_repeatedly and instance.gen_shop_plan_period:
+#             if instance.gen_shop_plan_period > 0:
+#                 schedule, schdl_created = IntervalSchedule.objects.get_or_create(
+#                                             every=instance.gen_shop_plan_period,
+#                                             period=IntervalSchedule.DAYS,
+#                                         )
+#             #initiate task to repeatedly generate shopping plans
+#             try:
+#                 # first try to update existing scheduled task if any
+#                 existing_task = PeriodicTask.objects.get(
+#                         name=f'{instance.created_by}-gen-shop-plan-repeat'
+#                     )
+#                 if existing_task:
+#                     if instance.gen_shop_plan_period > 0:
+#                         existing_task.interval = schedule
+#                         existing_task.enabled = True
+#                     else:
+#                         existing_task.enabled = False
+#                     existing_task.save()
+#                 # create new a scheduled task if not exist
+#                 elif instance.gen_shop_plan_period > 0:
+#                     PeriodicTask.objects.create(
+#                             interval=schedule,
+#                             name=f'{instance.created_by}-gen-shop-plan-repeat',
+#                             task='wgapi.tasks.repeat_shopping_plan_generator',
+#                             kwargs=json.dumps({'config': instance.pk,})
+#                         )
+#             except Exception as e:
+#                 print(e)

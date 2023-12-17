@@ -31,8 +31,8 @@ def getRoutes(request):
         request.build_absolute_uri('/api/recipes/'),
         request.build_absolute_uri('/api/recipe_product/'),
         request.build_absolute_uri('/api/cooking_plans/'),
+        request.build_absolute_uri('/api/purchase/'),
         request.build_absolute_uri('/api/purchase_items/'),
-        request.build_absolute_uri('/api/shopping_plans/'),
         request.build_absolute_uri('/api/conversion_rules/'),
         request.build_absolute_uri('/api/config/'),
     ]
@@ -99,8 +99,17 @@ class CookingPlanViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(creaated_by=self.request.user)
 
+class PurchaseViewSet(viewsets.ModelViewSet):
+    queryset = Purchase.objects.prefetch_related('PurchaseItemSet')
+    serializer_class = PurchaseSerializer
+    permission_classes = [IsAuthenticated, IsOwner]
+    filterset_class = PurchaseFilterSet
+
+    def perform_create(self, serializer):
+        serializer.save(creaated_by=self.request.user)
+
 class PurchaseItemViewSet(viewsets.ModelViewSet):
-    queryset = PurchaseItem.objects.prefetch_related('product', 'shop_plan')
+    queryset = PurchaseItem.objects.prefetch_related('purchase', 'product')
     serializer_class = PurchaseItemSerializer
     permission_classes = [IsAuthenticated, IsOwner]
     filterset_class = PurchaseItemFilterSet
@@ -108,14 +117,14 @@ class PurchaseItemViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(creaated_by=self.request.user)
 
-class ShoppingPlanViewSet(viewsets.ModelViewSet):
-    queryset = ShoppingPlan.objects.prefetch_related('purchaseitem_set')
-    serializer_class = ShoppingPlanSerializer
-    permission_classes = [IsAuthenticated, IsOwner]
-    filterset_class = ShoppingPlanFilterSet
+# class ShoppingPlanViewSet(viewsets.ModelViewSet):
+#     queryset = ShoppingPlan.objects.prefetch_related('purchaseitem_set')
+#     serializer_class = ShoppingPlanSerializer
+#     permission_classes = [IsAuthenticated, IsOwner]
+#     filterset_class = ShoppingPlanFilterSet
 
-    def perform_create(self, serializer):
-        serializer.save(creaated_by=self.request.user)
+#     def perform_create(self, serializer):
+#         serializer.save(creaated_by=self.request.user)
 
 class ConversionRuleViewSet(viewsets.ModelViewSet):
     queryset = ConversionRule.objects.prefetch_related('products')

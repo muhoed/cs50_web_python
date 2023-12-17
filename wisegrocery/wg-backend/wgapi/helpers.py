@@ -176,11 +176,13 @@ def generate_shopping_plan(config):
         date = datetime.now() + datetime.timedalte(days=1),
         note = f'Shopping plan generated on {datetime.now()}. \
             Generation settings: \
-             - Autogeneration  = {"Yes" if config.auto_generate_shopping_plan else "No"} \
-             - Generate shopping plan repeatedly = {"Yes" if config.gen_shop_plan_repeatedly else "No"} \
              - Base on minimal stock level = {"Yes" if config.gen_shop_plan_on_min_stock else "No"} \
-             - Base on historic consumtion = {"Yes" if config.base_shop_plan_on_historic_data else "No"} \
-             - Base on cooking plans = {"Yes" if config.base_shop_plan_on_cook_plan else "No"}',
+             - Base on historic consumption = {"Yes" if config.base_shop_plan_on_historic_data else "No"}',
+            #  - Autogeneration  = {"Yes" if config.auto_generate_shopping_plan else "No"} \
+            #  - Generate shopping plan repeatedly = {"Yes" if config.gen_shop_plan_repeatedly else "No"} \
+            #  - Base on minimal stock level = {"Yes" if config.gen_shop_plan_on_min_stock else "No"} \
+            #  - Base on historic consumption = {"Yes" if config.base_shop_plan_on_historic_data else "No"}', \
+            #  - Base on cooking plans = {"Yes" if config.base_shop_plan_on_cook_plan else "No"}',
         created_by = config.created_by
     )
     for key, value in needed_products.items():

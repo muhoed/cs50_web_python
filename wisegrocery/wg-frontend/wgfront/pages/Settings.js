@@ -42,12 +42,12 @@ export default function Settings () {
         value: settings.notify_on_min_stock,
         callback: setConfigValue('notify_on_min_stock'),
       },
-      {
-        label: 'Notify after a shopping plan was generated',
-        type: 'checkbox',
-        value: settings.nofity_on_shopping_plan_generated,
-        callback: setConfigValue('nofity_on_shopping_plan_generated'),
-      },
+      // {
+      //   label: 'Notify after a shopping plan was generated',
+      //   type: 'checkbox',
+      //   value: settings.nofity_on_shopping_plan_generated,
+      //   callback: setConfigValue('nofity_on_shopping_plan_generated'),
+      // },
     ];
 
     const expirationSettings = [
@@ -68,33 +68,33 @@ export default function Settings () {
     ];
 
     const shoppingPlanSettings = [
-      {
-        label: 'Generate shopping plan automatically',
-        type: 'checkbox',
-        value: settings.auto_generate_shopping_plan,
-        callback: setConfigValue('auto_generate_shopping_plan'),
-      },
-      {
-        label: 'Generate shopping plan on low stock',
-        type: 'checkbox',
-        value: settings.gen_shop_plan_on_min_stock,
-        readonly: !settings.auto_generate_shopping_plan,
-        callback: setConfigValue('gen_shop_plan_on_min_stock'),
-      },
-      {
-        label: 'Generate shopping plan periodically',
-        type: 'checkbox',
-        value: settings.gen_shop_plan_repeatedly,
-        readonly: !settings.auto_generate_shopping_plan,
-        callback: setConfigValue('gen_shop_plan_repeatedly'),
-      },
-      {
-        label: 'Generate shopping plan every, days',
-        type: 'timedelta',
-        value: settings.gen_shop_plan_period,
-        readonly: settings.auto_generate_shopping_plan ? !settings.gen_shop_plan_repeatedly : true,
-        callback: setConfigValue('gen_shop_plan_period'),
-      },
+      // {
+      //   label: 'Generate shopping plan automatically',
+      //   type: 'checkbox',
+      //   value: settings.auto_generate_shopping_plan,
+      //   callback: setConfigValue('auto_generate_shopping_plan'),
+      // },
+      // {
+      //   label: 'Generate shopping plan on low stock',
+      //   type: 'checkbox',
+      //   value: settings.gen_shop_plan_on_min_stock,
+      //   readonly: !settings.auto_generate_shopping_plan,
+      //   callback: setConfigValue('gen_shop_plan_on_min_stock'),
+      // },
+      // {
+      //   label: 'Generate shopping plan periodically',
+      //   type: 'checkbox',
+      //   value: settings.gen_shop_plan_repeatedly,
+      //   readonly: !settings.auto_generate_shopping_plan,
+      //   callback: setConfigValue('gen_shop_plan_repeatedly'),
+      // },
+      // {
+      //   label: 'Generate shopping plan every, days',
+      //   type: 'timedelta',
+      //   value: settings.gen_shop_plan_period,
+      //   readonly: settings.auto_generate_shopping_plan ? !settings.gen_shop_plan_repeatedly : true,
+      //   callback: setConfigValue('gen_shop_plan_period'),
+      // },
       {
         label: 'Generate shopping plan based on historic data',
         type: 'checkbox',

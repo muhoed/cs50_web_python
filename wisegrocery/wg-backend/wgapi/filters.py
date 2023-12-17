@@ -1,6 +1,6 @@
 from django_filters import rest_framework as filters
 
-from .models import CookingPlan, Equipment, Product, PurchaseItem, Recipe, ShoppingPlan, StockItem
+from .models import CookingPlan, Equipment, Product, PurchaseItem, Recipe, Purchase, StockItem
 from .wg_enumeration import Meals, STOCK_STATUSES
 
 
@@ -45,14 +45,21 @@ class CookingPlanFilterSet(filters.FilterSet):
         model = CookingPlan
         fields = ['meal', 'date', 'persons', 'recipes', 'status', 'created_by']
 
-class PurchaseItemFilterSet(filters.FilterSet):
-    class Meta:
-        model = PurchaseItem
-        fields = ['product', 'shop_plan', 'status', 'created_by']
-
-class ShoppingPlanFilterSet(filters.FilterSet):
+class PurchaseFilterSet(filters.FilterSet):
     date = filters.DateFromToRangeFilter()
 
     class Meta:
-        model = ShoppingPlan
+        model = Purchase
         fields = ['date', 'created_by']
+
+class PurchaseItemFilterSet(filters.FilterSet):
+    class Meta:
+        model = PurchaseItem
+        fields = ['purchase', 'product', 'status', 'created_by']
+
+# class ShoppingPlanFilterSet(filters.FilterSet):
+#     date = filters.DateFromToRangeFilter()
+
+#     class Meta:
+#         model = ShoppingPlan
+#         fields = ['date', 'created_by']
