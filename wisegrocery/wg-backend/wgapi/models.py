@@ -97,7 +97,9 @@ class Equipment(models.Model):
 
     def save(self, *args, **kwargs):
         if self.volume is None:
-            self.volume = self.get_volume()
+            self.volume = self.get_volume() * self.rated_size
+        if self.free_space is None:
+            self.free_space = self.volume
         if self.min_tempreture is None:
             self.min_tempreture = self.set_min_temp()
         if self.max_tempreture is None:
@@ -142,6 +144,7 @@ class Product(models.Model):
     def save(self, *args, **kwargs):
         if self.pisture is None:
             self.picture.name = f'icons/{type(self).__name__.lower()}/{slugify(self.category.label)}.png'
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.name} / {self.category.label}'
@@ -225,6 +228,13 @@ class PurchaseItem(models.Model):
     created_on = models.DateTimeField(db_index=True, auto_now_add=True, db_column="PurchItem_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="PurchItem_Updated_On")
     created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="PurchItem_Created_By")
+
+    @classmethod
+    def from_db(cls, db, field_names, values):
+        instance = super().from_db(db, field_names, values)
+        #save initial quantity to update related entities on save
+        instance._original_quantity = dict(zip(field_names, (value for value in values if value is not models.DEFERRED)))['quantity']
+        return instance
 
     def __str__(self):
         return f'{self.volume}{self.unit} of {self.product.name} \

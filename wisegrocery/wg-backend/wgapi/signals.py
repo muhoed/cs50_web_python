@@ -5,7 +5,7 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 
-from .helpers import generate_shopping_plan, handle_cooking_plan_fulfillment, handle_stock_change, send_notification, store_purchased_item
+from .helpers import *
 from .models import Config, ConversionRule, CookingPlan, Product, PurchaseItem, StockItem, WiseGroceryUser
 from .tasks import stockitem_expired_handler
 from .wg_enumeration import STOCK_STATUSES, ConversionRuleTypes, CookPlanStatuses, NotificationTypes, PurchaseStatuses
@@ -47,12 +47,18 @@ def stockitem_status_handler(sender, instance, update_fields, **kwargs):
         instance.volume = 0
 
 @receiver(post_save, sender=PurchaseItem)
-def stockitem_handler(sender, instance, update_fields, **kwargs):
-    if 'status' in update_fields and instance.status == PurchaseStatuses.BOUGHT:
+def stockitem_handler(sender, instance, created, update_fields, **kwargs):
+    if 'created':
         try:
             store_purchased_item(instance)
         except Exception as e:
             print(e)
+    if not 'created' and 'quantity' in update_fields:
+        try:
+            update_inventory(instance)
+        except Exception as e:
+            print(e)
+
 
 @receiver(post_save, sender=CookingPlan)
 def cookingplan_status_change_handler(sender, instance, update_fields, **kwargs):
@@ -78,8 +84,8 @@ def product_post_save_handler(sender, instance, created, update_fields, **kwargs
             if config.notify_on_min_stock:
                 send_notification(instance, NotificationTypes.OUTAGE, config.notify_by_email)
             # try to generate shopping plan with auto generation is enabled
-            if config.auto_generate_shopping_plan and config.gen_shop_plan_on_min_stock:
-                generate_shopping_plan(config)
+            # if config.auto_generate_shopping_plan and config.gen_shop_plan_on_min_stock:
+            #     generate_shopping_plan(config)
         except Exception as e:
             print(e)
 

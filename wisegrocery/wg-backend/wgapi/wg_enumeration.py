@@ -66,8 +66,8 @@ class Meals(models.IntegerChoices):
     DINNER = 3, _('Dinner')
 
 class PurchaseStatuses(models.IntegerChoices):
-    TOBUY = 0, _('to buy')
-    BOUGHT = 1, _('bougth')
+    BOUGHT = 0, _('bougth')
+    PARTIALLY_STORED = 1, _('partially stored')
     STORED = 2, _('stored')
     MOVED = 3, _('moved')
 

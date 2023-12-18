@@ -29,6 +29,12 @@ def send_notification(object, type, email):
 def store_purchased_item(item):
     try:
         product = Product.objects.get(pk=item.product, created_by=item.created_by)
+
+        # increate current stock
+        conv_ratio = get_conversion_ratio(product.pk, item.unit, product.unit, item.created_by) if item.unit != product.unit else 1
+        product.current_stock += item.quantity * conv_ratio
+
+        # place into suitable equipemnt
         equipment = Equipment.objects.filter(
                 min_tempreture__gte=product.min_tempreture,
                 max_tempreture__lte=product.max_tempreture,
@@ -37,7 +43,7 @@ def store_purchased_item(item):
             ).prefetch_related('stockitem_set').order_by('-free_space')
         if item.unit != VolumeUnits.LITER:
             conv_ratio = get_conversion_ratio(product.pk, item.unit, VolumeUnits.LITER, item.created_by)
-        quantity = item.volume
+        quantity = item.quantity
         # first try to put purchased item to equipment where similar items are already stored
         for e in equipment:
             capacity = e.free_space / conv_ratio
@@ -49,6 +55,8 @@ def store_purchased_item(item):
                     volume = quantity if capacity >= quantity else capacity
                 )
                 quantity -= new_stock_item.volume
+                e.free_space = e.free_space - quantity * conv_ratio if capacity >= quantity else 0
+                e.save()
             if quantity == 0:
                 break
         # if some quantity still not stored, try to put it into suitable equipment with free space
@@ -70,6 +78,8 @@ def store_purchased_item(item):
                     volume = quantity if capacity >= quantity else capacity
                 )
                 quantity -= new_stock_item.volume
+                e.free_space = e.free_space - quantity * conv_ratio if capacity >= quantity else 0
+                e.save()
                 if quantity == 0:
                     break
         # if some quantity not stored even now, store it with NOTPLACED status for further manual alocation
@@ -81,6 +91,25 @@ def store_purchased_item(item):
                     volume = quantity,
                     status = STOCK_STATUSES.NOTPLACED
                 )
+            item.status = PurchaseStatuses.PARTIALLY_STORED
+        else:
+            item.status = PurchaseStatuses.STORED
+        item.save()
+    except Exception as ex:
+        print(ex)
+
+def update_inventory(item):
+    try:
+        product = Product.objects.get(pk=item.product, created_by=item.created_by)
+
+        #update stored inventory
+        conv_ratio = get_conversion_ratio(item.product, item.unit, product.unit, item.created_by) if item.unit != product.unit else 1
+        product.current_stock += (item.quantity - item._original_quantity) * conv_ratio
+        product.save()
+
+        #update stock in equipment
+         
+         
     except Exception as ex:
         print(ex)
 

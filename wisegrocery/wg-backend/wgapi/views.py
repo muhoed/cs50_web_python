@@ -100,7 +100,7 @@ class CookingPlanViewSet(viewsets.ModelViewSet):
         serializer.save(creaated_by=self.request.user)
 
 class PurchaseViewSet(viewsets.ModelViewSet):
-    queryset = Purchase.objects.prefetch_related('PurchaseItemSet')
+    queryset = Purchase.objects.prefetch_related('purchaseitem_set')
     serializer_class = PurchaseSerializer
     permission_classes = [IsAuthenticated, IsOwner]
     filterset_class = PurchaseFilterSet
