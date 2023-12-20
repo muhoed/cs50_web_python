@@ -127,7 +127,6 @@ class Product(models.Model):
         blank=True, null=True, db_column="Prod_Min_Stock"
         )
     unit = models.IntegerField(choices=wg_enumeration.VolumeUnits.choices, blank=False, null=False, db_column="Prod_Min_Unit")
-    current_stock = models.FloatField(blank=True, null=True, db_column="Prod_Current_Stock")
 
     min_tempreture = models.FloatField(help_text=_("Minimal storing tempreture"), blank=False, null=False, db_column="Prod_Min_Temp")
     max_tempreture = models.FloatField(help_text=_("Maximum storing tempreture"), blank=False, null=False, db_column="Prod_Max_Temp")
@@ -233,7 +232,9 @@ class PurchaseItem(models.Model):
     def from_db(cls, db, field_names, values):
         instance = super().from_db(db, field_names, values)
         #save initial quantity to update related entities on save
-        instance._original_quantity = dict(zip(field_names, (value for value in values if value is not models.DEFERRED)))['quantity']
+        original_values = dict(zip(field_names, (value for value in values if value is not models.DEFERRED)))
+        instance._original_quantity = original_values['quantity']
+        instance._original_unit = original_values['unit']
         return instance
 
     def __str__(self):
@@ -245,7 +246,6 @@ class StockItem(models.Model):
     equipment = models.ForeignKey(Equipment, on_delete=models.CASCADE, blank=False, null=False, db_column="StkItem_Equip", db_index=True)
     unit = models.IntegerField(choices=wg_enumeration.VolumeUnits.choices, blank=False, null=False, db_column="StkItem_Unit")
     volume = models.FloatField(blank=False, null=False, db_column="StkItem_Volume")
-    initial_volume = models.FloatField(blank=False, null=False, db_column="StkItem_Init_Volume")
     use_till = models.DateField(
         blank=False, null=False, default=datetime.datetime.now()+datetime.timedelta(days=7), 
         db_column="StkItem_Use_Till_Date", db_index=True
@@ -258,10 +258,6 @@ class StockItem(models.Model):
     created_on = models.DateTimeField(auto_now_add=True, db_column="StkItem_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="StkItem_Updated_On")
     created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="StkItem_Created_By")
-
-    def save(self, *args, **kwargs):
-        if self.initial_volume is None:
-            self.initial_volume = self.volume
 
     def __str__(self):
         return f'{self.volume}{self.unit} of {self.product.name} stored at {self.equipment.name}.'

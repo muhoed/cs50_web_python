@@ -53,7 +53,7 @@ def stockitem_handler(sender, instance, created, update_fields, **kwargs):
             store_purchased_item(instance)
         except Exception as e:
             print(e)
-    if not 'created' and 'quantity' in update_fields:
+    if not 'created' and ('quantity' or 'unit' in update_fields):
         try:
             update_inventory(instance)
         except Exception as e:

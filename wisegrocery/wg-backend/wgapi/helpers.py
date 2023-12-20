@@ -28,19 +28,14 @@ def send_notification(object, type, email):
 
 def store_purchased_item(item):
     try:
-        product = Product.objects.get(pk=item.product, created_by=item.created_by)
-
-        # increate current stock
-        conv_ratio = get_conversion_ratio(product.pk, item.unit, product.unit, item.created_by) if item.unit != product.unit else 1
-        product.current_stock += item.quantity * conv_ratio
-
         # place into suitable equipemnt
+        product = Product.objects.get(pk=item.product, created_by=item.created_by)
         equipment = Equipment.objects.filter(
                 min_tempreture__gte=product.min_tempreture,
                 max_tempreture__lte=product.max_tempreture,
                 free_space__gt=0,
                 created_by=item.created_by
-            ).prefetch_related('stockitem_set').order_by('-free_space')
+            ).prefetch_related('stockitem_set').order_by('free_space')
         if item.unit != VolumeUnits.LITER:
             conv_ratio = get_conversion_ratio(product.pk, item.unit, VolumeUnits.LITER, item.created_by)
         quantity = item.quantity
@@ -100,15 +95,28 @@ def store_purchased_item(item):
 
 def update_inventory(item):
     try:
-        product = Product.objects.get(pk=item.product, created_by=item.created_by)
+        #update stock in equipmentif item.unit != VolumeUnits.LITER:
+        eq_conv_ratio = get_conversion_ratio(item.product, item.unit, VolumeUnits.LITER, item.created_by) if item.unit != VolumeUnits.LITER else 1
+        conv_ratio = get_conversion_ratio(item.product, item._orig_unit, item.unit, item.created_by) if item._orig_unit != item.unit else 1
+        
+        quantity_change = item._original_quantity * conv_ratio - item.quantity
+        
+        purchased_product_stock = StockItem.objects.filter(
+                                                        purchase_item=item,
+                                                        created_by=item.created_by
+                                                    ).prefetch_related(
+                                                        'equipment'
+                                                    ).order_by('-created_by')
+        for stock_item in purchased_product_stock:
+            conv_ratio = get_conversion_ratio(item.product, item.unit, stock_item.unit, item.created_by) if item.unit != stock_item.unit else 1
+            if quantity_change < 0 and stock_item.volume >= abs(quantity_change) * conv_ratio:
+                stock_item.volume += quantity_change * conv_ratio
+                stock_item.equipment.free_space -= quantity_change * eq_conv_ratio
+                stock_item.equipment.save()
+                stock_item.save()
+            elif quantity_change < 0 and stock_item.volume < abs(quantity_change) * conv_ratio:
+                stock_item.equipment.free_space += stock_item.volume / conv_ratio * eq_conv_ratio
 
-        #update stored inventory
-        conv_ratio = get_conversion_ratio(item.product, item.unit, product.unit, item.created_by) if item.unit != product.unit else 1
-        product.current_stock += (item.quantity - item._original_quantity) * conv_ratio
-        product.save()
-
-        #update stock in equipment
-         
          
     except Exception as ex:
         print(ex)
