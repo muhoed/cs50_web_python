@@ -196,6 +196,7 @@ class CookingPlan(models.Model):
         choices=wg_enumeration.CookPlanStatuses.choices, blank=False, null=False, 
         default=wg_enumeration.CookPlanStatuses.ENTERED, db_column="CookPlan_Status"
         )
+    note = models.TextField(max_length=5000, blank=True, null=True, db_column="CookPlan_Note")
     
     created_on = models.DateTimeField(auto_now_add=True, db_column="CookPlan_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="CookPlan_Updated_On")
@@ -209,6 +210,7 @@ class Purchase(models.Model):
     #shop_plan = models.ForeignKey('ShoppingPlan', on_delete=models.SET_NULL, blank=True, null=True, db_column="Purchase_ShoppingPlan")
     store = models.CharField(max_length=100, blank=True, null=True, db_column="Purchase_Store", db_index=True)
     total_amount = models.DecimalField(decimal_places=2, max_digits=10, blank=True, null=True, db_column="Purchase_TotalAmount")
+    note = models.TextField(max_length=5000, blank=True, null=True, db_column="Purchase_Note")
 
     created_on = models.DateTimeField(db_index=True, auto_now_add=True, db_column="Purchase_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="Purchase_Updated_On")
@@ -216,7 +218,7 @@ class Purchase(models.Model):
 
 class PurchaseItem(models.Model):
     purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE, db_index=True, blank=True, null=True, db_column="PurchItem_Purchase")
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, db_index=True, blank=False, null=False, db_column="PurchItem_Product")
+    product = models.ForeignKey(Product, on_delete=models.RESTRICT, db_index=True, blank=False, null=False, db_column="PurchItem_Product")
     unit = models.IntegerField(choices=wg_enumeration.VolumeUnits.choices, blank=False, null=False, db_column="PurchItem_Unit")
     quantity = models.FloatField(blank=False, null=False, validators=[MinValueValidator(0)], db_column="PurchItem_Qty")
     price = models.DecimalField(decimal_places=2, max_digits=10, blank=True, null=True, validators=[MinValueValidator(0)], db_column="PurchItem_Price")
@@ -277,6 +279,23 @@ class StockItem(models.Model):
 
 #     def __str__(self):
 #         return f'Shopping plan for {self.date}'
+    
+class Consumption(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.RESTRICT, db_index=True, blank=False, null=False, db_column="Consumption_Product")
+    cooking_plan = models.ForeignKey(CookingPlan, on_delete=models.SET_NULL, db_index=True, blank=True, null=True, db_column="Consumption_CookingPlan")
+    recipe_product = models.ForeignKey(RecipeProduct, on_delete=models.SET_NULL, db_index=True, blank=True, null=True, db_column="Consumption_RecipeProduct")
+    date = models.DateField(blank=False, null=False, db_column="Consumption_Date", db_index=True)
+    type = models.IntegerField(
+        choices=wg_enumeration.ConsumptionTypes.choices, default=wg_enumeration.ConsumptionTypes.COOKED,
+        blank=False, null=False, db_column="Consumption_Type"
+        )
+    unit = models.IntegerField(choices=wg_enumeration.VolumeUnits.choices, blank=False, null=False, db_column="Consumption_Unit")
+    quantity = models.FloatField(blank=False, null=False, db_column="Consumption_Quantity")
+    note = models.TextField(max_length=5000, blank=True, null=True, db_column="Consumption_Note")
+
+    created_on = models.DateTimeField(db_index=True, auto_now_add=True, db_column="Consumption_Created_On")
+    updated_on = models.DateTimeField(auto_now=True, db_column="Consumption_Updated_On")
+    created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="Consumption_Created_By")
 
 class ConversionRule(models.Model):
     name = models.CharField(max_length=50, blank=False, null=False, unique=True, db_column="ConvRule_Name")

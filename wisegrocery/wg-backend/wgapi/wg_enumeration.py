@@ -83,6 +83,11 @@ class EXPIRED_ACTIONS(models.IntegerChoices):
     ALLOW = 1, _('Allow')
     PROLONG = 2, _('Prolong')
 
+class ConsumptionTypes(models.IntegerChoices):
+    COOKED = 0, _('Cooked')
+    TRASHED = 1, _('Trashed')
+    OTHER = 2, _('Other')
+
 class NotificationTypes(models.IntegerChoices):
     EXPIRATION = 0, _('Expiration')
     OUTAGE = 1, _('Outage')

@@ -50,7 +50,7 @@ def stockitem_status_handler(sender, instance, update_fields, **kwargs):
 def stockitem_handler(sender, instance, created, update_fields, **kwargs):
     if 'created':
         try:
-            store_purchased_item(instance)
+            store_purchased_item(instance, instance.quantity)
         except Exception as e:
             print(e)
     if not 'created' and ('quantity' or 'unit' in update_fields):

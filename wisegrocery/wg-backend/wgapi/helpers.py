@@ -26,7 +26,7 @@ def send_notification(object, type, email):
         pass
     pass
 
-def store_purchased_item(item):
+def store_purchased_item(item, quantity):
     try:
         # place into suitable equipemnt
         product = Product.objects.get(pk=item.product, created_by=item.created_by)
@@ -38,7 +38,6 @@ def store_purchased_item(item):
             ).prefetch_related('stockitem_set').order_by('free_space')
         if item.unit != VolumeUnits.LITER:
             conv_ratio = get_conversion_ratio(product.pk, item.unit, VolumeUnits.LITER, item.created_by)
-        quantity = item.quantity
         # first try to put purchased item to equipment where similar items are already stored
         for e in equipment:
             capacity = e.free_space / conv_ratio
@@ -107,17 +106,30 @@ def update_inventory(item):
                                                     ).prefetch_related(
                                                         'equipment'
                                                     ).order_by('-created_by')
-        for stock_item in purchased_product_stock:
-            conv_ratio = get_conversion_ratio(item.product, item.unit, stock_item.unit, item.created_by) if item.unit != stock_item.unit else 1
-            if quantity_change < 0 and stock_item.volume >= abs(quantity_change) * conv_ratio:
-                stock_item.volume += quantity_change * conv_ratio
-                stock_item.equipment.free_space -= quantity_change * eq_conv_ratio
-                stock_item.equipment.save()
-                stock_item.save()
-            elif quantity_change < 0 and stock_item.volume < abs(quantity_change) * conv_ratio:
-                stock_item.equipment.free_space += stock_item.volume / conv_ratio * eq_conv_ratio
+        # do nothing if quantity wasn't changed
+        if quantity_change == 0:
+            return
+        # decrease stored quantity if purchased quantity was reduced
+        if quantity_change < 0:
+            for stock_item in purchased_product_stock:
+                conv_ratio = get_conversion_ratio(item.product, item.unit, stock_item.unit, item.created_by) if item.unit != stock_item.unit else 1
+                if quantity_change < 0 and stock_item.volume >= abs(quantity_change) * conv_ratio:
+                    stock_item.volume += quantity_change * conv_ratio
+                    stock_item.equipment.free_space -= quantity_change * eq_conv_ratio
+                    stock_item.equipment.save()
+                    stock_item.save()
+                    break
+                elif quantity_change < 0 and stock_item.volume < abs(quantity_change) * conv_ratio:
+                    stock_item.equipment.free_space += stock_item.volume / conv_ratio * eq_conv_ratio
+                    stock_item.equipment.save()
+                    quantity_change = quantity_change + stock_item.volume / conv_ratio
+                    stock_item.delete()
+            if quantity_change != 0:
+                raise Exception('Stored quantity of the product can not be negative.')
+        else:
+            # store additional quantity
+            store_purchased_item(item, quantity_change)
 
-         
     except Exception as ex:
         print(ex)
 
