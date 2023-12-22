@@ -123,6 +123,7 @@ def post_inventory(item: object, quantity: float) -> None:
                 item.status = PurchaseStatuses.STORED
             item.save()
         else:
+            # implementation of consumption post to inventory
             #  TODO
             raise Exception('Not implemented')
     except Exception as ex:
@@ -187,8 +188,23 @@ def update_inventory_record(item: object) -> None:
             if quantity_change != 0:
                 raise Exception('Stored quantity of the product can not be negative.')
         else:
-            # store additional quantity
-            post_inventory(item, quantity_change)
+            if type == 1:
+                post_inventory(item, quantity_change)
+            else:
+                # create Purchase of balance / correction type with respective PurchaseItem to store additional quantity
+                # post to inventory will be triggered in post_save signal of PurchaseItem instance
+                new_purchase = Purchase.objects.create(
+                    date = item.date,
+                    type = PurchaseTypes.BALANCE,
+                    note = 'System purchase created to correct inventory balance due to reducing of quantity on an existing Consumption record.'
+                )
+                PurchaseItem.objects.create(
+                    purchase = new_purchase,
+                    product = item.product,
+                    unit = item.unit,
+                    quantity = quantity_change,
+                    status = PurchaseStatuses.MOVED
+                )
 
     except Exception as ex:
         print(ex)

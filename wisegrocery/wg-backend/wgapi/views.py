@@ -127,7 +127,7 @@ class PurchaseItemViewSet(viewsets.ModelViewSet):
 #         serializer.save(creaated_by=self.request.user)
 
 class ConsumptionViewSet(viewsets.ModelViewSet):
-    queryset = Consumption.objects.prefetch_related('purchase', 'product')
+    queryset = Consumption.objects.prefetch_related('purchase', 'product', 'stock_items')
     serializer_class = ConsumptionSerializer
     permission_classes = [IsAuthenticated, IsOwner]
     filterset_class = ConsumptionFilterSet

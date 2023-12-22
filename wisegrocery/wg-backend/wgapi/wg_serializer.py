@@ -181,10 +181,12 @@ class PurchaseItemSerializer(PartialUpdateModelSerializer):
 #         depth = 1
 
 class ConsumptionSerializer(PartialUpdateModelSerializer):
+    stock_items = StockItemSetField(many=True, read_only=True)
     class Meta:
         model = Consumption
         fields = [
-            'product', 'cooking_plan', 'recipe_product', 'date', 'typy', 'unit', 'quantity', 'note', 'created_on', 'updated_on'
+            'product', 'cooking_plan', 'recipe_product', 'stock_items', 'date', 'typy', 'unit', 'quantity', 
+            'note', 'created_on', 'updated_on'
             ]
         read_only_fields = ['created_on', 'updated_on']
         depth = 1
