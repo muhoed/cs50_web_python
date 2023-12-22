@@ -34,28 +34,41 @@ def stockitem_handler(sender, instance, created, update_fields, **kwargs):
         except Exception as e:
             print(e)
 
-    if created:
-        try:
-            handle_stock_change(instance, instance.volume)
-        except Exception as e:
-            print(e)
-
-@receiver(pre_save, sender=StockItem)
-def stockitem_status_handler(sender, instance, update_fields, **kwargs):
-    if 'status' in update_fields and instance.status in [STOCK_STATUSES.COOKED, STOCK_STATUSES.WASTED]:
-        handle_stock_change(instance, -instance.volume)
-        instance.volume = 0
+    # if created:
+    #     try:
+    #         handle_stock_change(instance, instance.volume)
+    #     except Exception as e:
+    #         print(e)
 
 @receiver(post_save, sender=PurchaseItem)
-def stockitem_handler(sender, instance, created, update_fields, **kwargs):
+def purchaseitem_handler(sender, instance, created, update_fields, **kwargs):
     if 'created':
         try:
-            store_purchased_item(instance, instance.quantity)
+            post_inventory(instance, instance.quantity)
         except Exception as e:
             print(e)
     if not 'created' and ('quantity' or 'unit' in update_fields):
         try:
-            update_inventory(instance)
+            update_inventory_record(instance)
+        except Exception as e:
+            print(e)
+
+@receiver(post_save, sender=Consumption)
+def consumption_handler(sender, instance, created, update_fields, **kwargs):
+    if 'created':
+        try:
+            post_inventory(instance, instance.quantity)
+            if instance.type == ConsumptionTypes.TRASHED and instance.stock_item != None:
+                config = Config.objects.get(created_by=instance.created_by)
+                stock_item = StockItem.objects.get(pk=instance.stock_item)
+                send_notification(stock_item, NotificationTypes.TRASH, config.notify_by_email)
+                stock_item.delete()
+        except Exception as e:
+            print(e)
+            
+    if not 'created' and ('quantity' or 'unit' in update_fields):
+        try:
+            update_inventory_record(instance)
         except Exception as e:
             print(e)
 

@@ -73,10 +73,8 @@ class PurchaseStatuses(models.IntegerChoices):
 
 class STOCK_STATUSES(models.IntegerChoices):
     ACTIVE = 0, _('Active')
-    COOKED = 1, _('Cooked')
-    EXPIRED = 2, _('Expired')
-    WASTED = 3, _('Wasted')
-    NOTPLACED = 4, _('Not placed')
+    EXPIRED = 1, _('Expired')
+    NOTPLACED = 3, _('Not placed')
 
 class EXPIRED_ACTIONS(models.IntegerChoices):
     TRASH = 0, _('Trash')
@@ -88,11 +86,15 @@ class ConsumptionTypes(models.IntegerChoices):
     TRASHED = 1, _('Trashed')
     OTHER = 2, _('Other')
 
+class PurchaseTypes(models.IntegerChoices):
+    PURCHASE = 0, _('Purchase')
+    BALANCE = 1, _('Balance entry / correction')
+
 class NotificationTypes(models.IntegerChoices):
     EXPIRATION = 0, _('Expiration')
     OUTAGE = 1, _('Outage')
-    PURCHASEPLAN = 2, _('Purchase plan generated')
-    SHOPPINGPLAN = 3, _('Shopping plan generated')
+    TRASH = 2, _('Stock item trashed')
+    SHOPPINGPLAN = 3, _('Cooking plan generated')
 
 class CookPlanStatuses(models.IntegerChoices):
     ENTERED = 0, _('Entered')

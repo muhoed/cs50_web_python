@@ -6,27 +6,57 @@ from .models import *
 from .wg_enumeration import *
 
 
-def handle_stock_change(stock_item, quantity):
-    product = Product.objects.get(pk=stock_item.product, created_by=stock_item.created_by)
-    equipment = Equipment.objects.get(pk=stock_item.equipment, created_by=stock_item.created_by)
-    if stock_item.unit != product.unit:
-        prod_conv_ratio = get_conversion_ratio(product.pk, stock_item.unit, product.unit, stock_item.created_by)
-    if stock_item.unit != VolumeUnits.LITER:
-        equip_conv_ratio = get_conversion_ratio(stock_item.product, stock_item.unit, VolumeUnits.LITER, stock_item.created_by)
-    product.current_stock += quantity * prod_conv_ratio
-    product.save()
-    equipment.free_space -= quantity * equip_conv_ratio
-    equipment.save()
+# def handle_stock_change(stock_item, quantity):
+#     product = Product.objects.get(pk=stock_item.product, created_by=stock_item.created_by)
+#     equipment = Equipment.objects.get(pk=stock_item.equipment, created_by=stock_item.created_by)
+#     if stock_item.unit != product.unit:
+#         prod_conv_ratio = get_conversion_ratio(product.pk, stock_item.unit, product.unit, stock_item.created_by)
+#     if stock_item.unit != VolumeUnits.LITER:
+#         equip_conv_ratio = get_conversion_ratio(stock_item.product, stock_item.unit, VolumeUnits.LITER, stock_item.created_by)
+#     product.current_stock += quantity * prod_conv_ratio
+#     product.save()
+#     equipment.free_space -= quantity * equip_conv_ratio
+#     equipment.save()
 
-def send_notification(object, type, email):
+def send_notification(item: object, type: NotificationTypes, send_email: bool) -> None:
+    """Creates new stock item(s) on Purchase or after existing PurchaseItem or Consumption record 
+    modification led to increase of inventory.
+
+    Parameters
+    ----------
+    item : object
+        instance of class triggered notification
+    type : NotificationTypes
+        enumeration value of notification type
+    send_email : bool
+        flag triggering email notification
+
+    Returns
+    -------
+    None
+    """
     # TODO: logic to send push notification or message through websocket
 
-    if email:
+    if send_email:
         # TODO: logic to senf notification by 
         pass
     pass
 
-def store_purchased_item(item, quantity):
+def post_inventory(item: object, quantity: float) -> None:
+    """Creates new stock item(s) on Purchase or after existing PurchaseItem or Consumption record 
+    modification led to increase of inventory.
+
+    Parameters
+    ----------
+    item : object
+        instance of PurchaseItem or Consumption class
+    quantity : float
+        quantity of Item product to be stored
+
+    Returns
+    -------
+    None
+    """
     try:
         # place into suitable equipemnt
         product = Product.objects.get(pk=item.product, created_by=item.created_by)
@@ -38,80 +68,110 @@ def store_purchased_item(item, quantity):
             ).prefetch_related('stockitem_set').order_by('free_space')
         if item.unit != VolumeUnits.LITER:
             conv_ratio = get_conversion_ratio(product.pk, item.unit, VolumeUnits.LITER, item.created_by)
-        # first try to put purchased item to equipment where similar items are already stored
-        for e in equipment:
-            capacity = e.free_space / conv_ratio
-            if e.stockitem_set.filter(product=product).exists():
-                new_stock_item = StockItem.objects.create(
-                    product = product,
-                    equipment = e,
-                    unit = item.unit,
-                    volume = quantity if capacity >= quantity else capacity
-                )
-                quantity -= new_stock_item.volume
-                e.free_space = e.free_space - quantity * conv_ratio if capacity >= quantity else 0
-                e.save()
-            if quantity == 0:
-                break
-        # if some quantity still not stored, try to put it into suitable equipment with free space
-        if quantity > 0:
-            # we need to retrieve equipment again to get current free space
-            # we also do not need stored stock items info anymore
-            equipment = Equipment.objects.filter(
-                    min_tempreture__gte=product.min_tempreture,
-                    max_tempreture__lte=product.max_tempreture,
-                    free_space__gt=0,
-                    created_by=item.created_by
-                ).order_by('free_space')
+        
+        # handle purchase
+        if isinstance(item, Purchase):
+            # first try to put purchased item to equipment where similar items are already stored
             for e in equipment:
                 capacity = e.free_space / conv_ratio
-                new_stock_item = StockItem.objects.create(
-                    product = product,
-                    equipment = e,
-                    unit = item.unit,
-                    volume = quantity if capacity >= quantity else capacity
-                )
-                quantity -= new_stock_item.volume
-                e.free_space = e.free_space - quantity * conv_ratio if capacity >= quantity else 0
-                e.save()
+                if e.stockitem_set.filter(product=product).exists():
+                    new_stock_item = StockItem.objects.create(
+                        product = product,
+                        equipment = e,
+                        unit = item.unit,
+                        volume = quantity if capacity >= quantity else capacity
+                    )
+                    quantity -= new_stock_item.volume
+                    e.free_space = e.free_space - quantity * conv_ratio if capacity >= quantity else 0
+                    e.save()
                 if quantity == 0:
                     break
-        # if some quantity not stored even now, store it with NOTPLACED status for further manual alocation
-        if quantity > 0:
-            new_stock_item = StockItem.objects.create(
-                    product = product,
-                    equipment = e,
-                    unit = item.unit,
-                    volume = quantity,
-                    status = STOCK_STATUSES.NOTPLACED
-                )
-            item.status = PurchaseStatuses.PARTIALLY_STORED
+            # if some quantity still not stored, try to put it into suitable equipment with free space
+            if quantity > 0:
+                # we need to retrieve equipment again to get current free space
+                # we also do not need stored stock items info anymore
+                equipment = Equipment.objects.filter(
+                        min_tempreture__gte=product.min_tempreture,
+                        max_tempreture__lte=product.max_tempreture,
+                        free_space__gt=0,
+                        created_by=item.created_by
+                    ).order_by('free_space')
+                for e in equipment:
+                    capacity = e.free_space / conv_ratio
+                    new_stock_item = StockItem.objects.create(
+                        product = product,
+                        equipment = e,
+                        unit = item.unit,
+                        volume = quantity if capacity >= quantity else capacity
+                    )
+                    quantity -= new_stock_item.volume
+                    e.free_space = e.free_space - quantity * conv_ratio if capacity >= quantity else 0
+                    e.save()
+                    if quantity == 0:
+                        break
+            # if some quantity not stored even now, store it with NOTPLACED status for further manual alocation
+            if quantity > 0:
+                new_stock_item = StockItem.objects.create(
+                        product = product,
+                        equipment = e,
+                        unit = item.unit,
+                        volume = quantity,
+                        status = STOCK_STATUSES.NOTPLACED
+                    )
+                item.status = PurchaseStatuses.PARTIALLY_STORED
+            else:
+                item.status = PurchaseStatuses.STORED
+            item.save()
         else:
-            item.status = PurchaseStatuses.STORED
-        item.save()
+            #  TODO
+            raise Exception('Not implemented')
     except Exception as ex:
         print(ex)
 
-def update_inventory(item):
+def update_inventory_record(item: object) -> None:
+    """Updates or creates new stock item(s) after existing PurchaseItem or Consumption record was modified.
+
+    Parameters
+    ----------
+    item : object
+        instance of PurchaseItem or Consumption class
+
+    Returns
+    -------
+    None
+    """
+    type = 1
+    if isinstance(item, Consumption):
+        type = 2
+
     try:
         #update stock in equipmentif item.unit != VolumeUnits.LITER:
         eq_conv_ratio = get_conversion_ratio(item.product, item.unit, VolumeUnits.LITER, item.created_by) if item.unit != VolumeUnits.LITER else 1
-        conv_ratio = get_conversion_ratio(item.product, item._orig_unit, item.unit, item.created_by) if item._orig_unit != item.unit else 1
+        conv_ratio = get_conversion_ratio(item.product, item._original_unit, item.unit, item.created_by) if item._original_unit != item.unit else 1
         
-        quantity_change = item._original_quantity * conv_ratio - item.quantity
+        quantity_change = (item.quantity - item._original_quantity * conv_ratio) if type == 1 else (item._original_quantity * conv_ratio - item.quantity)
         
-        purchased_product_stock = StockItem.objects.filter(
-                                                        purchase_item=item,
-                                                        created_by=item.created_by
-                                                    ).prefetch_related(
-                                                        'equipment'
-                                                    ).order_by('-created_by')
+        if type == 1:
+            product_stock = StockItem.objects.filter(
+                                                    purchase_item=item,
+                                                    created_by=item.created_by
+                                                ).prefetch_related(
+                                                    'equipment'
+                                                ).order_by('-created_by')
+        else:
+            product_stock = StockItem.objects.filter(
+                                                    purchase_item__product=item.product,
+                                                    created_by=item.created_by
+                                                ).prefetch_related(
+                                                    'equipment'
+                                                ).order_by('-created_by')
+
         # do nothing if quantity wasn't changed
         if quantity_change == 0:
             return
         # decrease stored quantity if purchased quantity was reduced
         if quantity_change < 0:
-            for stock_item in purchased_product_stock:
+            for stock_item in product_stock:
                 conv_ratio = get_conversion_ratio(item.product, item.unit, stock_item.unit, item.created_by) if item.unit != stock_item.unit else 1
                 if quantity_change < 0 and stock_item.volume >= abs(quantity_change) * conv_ratio:
                     stock_item.volume += quantity_change * conv_ratio
@@ -128,7 +188,7 @@ def update_inventory(item):
                 raise Exception('Stored quantity of the product can not be negative.')
         else:
             # store additional quantity
-            store_purchased_item(item, quantity_change)
+            post_inventory(item, quantity_change)
 
     except Exception as ex:
         print(ex)

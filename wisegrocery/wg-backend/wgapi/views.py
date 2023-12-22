@@ -126,6 +126,15 @@ class PurchaseItemViewSet(viewsets.ModelViewSet):
 #     def perform_create(self, serializer):
 #         serializer.save(creaated_by=self.request.user)
 
+class ConsumptionViewSet(viewsets.ModelViewSet):
+    queryset = Consumption.objects.prefetch_related('purchase', 'product')
+    serializer_class = ConsumptionSerializer
+    permission_classes = [IsAuthenticated, IsOwner]
+    filterset_class = ConsumptionFilterSet
+
+    def perform_create(self, serializer):
+        serializer.save(creaated_by=self.request.user)
+
 class ConversionRuleViewSet(viewsets.ModelViewSet):
     queryset = ConversionRule.objects.prefetch_related('products')
     serializer_class = ConversionRuleSerializer

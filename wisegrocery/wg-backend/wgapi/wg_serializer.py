@@ -149,7 +149,7 @@ class RecipeProductSerializer(PartialUpdateModelSerializer):
 class CookingPlanSerializer(PartialUpdateModelSerializer):
     class Meta:
         model = CookingPlan
-        fields = ['date', 'meal', 'persons', 'recipe', 'created_on', 'updated_on']
+        fields = ['date', 'meal', 'persons', 'recipe', 'note', 'created_on', 'updated_on']
         read_only_fields = ['created_on', 'updated_on']
         depth = 1
 
@@ -157,7 +157,7 @@ class PurchaseSerializer(PartialUpdateModelSerializer):
     class Meta:
         model = Purchase
         fields = [
-            'date', 'store', 'total_amount', 'created_on', 
+            'date', 'type', 'store', 'total_amount', 'note', 'created_on', 
             'updated_on'
             ]
         read_only_fields = ['created_on', 'updated_on']
@@ -179,6 +179,15 @@ class PurchaseItemSerializer(PartialUpdateModelSerializer):
 #         fields = ['date', 'note', 'purchaseitem_set', 'status', 'created_on', 'updated_on']
 #         read_only_fields = ['created_on', 'updated_on']
 #         depth = 1
+
+class ConsumptionSerializer(PartialUpdateModelSerializer):
+    class Meta:
+        model = Consumption
+        fields = [
+            'product', 'cooking_plan', 'recipe_product', 'date', 'typy', 'unit', 'quantity', 'note', 'created_on', 'updated_on'
+            ]
+        read_only_fields = ['created_on', 'updated_on']
+        depth = 1
 
 class ConversionRuleSerializer(PartialUpdateModelSerializer):
     products = ConversionRuleProductSetField(many=True, read_only=True)

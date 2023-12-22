@@ -207,7 +207,10 @@ class CookingPlan(models.Model):
 
 class Purchase(models.Model):
     date = models.DateField(blank=False, null=False, db_column="Purchase_Date", db_index=True)
-    #shop_plan = models.ForeignKey('ShoppingPlan', on_delete=models.SET_NULL, blank=True, null=True, db_column="Purchase_ShoppingPlan")
+    type = models.IntegerField(
+        choices=wg_enumeration.PurchaseTypes.choices, default=wg_enumeration.PurchaseTypes.PURCHASE,
+        blank=False, null=False, db_column="Purchase_Type"
+        )
     store = models.CharField(max_length=100, blank=True, null=True, db_column="Purchase_Store", db_index=True)
     total_amount = models.DecimalField(decimal_places=2, max_digits=10, blank=True, null=True, db_column="Purchase_TotalAmount")
     note = models.TextField(max_length=5000, blank=True, null=True, db_column="Purchase_Note")
@@ -217,13 +220,13 @@ class Purchase(models.Model):
     created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="Purchase_Created_By")
 
 class PurchaseItem(models.Model):
-    purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE, db_index=True, blank=True, null=True, db_column="PurchItem_Purchase")
+    purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE, db_index=False, blank=False, null=True, db_column="PurchItem_Purchase")
     product = models.ForeignKey(Product, on_delete=models.RESTRICT, db_index=True, blank=False, null=False, db_column="PurchItem_Product")
     unit = models.IntegerField(choices=wg_enumeration.VolumeUnits.choices, blank=False, null=False, db_column="PurchItem_Unit")
     quantity = models.FloatField(blank=False, null=False, validators=[MinValueValidator(0)], db_column="PurchItem_Qty")
     price = models.DecimalField(decimal_places=2, max_digits=10, blank=True, null=True, validators=[MinValueValidator(0)], db_column="PurchItem_Price")
     status = models.IntegerField(
-            choices=wg_enumeration.PurchaseStatuses.choices, default=wg_enumeration.PurchaseStatuses.TOBUY,
+            choices=wg_enumeration.PurchaseStatuses.choices, default=wg_enumeration.PurchaseStatuses.BOUGHT,
             blank=False, null=False, db_column="PurchItem_Status", db_index=True
         )
     created_on = models.DateTimeField(db_index=True, auto_now_add=True, db_column="PurchItem_Created_On")
@@ -241,7 +244,7 @@ class PurchaseItem(models.Model):
 
     def __str__(self):
         return f'{self.volume}{self.unit} of {self.product.name} \
-            {wg_enumeration.PurchaseStatuses.TOBUY.label if self.status == wg_enumeration.PurchaseStatuses.TOBUY else wg_enumeration.PurchaseStatuses.BOUGHT.label}.'
+            {wg_enumeration.PurchaseStatuses.BOUGHT.label}.'
 
 class StockItem(models.Model):
     purchase_item = models.ForeignKey(PurchaseItem, on_delete=models.CASCADE, blank=False, null=False, db_column="StkItem_Prod", db_index=True)
@@ -284,6 +287,7 @@ class Consumption(models.Model):
     product = models.ForeignKey(Product, on_delete=models.RESTRICT, db_index=True, blank=False, null=False, db_column="Consumption_Product")
     cooking_plan = models.ForeignKey(CookingPlan, on_delete=models.SET_NULL, db_index=True, blank=True, null=True, db_column="Consumption_CookingPlan")
     recipe_product = models.ForeignKey(RecipeProduct, on_delete=models.SET_NULL, db_index=True, blank=True, null=True, db_column="Consumption_RecipeProduct")
+    stock_item = models.ForeignKey(StockItem, on_delete=models.SET_NULL, db_index=True, blank=True, null=True, db_column="Consumption_StockItem")
     date = models.DateField(blank=False, null=False, db_column="Consumption_Date", db_index=True)
     type = models.IntegerField(
         choices=wg_enumeration.ConsumptionTypes.choices, default=wg_enumeration.ConsumptionTypes.COOKED,
@@ -296,6 +300,25 @@ class Consumption(models.Model):
     created_on = models.DateTimeField(db_index=True, auto_now_add=True, db_column="Consumption_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="Consumption_Updated_On")
     created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="Consumption_Created_By")
+
+    @classmethod
+    def from_db(cls, db, field_names, values):
+        instance = super().from_db(db, field_names, values)
+        #save initial quantity to update related entities on save
+        original_values = dict(zip(field_names, (value for value in values if value is not models.DEFERRED)))
+        instance._original_quantity = original_values['quantity']
+        instance._original_unit = original_values['unit']
+        return instance
+
+    def __str__(self):
+        action = ''
+        if self.type == wg_enumeration.ConsumptionTypes.COOKED:
+            action = wg_enumeration.ConsumptionTypes.COOKED.label
+        elif self.type == wg_enumeration.ConsumptionTypes.TRASHED:
+            action = wg_enumeration.ConsumptionTypes.TRASHED.label
+        else:
+            action = 'cunsumed'
+        return f'{self.volume}{self.unit} of {self.product.name} were {action}.'
 
 class ConversionRule(models.Model):
     name = models.CharField(max_length=50, blank=False, null=False, unique=True, db_column="ConvRule_Name")

@@ -20,22 +20,33 @@ def stockitem_expired_handler(data):
 	try:
 		import_django_instance()
 		from django.utils.translation import gettext_lazy as _
-		from wgapi.models import Config, StockItem
+		from wgapi.models import Config, StockItem, Consumption
 		from wgapi.helpers import send_notification
-		from wgapi.wg_enumeration import STOCK_STATUSES, EXPIRED_ACTIONS, NotificationTypes
+		from wgapi.wg_enumeration import STOCK_STATUSES, EXPIRED_ACTIONS, NotificationTypes, ConsumptionTypes
 		
 		instance = StockItem.objects.get(pk=int(data.get('pk')))
 		config = Config.objects.get(created_by=instance.created_by)
 		if config.default_expired_action == EXPIRED_ACTIONS.TRASH:
-			instance.status = STOCK_STATUSES.WASTED
-		elif config.default_expired_action == EXPIRED_ACTIONS.PROLONG:
-			instance.use_till += config.prolong_expired_for
+			# create Consumption record of respective type
+			# stock_item deletion will be triggered by Consumption post_save signal 
+			Consumption.object.create(
+				product = instance.product,
+				stock_item = instance,
+				date = instance.use_till,
+				type = ConsumptionTypes.TRASHED,
+				unit = instance.unit,
+				quantity = instance.volume
+			)
 		else:
-			instance.status = STOCK_STATUSES.EXPIRED
-		instance.save()
-
-		if config.notify_on_expiration:
-			send_notification(instance, NotificationTypes.EXPIRATION, config.notify_by_email)
+			# prolong if allowed
+			if config.default_expired_action == EXPIRED_ACTIONS.PROLONG:
+				instance.use_till += config.prolong_expired_for
+			# otherwise mark as expired 
+			else:
+				instance.status = STOCK_STATUSES.EXPIRED
+				if config.notify_on_expiration:
+					send_notification(instance, NotificationTypes.EXPIRATION, config.notify_by_email)
+			instance.save()
 
 	except instance.DoesNotExist as e1:
 		print(e1)
