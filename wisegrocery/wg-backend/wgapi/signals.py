@@ -62,12 +62,14 @@ def consumption_handler(sender, instance, created, update_fields, **kwargs):
                     
         except Exception as e:
             print(e)
+            raise e
             
     if not 'created' and ('quantity' or 'unit' in update_fields):
         try:
             update_inventory_record(instance)
         except Exception as e:
             print(e)
+            raise e
 
 
 @receiver(post_save, sender=CookingPlan)
@@ -77,6 +79,7 @@ def cookingplan_status_change_handler(sender, instance, update_fields, **kwargs)
             handle_cooking_plan_fulfillment(instance)
         except Exception as e:
             print(e)
+            raise e
 
 @receiver(post_save, sender=Product)
 def product_post_save_handler(sender, instance, created, update_fields, **kwargs):

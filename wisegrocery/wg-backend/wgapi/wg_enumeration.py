@@ -74,7 +74,7 @@ class PurchaseStatuses(models.IntegerChoices):
 class STOCK_STATUSES(models.IntegerChoices):
     ACTIVE = 0, _('Active')
     EXPIRED = 1, _('Expired')
-    NOTPLACED = 3, _('Not placed')
+    NOTPLACED = 2, _('Not placed')
 
 class EXPIRED_ACTIONS(models.IntegerChoices):
     TRASH = 0, _('Trash')

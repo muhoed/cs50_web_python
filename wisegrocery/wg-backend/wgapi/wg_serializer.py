@@ -1,4 +1,5 @@
 from django.contrib.auth.password_validation import validate_password
+from django.db import transaction
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers as rest_serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -121,10 +122,10 @@ class StockItemSerializer(PartialUpdateModelSerializer):
     class Meta:
         model = StockItem
         fields = [
-            'product', 'equipment', 'unit', 'volume', 'initial_volume', 'use_till', 
+            'product', 'equipment', 'unit', 'volume', 'use_till', 
             'status', 'created_on', 'updated_on'
         ]
-        read_only_fields = ['initial_volume', 'created_on', 'updated_on']
+        read_only_fields = ['product', 'unit', 'volume', 'status', 'created_on', 'updated_on']
         depth = 1
 
 class RecipeSerializer(PartialUpdateModelSerializer):
@@ -153,6 +154,14 @@ class CookingPlanSerializer(PartialUpdateModelSerializer):
         read_only_fields = ['created_on', 'updated_on']
         depth = 1
 
+    @transaction.atomic
+    def create(self, validated_data):
+        return super().create(validated_data)
+    
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        return super().update(instance, validated_data)
+
 class PurchaseSerializer(PartialUpdateModelSerializer):
     class Meta:
         model = Purchase
@@ -173,6 +182,14 @@ class PurchaseItemSerializer(PartialUpdateModelSerializer):
         read_only_fields = ['created_on', 'updated_on']
         depth = 1
 
+    @transaction.atomic
+    def create(self, validated_data):
+        return super().create(validated_data)
+    
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        return super().update(instance, validated_data)
+
 # class ShoppingPlanSerializer(PartialUpdateModelSerializer):
 #     class Meta:
 #         model = ShoppingPlan
@@ -190,6 +207,14 @@ class ConsumptionSerializer(PartialUpdateModelSerializer):
             ]
         read_only_fields = ['created_on', 'updated_on']
         depth = 1
+
+    @transaction.atomic
+    def create(self, validated_data):
+        return super().create(validated_data)
+    
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        return super().update(instance, validated_data)
 
 class ConversionRuleSerializer(PartialUpdateModelSerializer):
     products = ConversionRuleProductSetField(many=True, read_only=True)

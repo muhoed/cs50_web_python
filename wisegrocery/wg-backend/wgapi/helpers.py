@@ -1,4 +1,5 @@
 import datetime
+from functools import partial
 from django.db import transaction
 from django.db.models import F, Sum
 from django.template.defaultfilters import slugify
@@ -59,15 +60,11 @@ def check_minimal_stock(product: object) -> bool:
         False - minimal stock requirement not met
     """
     try:
-        config = Config.objects.get(created_by=product.created_by)
         current_stock = StockItem.objects.filter(
-            purchase_item__product=product,
+            purchase_item__product=product.pk,
             created_by=product.created_by
         ).aggregate(Sum('volume'))
         if current_stock <= product.minimal_stock_volume:
-            # send notification
-            if config.notify_on_min_stock:
-                transaction.on_commit(send_notification(product, NotificationTypes.OUTAGE, config.notify_by_email))
             return False
         return True
     except Exception as e:
@@ -88,105 +85,113 @@ def post_inventory(item: object, quantity: float) -> None:
     -------
     None
     """
-    try:
-        product = Product.objects.get(pk=item.product, created_by=item.created_by)
-        to_prod_conv_ratio = get_conversion_ratio(item.product, item.unit, product.unit, item.created_by)
-        # place into suitable equipemnt
-        if item.unit != VolumeUnits.LITER:
-            conv_ratio = get_conversion_ratio(item.product, item.unit, VolumeUnits.LITER, item.created_by)
-        
-        # handle purchase
-        if isinstance(item, Purchase):
+    config = Config.objects.get(created_by=item.created_by)
+    product = Product.objects.get(pk=item.product, created_by=item.created_by)
+    to_prod_conv_ratio = get_conversion_ratio(item.product, item.unit, product.unit, item.created_by)
+    # place into suitable equipemnt
+    if item.unit != VolumeUnits.LITER:
+        conv_ratio = get_conversion_ratio(item.product, item.unit, VolumeUnits.LITER, item.created_by)
+    
+    # handle purchase
+    if isinstance(item, Purchase):
+        equipment = Equipment.objects.filter(
+                min_tempreture__gte=product.min_tempreture,
+                max_tempreture__lte=product.max_tempreture,
+                free_space__gt=0,
+                created_by=item.created_by
+            ).prefetch_related('stockitem_set').order_by('free_space')
+        # first try to put purchased item to equipment where similar items are already stored
+        for e in equipment:
+            capacity = e.free_space / conv_ratio
+            if e.stockitem_set.filter(product=product).exists():
+                new_stock_item = StockItem.objects.create(
+                    product = product,
+                    equipment = e,
+                    unit = item.unit * to_prod_conv_ratio,
+                    volume = (quantity if capacity >= quantity else capacity) * to_prod_conv_ratio
+                )
+                quantity -= new_stock_item.volume / to_prod_conv_ratio
+                e.free_space = e.free_space - quantity * conv_ratio if capacity >= quantity else 0
+                e.save()
+            if quantity == 0:
+                break
+        # if some quantity still not stored, try to put it into suitable equipment with free space
+        if quantity > 0:
+            # we need to retrieve equipment again to get current free space
+            # we also do not need stored stock items info anymore
             equipment = Equipment.objects.filter(
                     min_tempreture__gte=product.min_tempreture,
                     max_tempreture__lte=product.max_tempreture,
                     free_space__gt=0,
                     created_by=item.created_by
-                ).prefetch_related('stockitem_set').order_by('free_space')
-            # first try to put purchased item to equipment where similar items are already stored
+                ).order_by('free_space')
             for e in equipment:
                 capacity = e.free_space / conv_ratio
-                if e.stockitem_set.filter(product=product).exists():
-                    new_stock_item = StockItem.objects.create(
-                        product = product,
-                        equipment = e,
-                        unit = item.unit * to_prod_conv_ratio,
-                        volume = (quantity if capacity >= quantity else capacity) * to_prod_conv_ratio
-                    )
-                    quantity -= new_stock_item.volume / to_prod_conv_ratio
-                    e.free_space = e.free_space - quantity * conv_ratio if capacity >= quantity else 0
-                    e.save()
+                new_stock_item = StockItem.objects.create(
+                    product = product,
+                    equipment = e,
+                    unit = product.unit,
+                    volume = (quantity if capacity >= quantity else capacity) * to_prod_conv_ratio
+                )
+                quantity -= new_stock_item.volume / to_prod_conv_ratio
+                e.free_space = e.free_space - quantity * conv_ratio if capacity >= quantity else 0
+                e.save()
                 if quantity == 0:
                     break
-            # if some quantity still not stored, try to put it into suitable equipment with free space
-            if quantity > 0:
-                # we need to retrieve equipment again to get current free space
-                # we also do not need stored stock items info anymore
-                equipment = Equipment.objects.filter(
-                        min_tempreture__gte=product.min_tempreture,
-                        max_tempreture__lte=product.max_tempreture,
-                        free_space__gt=0,
-                        created_by=item.created_by
-                    ).order_by('free_space')
-                for e in equipment:
-                    capacity = e.free_space / conv_ratio
-                    new_stock_item = StockItem.objects.create(
-                        product = product,
-                        equipment = e,
-                        unit = product.unit,
-                        volume = (quantity if capacity >= quantity else capacity) * to_prod_conv_ratio
-                    )
-                    quantity -= new_stock_item.volume / to_prod_conv_ratio
-                    e.free_space = e.free_space - quantity * conv_ratio if capacity >= quantity else 0
-                    e.save()
-                    if quantity == 0:
-                        break
-            # if some quantity not stored even now, store it with NOTPLACED status for further manual alocation
-            if quantity > 0:
-                new_stock_item = StockItem.objects.create(
-                        product = product,
-                        equipment = e,
-                        unit = product.unit,
-                        volume = quantity * to_prod_conv_ratio,
-                        status = STOCK_STATUSES.NOTPLACED
-                    )
-                item.status = PurchaseStatuses.PARTIALLY_STORED
-            else:
-                item.status = PurchaseStatuses.STORED
-            item.save()
+        # if some quantity not stored even now, store it with NOTPLACED status for further manual alocation
+        if quantity > 0:
+            new_stock_item = StockItem.objects.create(
+                    product = product,
+                    equipment = e,
+                    unit = product.unit,
+                    volume = quantity * to_prod_conv_ratio,
+                    status = STOCK_STATUSES.NOTPLACED
+                )
+            item.status = PurchaseStatuses.PARTIALLY_STORED
         else:
-            # post consumption record to inventory
-            stock_items = StockItem.objects.filter(
-                purchase_item__product = item.product,
-                created_by = item.created_by,
-                status__in = [STOCK_STATUSES.ACTIVE, STOCK_STATUSES.NOTPLACED]
-            ).order_by('created_on')
-            for stock_item in stock_items:
-                if quantity > 0:
-                    conv_ratio1 = get_conversion_ratio(item.product, stock_item.unit, item.unit, item.created_by)
-                    equipment = Equipment.objects.get(pk=stock_item.equipment)
-                    if stock_item.volume * conv_ratio1 <= quantity:
-                        quantity -= quantity - stock_item.volume * conv_ratio1
-                        if equipment != None:
-                            equipment.free_space += stock_item.volume * conv_ratio1 * conv_ratio
-                        if item.type == ConsumptionTypes.TRASHED:
-                            config = Config.objects.get(created_by=item.created_by)
-                            transaction.on_commit(send_notification(stock_item, NotificationTypes.TRASH, config.notify_by_email))
-                        stock_item.delete()
-                    else:
-                        stock_item.volume -= quantity / conv_ratio1
-                        if equipment != None:
-                            equipment.free_space += quantity * conv_ratio
-                        quantity = 0
-                    if equipment != None:
-                        equipment.save()
+            item.status = PurchaseStatuses.STORED
+        item.save()
+    else:
+        # post consumption record to inventory
+        stock_items = StockItem.objects.filter(
+            purchase_item__product = item.product,
+            created_by = item.created_by,
+            status__in = [STOCK_STATUSES.ACTIVE, STOCK_STATUSES.NOTPLACED]
+        ).order_by('created_on')
+        for stock_item in stock_items:
             if quantity > 0:
-                raise Exception('Stored quantity of the product can not be negative.')
-        
-        check_minimal_stock(product)
-
-    except Exception as ex:
-        print(ex)
+                conv_ratio1 = get_conversion_ratio(item.product, stock_item.unit, item.unit, item.created_by)
+                equipment = Equipment.objects.get(pk=stock_item.equipment)
+                if stock_item.volume * conv_ratio1 <= quantity:
+                    quantity -= quantity - stock_item.volume * conv_ratio1
+                    if equipment != None:
+                        equipment.free_space += stock_item.volume * conv_ratio1 * conv_ratio
+                    if item.type == ConsumptionTypes.TRASHED:
+                        transaction.on_commit(partial(
+                            send_notification, 
+                            item=stock_item, 
+                            type=NotificationTypes.TRASH, 
+                            send_email=config.notify_by_email
+                            ))
+                    stock_item.delete()
+                else:
+                    stock_item.volume -= quantity / conv_ratio1
+                    if equipment != None:
+                        equipment.free_space += quantity * conv_ratio
+                    quantity = 0
+                if equipment != None:
+                    equipment.save()
+        if quantity > 0:
+            raise Exception('Stored quantity of the product can not be negative.')
+    
+    if not check_minimal_stock(product) and config.notify_on_min_stock:
+        # send notification
+        transaction.on_commit(partial(
+            send_notification,
+            item=product, 
+            type=NotificationTypes.OUTAGE, 
+            send_email=config.notify_by_email
+            ))
 
 def update_inventory_record(item: object) -> None:
     """Updates or creates new stock item(s) after existing PurchaseItem or Consumption record was modified.
@@ -204,203 +209,216 @@ def update_inventory_record(item: object) -> None:
     if isinstance(item, Consumption):
         type = 2
 
-    try:
-        #update stock in equipmentif item.unit != VolumeUnits.LITER:
-        eq_conv_ratio = get_conversion_ratio(item.product, item.unit, VolumeUnits.LITER, item.created_by) if item.unit != VolumeUnits.LITER else 1
-        conv_ratio = get_conversion_ratio(item.product, item._original_unit, item.unit, item.created_by) if item._original_unit != item.unit else 1
-        
-        quantity_change = (item.quantity - item._original_quantity * conv_ratio) if type == 1 else (item._original_quantity * conv_ratio - item.quantity)
-        
+    #update stock in equipmentif item.unit != VolumeUnits.LITER:
+    eq_conv_ratio = get_conversion_ratio(item.product, item.unit, VolumeUnits.LITER, item.created_by) if item.unit != VolumeUnits.LITER else 1
+    conv_ratio = get_conversion_ratio(item.product, item._original_unit, item.unit, item.created_by) if item._original_unit != item.unit else 1
+    
+    quantity_change = (item.quantity - item._original_quantity * conv_ratio) if type == 1 else (item._original_quantity * conv_ratio - item.quantity)
+    
+    if type == 1:
+        product_stock = StockItem.objects.filter(
+                                                purchase_item=item,
+                                                created_by=item.created_by
+                                            ).prefetch_related(
+                                                'equipment'
+                                            ).order_by('-created_by')
+    else:
+        product_stock = StockItem.objects.filter(
+                                                purchase_item__product=item.product,
+                                                created_by=item.created_by
+                                            ).prefetch_related(
+                                                'equipment'
+                                            ).order_by('-created_by')
+
+    # do nothing if quantity wasn't changed
+    if quantity_change == 0:
+        return
+    # decrease stored quantity if purchased quantity was reduced
+    if quantity_change < 0:
+        for stock_item in product_stock:
+            conv_ratio = get_conversion_ratio(item.product, item.unit, stock_item.unit, item.created_by) if item.unit != stock_item.unit else 1
+            if quantity_change < 0 and stock_item.volume >= abs(quantity_change) * conv_ratio:
+                stock_item.volume += quantity_change * conv_ratio
+                stock_item.equipment.free_space -= quantity_change * eq_conv_ratio
+                stock_item.equipment.save()
+                stock_item.save()
+                break
+            elif quantity_change < 0 and stock_item.volume < abs(quantity_change) * conv_ratio:
+                stock_item.equipment.free_space += stock_item.volume / conv_ratio * eq_conv_ratio
+                stock_item.equipment.save()
+                quantity_change = quantity_change + stock_item.volume / conv_ratio
+                stock_item.delete()
+        if quantity_change != 0:
+            raise Exception('Stored quantity of the product can not be negative.')
+    else:
         if type == 1:
-            product_stock = StockItem.objects.filter(
-                                                    purchase_item=item,
-                                                    created_by=item.created_by
-                                                ).prefetch_related(
-                                                    'equipment'
-                                                ).order_by('-created_by')
+            post_inventory(item, quantity_change)
         else:
-            product_stock = StockItem.objects.filter(
-                                                    purchase_item__product=item.product,
-                                                    created_by=item.created_by
-                                                ).prefetch_related(
-                                                    'equipment'
-                                                ).order_by('-created_by')
+            # create Purchase of balance / correction type with respective PurchaseItem to store additional quantity
+            # post to inventory will be triggered in post_save signal of PurchaseItem instance
+            new_purchase = Purchase.objects.create(
+                date = item.date,
+                type = PurchaseTypes.BALANCE,
+                note = 'System purchase created to correct inventory balance due to reducing of quantity on an existing Consumption record.'
+            )
+            PurchaseItem.objects.create(
+                purchase = new_purchase,
+                product = item.product,
+                unit = item.unit,
+                quantity = quantity_change,
+                status = PurchaseStatuses.MOVED
+            )
 
-        # do nothing if quantity wasn't changed
-        if quantity_change == 0:
-            return
-        # decrease stored quantity if purchased quantity was reduced
-        if quantity_change < 0:
-            for stock_item in product_stock:
-                conv_ratio = get_conversion_ratio(item.product, item.unit, stock_item.unit, item.created_by) if item.unit != stock_item.unit else 1
-                if quantity_change < 0 and stock_item.volume >= abs(quantity_change) * conv_ratio:
-                    stock_item.volume += quantity_change * conv_ratio
-                    stock_item.equipment.free_space -= quantity_change * eq_conv_ratio
-                    stock_item.equipment.save()
-                    stock_item.save()
-                    break
-                elif quantity_change < 0 and stock_item.volume < abs(quantity_change) * conv_ratio:
-                    stock_item.equipment.free_space += stock_item.volume / conv_ratio * eq_conv_ratio
-                    stock_item.equipment.save()
-                    quantity_change = quantity_change + stock_item.volume / conv_ratio
-                    stock_item.delete()
-            if quantity_change != 0:
-                raise Exception('Stored quantity of the product can not be negative.')
-        else:
-            if type == 1:
-                post_inventory(item, quantity_change)
-            else:
-                # create Purchase of balance / correction type with respective PurchaseItem to store additional quantity
-                # post to inventory will be triggered in post_save signal of PurchaseItem instance
-                new_purchase = Purchase.objects.create(
-                    date = item.date,
-                    type = PurchaseTypes.BALANCE,
-                    note = 'System purchase created to correct inventory balance due to reducing of quantity on an existing Consumption record.'
-                )
-                PurchaseItem.objects.create(
-                    purchase = new_purchase,
-                    product = item.product,
-                    unit = item.unit,
-                    quantity = quantity_change,
-                    status = PurchaseStatuses.MOVED
-                )
+def handle_cooking_plan_fulfillment(obj: object) -> None:
+    """Creates Consumption records after Cooking Plan was marked as fulfilled.
 
-    except Exception as ex:
-        print(ex)
+    Parameters
+    ----------
+    obj : object
+        instance of CookingPlan class
 
-def handle_cooking_plan_fulfillment(obj):
-    # handle stock of products used in cooked plan fulfillment
+    Returns
+    -------
+    None
+    """
     for recipe in obj.recipes.all():
-        for prod_recipe in recipe.recipeproduct_set.all():
-            quantity = prod_recipe.volume
-            stockitems = StockItem.objects.filter(
-                    product=prod_recipe.product
-                ).order_by('created_on')
-            for item in stockitems:
-                if prod_recipe.unit != item.unit:
-                    ratio = get_conversion_ratio(prod_recipe.product, prod_recipe.unit, item.unit, item.created_by)
-                if item.volume <= quantity * ratio:
-                    item.status = STOCK_STATUSES.COOKED
-                    quantity -= item.volume
-                else:
-                    update_inventory_record(item, quantity * ratio)
-                    quantity = 0
-                    item.volume -= quantity * ratio
-                item.save()
-                if quantity == 0:
-                    break
+        for recipe_prod in recipe.recipeproduct_set.all():
+            Consumption.objects.create(
+                product = recipe_prod.product,
+                cooking_plan = obj,
+                recipe_product = recipe_prod,
+                date = datetime.datetime.now(),
+                type = ConsumptionTypes.COOKED,
+                unit = recipe_prod.unit,
+                quantity = recipe_prod.volume
+            )
 
-def generate_shopping_plan(config):
-    all_products = Product.objects.filter(created_by=config.created_by)
-    # get shopping plans in Entered or Partially fulfilled status to avoid duplicates
-    open_shop_plans = ShoppingPlan.objects.filter(
-        created_by=config.created_by, 
-        status__in=[ShopPlanStatuses.ENTERED, ShopPlanStatuses.PARTIALLY_FULFILLED]
-        ).prefetch_related('purchaseitem_set')
-    # get active cooking plans if Base on cooking plans option enabled
-    open_cook_plans = None
-    if config.base_shop_plan_on_cook_plan:
-        open_cook_plans = CookingPlan.objects.filter(created_by=config.created_by, status=CookPlanStatuses.ENTERED)
-    # get consumed product quantities if Base on historic data option is enabled
-    consumed_stock_items = None
-    if config.base_shop_plan_on_historic_data:
-        consumed_stock_items = StockItem.objects.filter(
-                created_by=config.created_by,
-                created_on__gte=datetime.now()-config.historic_period
-            ).exclude(volume=F('initial_volume'))
-    # dictionary to keep products for purchase
-    needed_products = {}
-    # calculate needed products' quantities based on cook.plans if enabled
-    if open_cook_plans:
-        for plan in open_cook_plans:
-            for recipe in plan.recipes.all():
-                for rec_prod in recipe.recipeproduct_set.all():
-                    prod = all_products.get(pk=rec_prod.pk)
-                    if rec_prod.unit != prod.unit:
-                        conv_ratio = get_conversion_ratio(prod.pk, rec_prod.unit, prod.unit, rec_prod.created_by)
-                    if rec_prod.pk not in needed_products.keys():
-                        needed_products[rec_prod.pk] = rec_prod.volume * conv_ratio
-                    else:
-                        needed_products[rec_prod.pk] += rec_prod.volume * conv_ratio
-    # calculate needed products' quantities based on hist.data if enabled
-    consumed_totals_per_product = {}
-    if consumed_stock_items:
-        for item in consumed_stock_items:
-            prod = all_products.get(pk=item.product)
-            if item.unit != prod.unit:
-                conv_ratio = get_conversion_ratio(prod.pk, item.unit, prod.unit, item.created_by)
-            if prod.pk not in consumed_totals_per_product.keys():
-                consumed_totals_per_product[prod.pk] = (item.initial_volume - item.volume) * conv_ratio
-            else:
-                consumed_totals_per_product[prod.pk] += (item.initial_volume - item.volume) * conv_ratio
-    # forecast consumption based on historic data averages
-    for key, value in consumed_totals_per_product.items():
-        consumed_totals_per_product[key] = value / config.historic_period.days * config.gen_shop_plan_period
-    # compare and grab only highest needed quantity per product
-    for key, value in needed_products.items():
-        if key in consumed_totals_per_product.keys():
-            needed_products[key] = consumed_totals_per_product[key] if value < consumed_totals_per_product[key] else value
-    # compare with min_stock values per product and amend if needed
-    if config.gen_shop_plan_on_min_stock:
-        for prod in all_products:
-            if prod.minimal_stock_volume and prod.minimal_stock_volume > 0:
-                if prod.pk in needed_products.keys():
-                    needed_products[prod.pk] = prod.minimal_stock_volume if prod.minimal_stock_volume > needed_products[key] else value
-                else:
-                    needed_products[prod.pk] = prod.minimal_stock_volume
-    # close all open/partially fulfilled shopping plans
-    for plan in open_shop_plans:
-        for item in plan.purchaseitem_set:
-            item.status = PurchaseStatuses.MOVED
-            item.save()
-        plan.status = ShopPlanStatuses.CLOSED
-        plan.save()
-    # - generate a new shopping plan (-s)
-    new_shop_plan = ShoppingPlan.objects.create(
-        date = datetime.now() + datetime.timedalte(days=1),
-        note = f'Shopping plan generated on {datetime.now()}. \
-            Generation settings: \
-             - Base on minimal stock level = {"Yes" if config.gen_shop_plan_on_min_stock else "No"} \
-             - Base on historic consumption = {"Yes" if config.base_shop_plan_on_historic_data else "No"}',
-            #  - Autogeneration  = {"Yes" if config.auto_generate_shopping_plan else "No"} \
-            #  - Generate shopping plan repeatedly = {"Yes" if config.gen_shop_plan_repeatedly else "No"} \
-            #  - Base on minimal stock level = {"Yes" if config.gen_shop_plan_on_min_stock else "No"} \
-            #  - Base on historic consumption = {"Yes" if config.base_shop_plan_on_historic_data else "No"}', \
-            #  - Base on cooking plans = {"Yes" if config.base_shop_plan_on_cook_plan else "No"}',
-        created_by = config.created_by
-    )
-    for key, value in needed_products.items():
-        prod = all_products.get(pk=key)
-        purch_item = PurchaseItem.objects.create(
-            product = prod,
-            shop_plan = new_shop_plan.pk,
-            unit = prod.unit,
-            volume = value,
-            status = PurchaseStatuses.TOBUY,
-            created_by = config.created_by
-        )
-        purch_item.save()
-    # send notification
-    send_notification(new_shop_plan, NotificationTypes.SHOPPINGPLAN, config.notify_by_email)
+# def generate_shopping_plan(config):
+#     all_products = Product.objects.filter(created_by=config.created_by)
+#     # get shopping plans in Entered or Partially fulfilled status to avoid duplicates
+#     open_shop_plans = ShoppingPlan.objects.filter(
+#         created_by=config.created_by, 
+#         status__in=[ShopPlanStatuses.ENTERED, ShopPlanStatuses.PARTIALLY_FULFILLED]
+#         ).prefetch_related('purchaseitem_set')
+#     # get active cooking plans if Base on cooking plans option enabled
+#     open_cook_plans = None
+#     if config.base_shop_plan_on_cook_plan:
+#         open_cook_plans = CookingPlan.objects.filter(created_by=config.created_by, status=CookPlanStatuses.ENTERED)
+#     # get consumed product quantities if Base on historic data option is enabled
+#     consumed_stock_items = None
+#     if config.base_shop_plan_on_historic_data:
+#         consumed_stock_items = StockItem.objects.filter(
+#                 created_by=config.created_by,
+#                 created_on__gte=datetime.now()-config.historic_period
+#             ).exclude(volume=F('initial_volume'))
+#     # dictionary to keep products for purchase
+#     needed_products = {}
+#     # calculate needed products' quantities based on cook.plans if enabled
+#     if open_cook_plans:
+#         for plan in open_cook_plans:
+#             for recipe in plan.recipes.all():
+#                 for rec_prod in recipe.recipeproduct_set.all():
+#                     prod = all_products.get(pk=rec_prod.pk)
+#                     if rec_prod.unit != prod.unit:
+#                         conv_ratio = get_conversion_ratio(prod.pk, rec_prod.unit, prod.unit, rec_prod.created_by)
+#                     if rec_prod.pk not in needed_products.keys():
+#                         needed_products[rec_prod.pk] = rec_prod.volume * conv_ratio
+#                     else:
+#                         needed_products[rec_prod.pk] += rec_prod.volume * conv_ratio
+#     # calculate needed products' quantities based on hist.data if enabled
+#     consumed_totals_per_product = {}
+#     if consumed_stock_items:
+#         for item in consumed_stock_items:
+#             prod = all_products.get(pk=item.product)
+#             if item.unit != prod.unit:
+#                 conv_ratio = get_conversion_ratio(prod.pk, item.unit, prod.unit, item.created_by)
+#             if prod.pk not in consumed_totals_per_product.keys():
+#                 consumed_totals_per_product[prod.pk] = (item.initial_volume - item.volume) * conv_ratio
+#             else:
+#                 consumed_totals_per_product[prod.pk] += (item.initial_volume - item.volume) * conv_ratio
+#     # forecast consumption based on historic data averages
+#     for key, value in consumed_totals_per_product.items():
+#         consumed_totals_per_product[key] = value / config.historic_period.days * config.gen_shop_plan_period
+#     # compare and grab only highest needed quantity per product
+#     for key, value in needed_products.items():
+#         if key in consumed_totals_per_product.keys():
+#             needed_products[key] = consumed_totals_per_product[key] if value < consumed_totals_per_product[key] else value
+#     # compare with min_stock values per product and amend if needed
+#     if config.gen_shop_plan_on_min_stock:
+#         for prod in all_products:
+#             if prod.minimal_stock_volume and prod.minimal_stock_volume > 0:
+#                 if prod.pk in needed_products.keys():
+#                     needed_products[prod.pk] = prod.minimal_stock_volume if prod.minimal_stock_volume > needed_products[key] else value
+#                 else:
+#                     needed_products[prod.pk] = prod.minimal_stock_volume
+#     # close all open/partially fulfilled shopping plans
+#     for plan in open_shop_plans:
+#         for item in plan.purchaseitem_set:
+#             item.status = PurchaseStatuses.MOVED
+#             item.save()
+#         plan.status = ShopPlanStatuses.CLOSED
+#         plan.save()
+#     # - generate a new shopping plan (-s)
+#     new_shop_plan = ShoppingPlan.objects.create(
+#         date = datetime.now() + datetime.timedalte(days=1),
+#         note = f'Shopping plan generated on {datetime.now()}. \
+#             Generation settings: \
+#              - Base on minimal stock level = {"Yes" if config.gen_shop_plan_on_min_stock else "No"} \
+#              - Base on historic consumption = {"Yes" if config.base_shop_plan_on_historic_data else "No"}',
+#             #  - Autogeneration  = {"Yes" if config.auto_generate_shopping_plan else "No"} \
+#             #  - Generate shopping plan repeatedly = {"Yes" if config.gen_shop_plan_repeatedly else "No"} \
+#             #  - Base on minimal stock level = {"Yes" if config.gen_shop_plan_on_min_stock else "No"} \
+#             #  - Base on historic consumption = {"Yes" if config.base_shop_plan_on_historic_data else "No"}', \
+#             #  - Base on cooking plans = {"Yes" if config.base_shop_plan_on_cook_plan else "No"}',
+#         created_by = config.created_by
+#     )
+#     for key, value in needed_products.items():
+#         prod = all_products.get(pk=key)
+#         purch_item = PurchaseItem.objects.create(
+#             product = prod,
+#             shop_plan = new_shop_plan.pk,
+#             unit = prod.unit,
+#             volume = value,
+#             status = PurchaseStatuses.TOBUY,
+#             created_by = config.created_by
+#         )
+#         purch_item.save()
+#     # send notification
+#     send_notification(new_shop_plan, NotificationTypes.SHOPPINGPLAN, config.notify_by_email)
 
-def get_conversion_ratio(prod_pk, unit1, unit2, owner):
-    try:
-        conv_rule = ConversionRule.objects.filter(
-                                products__pk=prod_pk,
-                                unit_from=unit1,
-                                unit_to=unit2,
-                                created_by=owner
-                            ).values('ratio').first()
-        if not conv_rule:
-            conv_rule = ConversionRule.objects.get(
-                                products__pk=prod_pk,
-                                unit_from=unit2,
-                                unit_to=unit1,
-                                created_by=owner
-                            ).value('ratio')
-            conv_ratio = 1 / conv_ratio
-    except Exception as e:
-        print(e)
+def get_conversion_ratio(prod_pk: int, unit1: VolumeUnits, unit2: VolumeUnits, owner: int) -> float:
+    """Returns convertion ratio to convert quantity/volume from unit1 to unit2.
+
+    Parameters
+    ----------
+    prod_pk : int
+        Key of Product instance
+    unit1 : VolumeUnits
+        Enumeration value of unit1 type
+    unit2 : VolumeUnits enumeration value
+        Enumeration value of unit2 type
+    owner : int
+        Key of User instance
+
+    Returns
+    -------
+    conv_rule.ratio : float
+        convertion ratio or 1 if isn't defined
+    """
+    conv_rule = ConversionRule.objects.filter(
+                            products__pk=prod_pk,
+                            unit_from=unit1,
+                            unit_to=unit2,
+                            created_by=owner
+                        ).values('ratio').first()
+    if not conv_rule:
+        conv_rule = ConversionRule.objects.get(
+                            products__pk=prod_pk,
+                            unit_from=unit2,
+                            unit_to=unit1,
+                            created_by=owner
+                        ).value('ratio')
+        conv_ratio = 1 / conv_ratio
     if not conv_rule:
         return 1
     return conv_rule['ratio']
