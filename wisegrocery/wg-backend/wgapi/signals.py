@@ -1,6 +1,7 @@
 import json
 
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
+from django.db import transaction
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
@@ -58,11 +59,7 @@ def consumption_handler(sender, instance, created, update_fields, **kwargs):
     if 'created':
         try:
             post_inventory(instance, instance.quantity)
-            if instance.type == ConsumptionTypes.TRASHED and instance.stock_item != None:
-                config = Config.objects.get(created_by=instance.created_by)
-                stock_item = StockItem.objects.get(pk=instance.stock_item)
-                send_notification(stock_item, NotificationTypes.TRASH, config.notify_by_email)
-                stock_item.delete()
+                    
         except Exception as e:
             print(e)
             
@@ -95,7 +92,7 @@ def product_post_save_handler(sender, instance, created, update_fields, **kwargs
             config = Config.objects.get(created_by=instance.created_by)
             # send notification
             if config.notify_on_min_stock:
-                send_notification(instance, NotificationTypes.OUTAGE, config.notify_by_email)
+                transaction.on_commit(send_notification(instance, NotificationTypes.OUTAGE, config.notify_by_email))
             # try to generate shopping plan with auto generation is enabled
             # if config.auto_generate_shopping_plan and config.gen_shop_plan_on_min_stock:
             #     generate_shopping_plan(config)

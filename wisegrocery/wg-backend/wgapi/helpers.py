@@ -1,4 +1,5 @@
 import datetime
+from django.db import transaction
 from django.db.models import F
 from django.template.defaultfilters import slugify
 
@@ -59,18 +60,18 @@ def post_inventory(item: object, quantity: float) -> None:
     """
     try:
         # place into suitable equipemnt
-        product = Product.objects.get(pk=item.product, created_by=item.created_by)
-        equipment = Equipment.objects.filter(
-                min_tempreture__gte=product.min_tempreture,
-                max_tempreture__lte=product.max_tempreture,
-                free_space__gt=0,
-                created_by=item.created_by
-            ).prefetch_related('stockitem_set').order_by('free_space')
         if item.unit != VolumeUnits.LITER:
-            conv_ratio = get_conversion_ratio(product.pk, item.unit, VolumeUnits.LITER, item.created_by)
+            conv_ratio = get_conversion_ratio(item.product, item.unit, VolumeUnits.LITER, item.created_by)
         
         # handle purchase
         if isinstance(item, Purchase):
+            product = Product.objects.get(pk=item.product, created_by=item.created_by)
+            equipment = Equipment.objects.filter(
+                    min_tempreture__gte=product.min_tempreture,
+                    max_tempreture__lte=product.max_tempreture,
+                    free_space__gt=0,
+                    created_by=item.created_by
+                ).prefetch_related('stockitem_set').order_by('free_space')
             # first try to put purchased item to equipment where similar items are already stored
             for e in equipment:
                 capacity = e.free_space / conv_ratio
@@ -123,9 +124,34 @@ def post_inventory(item: object, quantity: float) -> None:
                 item.status = PurchaseStatuses.STORED
             item.save()
         else:
-            # implementation of consumption post to inventory
-            #  TODO
-            raise Exception('Not implemented')
+            # post consumption record to inventory
+            stock_items = StockItem.objects.filter(
+                purchase_item__product = item.product,
+                created_by = item.created_by,
+                status__in = [STOCK_STATUSES.ACTIVE, STOCK_STATUSES.NOTPLACED]
+            ).order_by('created_on')
+            for stock_item in stock_items:
+                if quantity > 0:
+                    conv_ratio1 = get_conversion_ratio(item.product, stock_item.unit, item.unit, item.created_by)
+                    equipment = Equipment.objects.get(pk=stock_item.equipment)
+                    if stock_item.volume * conv_ratio1 <= quantity:
+                        quantity -= quantity - stock_item.volume * conv_ratio1
+                        if equipment != None:
+                            equipment.free_space += stock_item.volume * conv_ratio1 * conv_ratio
+                        if item.type == ConsumptionTypes.TRASHED:
+                            config = Config.objects.get(created_by=item.created_by)
+                            transaction.on_commit(send_notification(stock_item, NotificationTypes.TRASH, config.notify_by_email))
+                        stock_item.delete()
+                    else:
+                        stock_item.volume -= quantity / conv_ratio1
+                        if equipment != None:
+                            equipment.free_space += quantity * conv_ratio
+                        quantity = 0
+                    if equipment != None:
+                        equipment.save()
+            if quantity > 0:
+                raise Exception('Stored quantity of the product can not be negative.')
+            
     except Exception as ex:
         print(ex)
 
@@ -224,7 +250,7 @@ def handle_cooking_plan_fulfillment(obj):
                     item.status = STOCK_STATUSES.COOKED
                     quantity -= item.volume
                 else:
-                    handle_stock_change(item, quantity * ratio)
+                    update_inventory_record(item, quantity * ratio)
                     quantity = 0
                     item.volume -= quantity * ratio
                 item.save()
