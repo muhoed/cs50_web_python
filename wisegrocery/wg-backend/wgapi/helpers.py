@@ -1,6 +1,6 @@
 import datetime
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Sum
 from django.template.defaultfilters import slugify
 
 from .models import *
@@ -43,6 +43,36 @@ def send_notification(item: object, type: NotificationTypes, send_email: bool) -
         pass
     pass
 
+def check_minimal_stock(product: object) -> bool:
+    """Checks if minimal stock quantity requirement for a product is not met.
+    Send a notification if configured in Config.
+
+    Parameters
+    ----------
+    product : object
+        instance of Product to check minimal stock requirement for
+
+    Returns
+    -------
+    bool
+        True - minimal stock requirement met
+        False - minimal stock requirement not met
+    """
+    try:
+        config = Config.objects.get(created_by=product.created_by)
+        current_stock = StockItem.objects.filter(
+            purchase_item__product=product,
+            created_by=product.created_by
+        ).aggregate(Sum('volume'))
+        if current_stock <= product.minimal_stock_volume:
+            # send notification
+            if config.notify_on_min_stock:
+                transaction.on_commit(send_notification(product, NotificationTypes.OUTAGE, config.notify_by_email))
+            return False
+        return True
+    except Exception as e:
+        print(e)
+
 def post_inventory(item: object, quantity: float) -> None:
     """Creates new stock item(s) on Purchase or after existing PurchaseItem or Consumption record 
     modification led to increase of inventory.
@@ -59,13 +89,14 @@ def post_inventory(item: object, quantity: float) -> None:
     None
     """
     try:
+        product = Product.objects.get(pk=item.product, created_by=item.created_by)
+        to_prod_conv_ratio = get_conversion_ratio(item.product, item.unit, product.unit, item.created_by)
         # place into suitable equipemnt
         if item.unit != VolumeUnits.LITER:
             conv_ratio = get_conversion_ratio(item.product, item.unit, VolumeUnits.LITER, item.created_by)
         
         # handle purchase
         if isinstance(item, Purchase):
-            product = Product.objects.get(pk=item.product, created_by=item.created_by)
             equipment = Equipment.objects.filter(
                     min_tempreture__gte=product.min_tempreture,
                     max_tempreture__lte=product.max_tempreture,
@@ -79,10 +110,10 @@ def post_inventory(item: object, quantity: float) -> None:
                     new_stock_item = StockItem.objects.create(
                         product = product,
                         equipment = e,
-                        unit = item.unit,
-                        volume = quantity if capacity >= quantity else capacity
+                        unit = item.unit * to_prod_conv_ratio,
+                        volume = (quantity if capacity >= quantity else capacity) * to_prod_conv_ratio
                     )
-                    quantity -= new_stock_item.volume
+                    quantity -= new_stock_item.volume / to_prod_conv_ratio
                     e.free_space = e.free_space - quantity * conv_ratio if capacity >= quantity else 0
                     e.save()
                 if quantity == 0:
@@ -102,10 +133,10 @@ def post_inventory(item: object, quantity: float) -> None:
                     new_stock_item = StockItem.objects.create(
                         product = product,
                         equipment = e,
-                        unit = item.unit,
-                        volume = quantity if capacity >= quantity else capacity
+                        unit = product.unit,
+                        volume = (quantity if capacity >= quantity else capacity) * to_prod_conv_ratio
                     )
-                    quantity -= new_stock_item.volume
+                    quantity -= new_stock_item.volume / to_prod_conv_ratio
                     e.free_space = e.free_space - quantity * conv_ratio if capacity >= quantity else 0
                     e.save()
                     if quantity == 0:
@@ -115,8 +146,8 @@ def post_inventory(item: object, quantity: float) -> None:
                 new_stock_item = StockItem.objects.create(
                         product = product,
                         equipment = e,
-                        unit = item.unit,
-                        volume = quantity,
+                        unit = product.unit,
+                        volume = quantity * to_prod_conv_ratio,
                         status = STOCK_STATUSES.NOTPLACED
                     )
                 item.status = PurchaseStatuses.PARTIALLY_STORED
@@ -151,7 +182,9 @@ def post_inventory(item: object, quantity: float) -> None:
                         equipment.save()
             if quantity > 0:
                 raise Exception('Stored quantity of the product can not be negative.')
-            
+        
+        check_minimal_stock(product)
+
     except Exception as ex:
         print(ex)
 

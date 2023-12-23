@@ -81,21 +81,11 @@ def cookingplan_status_change_handler(sender, instance, update_fields, **kwargs)
 @receiver(post_save, sender=Product)
 def product_post_save_handler(sender, instance, created, update_fields, **kwargs):
     if 'created':
-        common_conv_rules = ConversionRule.objects.filter(type=ConversionRuleTypes.COMMON)
-        for rule in common_conv_rules:
-            rule.products.add(instance)
-            rule.save()
-
-    if 'current_stock' in update_fields \
-        and instance.minimal_stock_volume <= instance.current_stock:
         try:
-            config = Config.objects.get(created_by=instance.created_by)
-            # send notification
-            if config.notify_on_min_stock:
-                transaction.on_commit(send_notification(instance, NotificationTypes.OUTAGE, config.notify_by_email))
-            # try to generate shopping plan with auto generation is enabled
-            # if config.auto_generate_shopping_plan and config.gen_shop_plan_on_min_stock:
-            #     generate_shopping_plan(config)
+            common_conv_rules = ConversionRule.objects.filter(type=ConversionRuleTypes.COMMON)
+            for rule in common_conv_rules:
+                rule.products.add(instance)
+                rule.save()
         except Exception as e:
             print(e)
 
