@@ -379,9 +379,9 @@ class Config(models.Model):
     allow_replacement_use = models.BooleanField(
         blank=False, null=False, default=False, db_column="Conf_Allow_Replacement"
         )
-    # gen_shop_plan_on_min_stock = models.BooleanField(
-    #     blank=False, null=False, default=False, db_column="Conf_Gen_ShopPlan_MinStock"
-    #     )
+    gen_shop_plan_on_min_stock = models.BooleanField(
+        blank=False, null=False, default=False, db_column="Conf_Gen_ShopPlan_MinStock"
+        )
     # gen_shop_plan_repeatedly = models.BooleanField(
     #     blank=False, null=False, default=False, db_column="Conf_Gen_ShopPlan_Repeatedly"
     #     )
