@@ -111,7 +111,7 @@ class ProductSerializer(PartialUpdateModelSerializer):
         model = Product
         fields = [
             'id', 'name', 'description', 'category', 'supplier', 'picture', 
-            'minimal_stock_volume', 'unit', 'current_stock', 'alternative_to', 
+            'minimal_stock_volume', 'unit', 'alternative_to', 
             'replacement_products', 'recipeproduct_set', 'conversionrule_set',
             'min_tempreture', 'max_tempreture', 'created_on', 'updated_on'
         ]
@@ -122,10 +122,10 @@ class StockItemSerializer(PartialUpdateModelSerializer):
     class Meta:
         model = StockItem
         fields = [
-            'product', 'equipment', 'unit', 'volume', 'use_till', 
+            'purchase_item', 'equipment', 'unit', 'volume', 'use_till', 
             'status', 'created_on', 'updated_on'
         ]
-        read_only_fields = ['product', 'unit', 'volume', 'status', 'created_on', 'updated_on']
+        read_only_fields = ['purchase_item', 'unit', 'volume', 'status', 'created_on', 'updated_on']
         depth = 1
 
 class RecipeSerializer(PartialUpdateModelSerializer):
@@ -190,19 +190,11 @@ class PurchaseItemSerializer(PartialUpdateModelSerializer):
     def update(self, instance, validated_data):
         return super().update(instance, validated_data)
 
-# class ShoppingPlanSerializer(PartialUpdateModelSerializer):
-#     class Meta:
-#         model = ShoppingPlan
-#         fields = ['date', 'note', 'purchaseitem_set', 'status', 'created_on', 'updated_on']
-#         read_only_fields = ['created_on', 'updated_on']
-#         depth = 1
-
 class ConsumptionSerializer(PartialUpdateModelSerializer):
-    stock_items = StockItemSetField(many=True, read_only=True)
     class Meta:
         model = Consumption
         fields = [
-            'product', 'cooking_plan', 'recipe_product', 'stock_items', 'date', 'typy', 'unit', 'quantity', 
+            'product', 'cooking_plan', 'recipe_product', 'date', 'typy', 'unit', 'quantity', 
             'note', 'created_on', 'updated_on'
             ]
         read_only_fields = ['created_on', 'updated_on']
@@ -236,10 +228,14 @@ class ConfigSerializer(PartialUpdateModelSerializer):
             #'nofity_on_shopping_plan_generated',
             #'auto_generate_shopping_plan', 
             'allow_replacement_use',
-            #'gen_shop_plan_on_min_stock', 'gen_shop_plan_repeatedly', 
+            'gen_shop_plan_on_min_stock', 
+            #'gen_shop_plan_repeatedly', 
             #'gen_shop_plan_period', 
             'base_shop_plan_on_historic_data', 'historic_period', 
             'base_shop_plan_on_cook_plan', 
             'created_on', 'updated_on', 'created_by'
         ]
         read_only_fields = ['created_by', 'created_on', 'updated_on']
+
+class ShoppingListSerializer(rest_serializers.Serializer):
+    pass

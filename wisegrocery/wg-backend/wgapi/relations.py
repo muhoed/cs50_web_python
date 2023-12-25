@@ -19,7 +19,7 @@ class ReplacementProductsField(rest_serializers.RelatedField):
 class StockItemSetField(rest_serializers.RelatedField):
     def to_representation(self, value):
         return serializers.serialize(
-            'json', [ value, ], fields=['product', 'unit', 'volume', 'use_till', 'status']
+            'json', [ value, ], fields=['purchase_item', 'equipment', 'unit', 'volume', 'use_till', 'status']
         )
 
 class RecipeProductField(rest_serializers.RelatedField):

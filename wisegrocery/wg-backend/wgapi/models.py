@@ -266,22 +266,6 @@ class StockItem(models.Model):
 
     def __str__(self):
         return f'{self.volume}{self.unit} of {self.product.name} stored at {self.equipment.name}.'
-
-# class ShoppingPlan(models.Model):
-#     date = models.DateField(db_index=True, blank=False, null=False, db_column="ShopPlan_Date")
-#     note = models.TextField(blank=True, null=True, db_column="ShopPlan_Note")
-#     status = models.IntegerField(
-#             choices=wg_enumeration.ShopPlanStatuses.choices, default=wg_enumeration.ShopPlanStatuses.ENTERED,
-#             blank=False, null=False, db_column="ShopPlan_Status", db_index=True
-#         )
-#     created_on = models.DateTimeField(db_index=True, auto_now_add=True, db_column="ShopPlan_Created_On")
-#     updated_on = models.DateTimeField(auto_now=True, db_column="ShopPlan_Updated_On")
-#     created_by = models.ForeignKey(
-#         WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="ShopPlan_Created_By"
-#         )
-
-#     def __str__(self):
-#         return f'Shopping plan for {self.date}'
     
 class Consumption(models.Model):
     product = models.ForeignKey(Product, on_delete=models.RESTRICT, db_index=True, blank=False, null=False, db_column="Consumption_Product")
