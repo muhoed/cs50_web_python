@@ -61,7 +61,7 @@ class ConsumptionFilterSet(filters.FilterSet):
     date = filters.DateFromToRangeFilter()
     class Meta:
         model = PurchaseItem
-        fields = ['product', 'cooking_plan', 'recipe_product', 'type', 'created_by']
+        fields = ['date', 'product', 'cooking_plan', 'recipe_product', 'type', 'created_by']
 
 # class ShoppingPlanFilterSet(filters.FilterSet):
 #     date = filters.DateFromToRangeFilter()

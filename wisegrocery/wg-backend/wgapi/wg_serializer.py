@@ -237,5 +237,12 @@ class ConfigSerializer(PartialUpdateModelSerializer):
         ]
         read_only_fields = ['created_by', 'created_on', 'updated_on']
 
-class ShoppingListSerializer(rest_serializers.Serializer):
-    pass
+class ShoppingListSerializer(rest_serializers.BaseSerializer):
+    def to_representation(self, instance):
+        return {
+            'product': ProductSerializer(instance.product),
+            'unit': instance.unit,
+            'quantity': instance.quantity,
+            'current_stock': instance.current_stock,
+            'available_space': instance.available_space
+        }

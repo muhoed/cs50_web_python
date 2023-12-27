@@ -8,6 +8,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from .filters import *
 from .models import *
 from .permissions import *
+from .shopping import *
 from .wg_serializer import *
 
 class WGTokenObtainPairView(TokenObtainPairView):
@@ -33,6 +34,8 @@ def getRoutes(request):
         request.build_absolute_uri('/api/cooking_plans/'),
         request.build_absolute_uri('/api/purchase/'),
         request.build_absolute_uri('/api/purchase_items/'),
+        request.build_absolute_uri('/api/shopping_list/'),
+        request.build_absolute_uri('/api/consumption/'),
         request.build_absolute_uri('/api/conversion_rules/'),
         request.build_absolute_uri('/api/config/'),
     ]
@@ -69,9 +72,6 @@ class StockItemViewSet(viewsets.ModelViewSet):
     serializer_class = StockItemSerializer
     permission_classes = [IsAuthenticated, IsOwner]
     filterset_class = StockItemFilterSet
-
-    def perform_create(self, serializer):
-        serializer.save(creaated_by=self.request.user)
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.prefetch_related('items')
@@ -117,14 +117,14 @@ class PurchaseItemViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(creaated_by=self.request.user)
 
-# class ShoppingPlanViewSet(viewsets.ModelViewSet):
-#     queryset = ShoppingPlan.objects.prefetch_related('purchaseitem_set')
-#     serializer_class = ShoppingPlanSerializer
-#     permission_classes = [IsAuthenticated, IsOwner]
-#     filterset_class = ShoppingPlanFilterSet
+class ShoppingListViewSet(viewsets.ViewSet):
 
-#     def perform_create(self, serializer):
-#         serializer.save(creaated_by=self.request.user)
+    @action(methods=['get'], permission_classes=[IsAuthenticated], detail=True)
+    def shoppinglist(self, request, pk=None):
+        shopping = Shopping(pk)
+        shopping.generate_shopping_list()
+        serializer = ShoppingListSerializer(shopping.shopping_list, many=True)
+        return Response(serializer.data)
 
 class ConsumptionViewSet(viewsets.ModelViewSet):
     queryset = Consumption.objects.prefetch_related('purchase', 'product', 'stock_items')
