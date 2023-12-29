@@ -141,12 +141,12 @@ class Product(models.Model):
     created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="Prod_Created_By")
 
     def save(self, *args, **kwargs):
-        if self.pisture is None:
+        if self.picture.name == '':
             self.picture.name = f'icons/{type(self).__name__.lower()}/{slugify(self.category.label)}.png'
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.name} / {self.category.label}'
+        return f'{self.name} / {wg_enumeration.ProductCategories(self.category).label}'
 
 class Recipe(models.Model):
     name = models.CharField(max_length=50, blank=False, null=False, db_column="Rcp_Name", db_index=True)
