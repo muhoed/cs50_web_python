@@ -21,6 +21,26 @@ class WgModelTestCase(TestCase):
             created_by=cls.user
         )
 
+        cls.test_conv_rule = ConversionRule.objects.create(
+            name='Test rule',
+            type=ConversionRuleTypes.COMMON,
+            from_unit=VolumeUnits.GRAM,
+            to_unit=VolumeUnits.KILOGRAM,
+            ratio=1000,
+            created_by=cls.user
+        )
+
+        cls.test_prod = Product.objects.create(
+            name='Test',
+            description='Test product',
+            category=ProductCategories.FRUITS,
+            minimal_stock_volume=1,
+            unit=VolumeUnits.KILOGRAM,
+            min_tempreture=10,
+            max_tempreture=20,
+            created_by=cls.user
+        )
+
     def test_user_config(self):
         """Asserts config was creted for a new user"""
 
@@ -51,17 +71,24 @@ class WgModelTestCase(TestCase):
         
     def test_save_product(self):
         """Asserts correct default configuration of Product picture path"""
-        test_prod = Product.objects.create(
-            name='Test',
-            description='Test product',
-            category=ProductCategories.FRUITS,
-            minimal_stock_volume=1,
-            unit=VolumeUnits.KILOGRAM,
-            min_tempreture=10,
-            max_tempreture=20,
-            created_by=self.user
-        )
+        self.assertEqual(self.test_prod.picture.name, 'icons/product/fruits.png')
 
-        self.assertEqual(test_prod.picture.name, 'icons/product/fruits.png')
+    def test_product_added_to_conv_rule(self):
+        """Asserts product is linked to a common conversion rule"""
+        added_products = self.test_conv_rule.products
+        self.assertEqual(added_products.count(), 1)
 
-    # TODO: check adding of new product to common conversion rules
+        added_product = added_products.first()
+        self.assertEqual(added_product, self.test_prod)
+
+    def test_conv_rules_unit_from_to_validation(self):
+        """Asserts validation error is raised if conversion rule From unit is equal to To unit"""
+        with self.assertRaisesMessage(ValidationError, "From_Unit and To_Unit can not be the same."):
+            ConversionRule.objects.create(
+                name='Test rule 1',
+                type=ConversionRuleTypes.COMMON,
+                from_unit=VolumeUnits.GRAM,
+                to_unit=VolumeUnits.GRAM,
+                ratio=1000,
+                created_by=self.user
+            )

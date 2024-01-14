@@ -311,7 +311,7 @@ class ConversionRule(models.Model):
         choices=wg_enumeration.ConversionRuleTypes.choices, blank=False, null=False, 
         default=wg_enumeration.ConversionRuleTypes.COMMON, db_column="ConvRule_Type"
         )
-    products = models.ManyToManyField(Product, blank=False, db_column="ConvRule_Prod")
+    products = models.ManyToManyField(Product, blank=True, null=True, db_column="ConvRule_Prod")
     from_unit = models.IntegerField(
         choices=wg_enumeration.VolumeUnits.choices, blank=False, null=False, db_column="ConvRule_From_Unit"
         )
