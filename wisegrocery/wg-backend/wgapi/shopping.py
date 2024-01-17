@@ -25,9 +25,9 @@ class Shopping:
                         if rec_prod.unit != prod.unit:
                             conv_ratio = get_conversion_ratio(prod.pk, rec_prod.unit, prod.unit, rec_prod.created_by)
                         if rec_prod.pk not in self.needed_products.keys():
-                            self.needed_products[rec_prod.pk] = rec_prod.volume * conv_ratio
+                            self.needed_products[rec_prod.pk] = rec_prod.volume / rec_prod.num_persons * plan.persons * conv_ratio
                         else:
-                            self.needed_products[rec_prod.pk] += rec_prod.volume * conv_ratio
+                            self.needed_products[rec_prod.pk] += rec_prod.volume / rec_prod.num_persons * plan.persons * conv_ratio
         # get consumed product quantities if Base on historic data option is enabled
         consumption_history = self.get_consumption_history() if self.config.base_shop_plan_on_historic_data else None
         # calculate needed products' quantities based on hist.data if enabled

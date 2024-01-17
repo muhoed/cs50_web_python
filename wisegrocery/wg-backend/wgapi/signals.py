@@ -20,11 +20,12 @@ def wisegroceryuser_handler(sender, instance, created, **kwargs):
             Config.objects.create(created_by=instance)
             print(f'Config for {instance.username} was created.')
         except Exception as e:
-            print(e)
+            print('Post-save user handler exception in create Config.')
+            raise e
 
 @receiver(post_save, sender=StockItem)
 def stockitem_handler(sender, instance, created, update_fields, **kwargs):
-    if created or 'use_till' in update_fields:
+    if created or (update_fields and 'use_till' in update_fields):
         #initiate task to set status on expiration according to config
         try:
             config = Config.objects.get(created_by=instance.created_by)
@@ -33,7 +34,8 @@ def stockitem_handler(sender, instance, created, update_fields, **kwargs):
                     eta=instance.use_till-config.notify_on_expiration_before
                 )
         except Exception as e:
-            print(e)
+            print('StockItem post-save handler exception in stockitem_expired_handler.')
+            raise e
 
     # if created:
     #     try:
@@ -43,20 +45,22 @@ def stockitem_handler(sender, instance, created, update_fields, **kwargs):
 
 @receiver(post_save, sender=PurchaseItem)
 def purchaseitem_handler(sender, instance, created, update_fields, **kwargs):
-    if 'created':
+    if 'created' and not update_fields:
         try:
             post_inventory(instance, instance.quantity)
         except Exception as e:
-            print(e)
-    if not 'created' and ('quantity' or 'unit' in update_fields):
+            print('PurchaseItem post-save handler exception in create')
+            raise e
+    if not 'created' and (update_fields and ('quantity' in update_fields or 'unit' in update_fields)):
         try:
             update_inventory_record(instance)
         except Exception as e:
-            print(e)
+            print('PurchaseItem post-save handler exception in update')
+            raise e
 
 @receiver(post_save, sender=Consumption)
 def consumption_handler(sender, instance, created, update_fields, **kwargs):
-    if 'created':
+    if 'created' and not update_fields:
         try:
             post_inventory(instance, instance.quantity)
                     
@@ -64,21 +68,19 @@ def consumption_handler(sender, instance, created, update_fields, **kwargs):
             print(e)
             raise e
             
-    if not 'created' and ('quantity' or 'unit' in update_fields):
+    if not 'created' and (update_fields and ('quantity' in update_fields or 'unit' in update_fields)):
         try:
             update_inventory_record(instance)
         except Exception as e:
             print(e)
             raise e
 
-
 @receiver(post_save, sender=CookingPlan)
 def cookingplan_status_change_handler(sender, instance, update_fields, **kwargs):
-    if 'status' in update_fields and instance.status == CookPlanStatuses.COOKED:
+    if update_fields and 'status' in update_fields and instance.status == CookPlanStatuses.COOKED:
         try:
             handle_cooking_plan_fulfillment(instance)
         except Exception as e:
-            print(e)
             raise e
 
 @receiver(post_save, sender=Product)
@@ -87,10 +89,12 @@ def product_post_save_handler(sender, instance, created, update_fields, **kwargs
         try:
             common_conv_rules = ConversionRule.objects.filter(type=ConversionRuleTypes.COMMON)
             for rule in common_conv_rules:
-                rule.products.add(instance)
-                rule.save()
+                if instance not in rule.products.all():
+                    rule.products.add(instance)
+                    rule.save()
         except Exception as e:
             print(e)
+            raise e
 
 # @receiver(post_save, sender=Config)
 # def config_genshopplan_handler(sender, instance, created, update_fields, **kwargs):

@@ -151,7 +151,7 @@ class Product(models.Model):
 class Recipe(models.Model):
     name = models.CharField(max_length=50, blank=False, null=False, db_column="Rcp_Name", db_index=True)
     description = models.TextField(max_length=1000, blank=False, null=False, db_column="Rcp_Description")
-    items = models.ManyToManyField(Product, through="RecipeProduct", blank=False, db_column="Rcp_Item")
+    items = models.ManyToManyField(Product, through="RecipeProduct", db_column="Rcp_Item")
     num_persons = models.IntegerField(
         validators=[MinValueValidator(0)], blank=False, null=False, 
         db_column="Rcp_Output_Portions"
@@ -243,12 +243,12 @@ class PurchaseItem(models.Model):
         return instance
 
     def __str__(self):
-        return f'{self.volume}{self.unit} of {self.product.name} \
+        return f'{self.quantity}{self.unit} of {self.product.name} \
             {wg_enumeration.PurchaseStatuses.BOUGHT.label}.'
 
 class StockItem(models.Model):
     purchase_item = models.ForeignKey(PurchaseItem, on_delete=models.CASCADE, blank=False, null=False, db_column="StkItem_Prod", db_index=True)
-    equipment = models.ForeignKey(Equipment, on_delete=models.CASCADE, blank=False, null=False, db_column="StkItem_Equip", db_index=True)
+    equipment = models.ForeignKey(Equipment, on_delete=models.SET_NULL, blank=True, null=True, db_column="StkItem_Equip", db_index=True)
     unit = models.IntegerField(choices=wg_enumeration.VolumeUnits.choices, blank=False, null=False, db_column="StkItem_Unit")
     volume = models.FloatField(blank=False, null=False, db_column="StkItem_Volume")
     use_till = models.DateField(
@@ -264,14 +264,21 @@ class StockItem(models.Model):
     updated_on = models.DateTimeField(auto_now=True, db_column="StkItem_Updated_On")
     created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="StkItem_Created_By")
 
+    def save(self, *args, **kwargs):
+        if not self.equipment and self.status == wg_enumeration.STOCK_STATUSES.ACTIVE:
+            self.status = wg_enumeration.STOCK_STATUSES.NOTPLACED
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f'{self.volume}{self.unit} of {self.product.name} stored at {self.equipment.name}.'
+        if self.equipment:
+            return f'{self.volume}{self.unit} of {self.purchase_item.product.name} stored at {self.equipment.name}.'
+        return f'{self.volume}{self.unit} of {self.purchase_item.product.name}. Not placed'
     
 class Consumption(models.Model):
     product = models.ForeignKey(Product, on_delete=models.RESTRICT, db_index=True, blank=False, null=False, db_column="Consumption_Product")
     cooking_plan = models.ForeignKey(CookingPlan, on_delete=models.SET_NULL, db_index=True, blank=True, null=True, db_column="Consumption_CookingPlan")
     recipe_product = models.ForeignKey(RecipeProduct, on_delete=models.SET_NULL, db_index=True, blank=True, null=True, db_column="Consumption_RecipeProduct")
-    stock_items = models.ManyToManyField(StockItem, blank=True, null=True)
+    stock_items = models.ManyToManyField(StockItem, db_column="Consumption_StockItems")
     date = models.DateField(blank=False, null=False, db_column="Consumption_Date", db_index=True)
     type = models.IntegerField(
         choices=wg_enumeration.ConsumptionTypes.choices, default=wg_enumeration.ConsumptionTypes.COOKED,
@@ -311,7 +318,7 @@ class ConversionRule(models.Model):
         choices=wg_enumeration.ConversionRuleTypes.choices, blank=False, null=False, 
         default=wg_enumeration.ConversionRuleTypes.COMMON, db_column="ConvRule_Type"
         )
-    products = models.ManyToManyField(Product, blank=True, null=True, db_column="ConvRule_Prod")
+    products = models.ManyToManyField(Product, db_column="ConvRule_Prod")
     from_unit = models.IntegerField(
         choices=wg_enumeration.VolumeUnits.choices, blank=False, null=False, db_column="ConvRule_From_Unit"
         )
@@ -326,14 +333,15 @@ class ConversionRule(models.Model):
     updated_on = models.DateTimeField(auto_now=True, db_column="ConvRule_Updated_On")
     created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="ConvRule_Created_By")
 
-    def clean(self):
+    def save(self, *args, **kwargs):
         # 'from_unit' and 'to_unit' cannot be the same
         if self.from_unit == self.to_unit:
             message = _('From_Unit and To_Unit can not be the same.')
             raise ValidationError({'from_unit': message, 'to_unit': message})
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'Conversion rule to convert amount of {self.product.name} from {self.from_unit} to {self.to_unit}.'
+        return f'Conversion rule to convert amount of {self.products} from {self.from_unit.label} to {self.to_unit.label}.'
 
 class Config(models.Model):
     notify_by_email = models.BooleanField(blank=False, null=False, default=False, db_column="Conf_Notify_By_Email")

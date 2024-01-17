@@ -64,11 +64,12 @@ def check_minimal_stock(product: object) -> bool:
             purchase_item__product=product.pk,
             created_by=product.created_by
         ).aggregate(Sum('volume'))
-        if current_stock <= product.minimal_stock_volume:
+        if current_stock['volume__sum'] <= product.minimal_stock_volume:
             return False
         return True
     except Exception as e:
-        print(e)
+        print('Check minimal stock exception.')
+        raise e
 
 def post_inventory(item: object, quantity: float) -> None:
     """Creates new stock item(s) on Purchase or after existing PurchaseItem or Consumption record 
@@ -86,35 +87,24 @@ def post_inventory(item: object, quantity: float) -> None:
     None
     """
     config = Config.objects.get(created_by=item.created_by)
-    product = Product.objects.get(pk=item.product, created_by=item.created_by)
-    to_prod_conv_ratio = get_conversion_ratio(item.product, item.unit, product.unit, item.created_by)
+    product = item.product # Product.objects.get(pk=item.product, created_by=item.created_by)
+    to_prod_conv_ratio = get_conversion_ratio(product.pk, item.unit, product.unit, item.created_by)
     # place into suitable equipemnt
     if item.unit != VolumeUnits.LITER:
-        conv_ratio = get_conversion_ratio(item.product, item.unit, VolumeUnits.LITER, item.created_by)
+        conv_ratio = get_conversion_ratio(product.pk, item.unit, VolumeUnits.LITER, item.created_by)
     
     # handle purchase
-    if isinstance(item, Purchase):
+    if isinstance(item, PurchaseItem):
+        # first try to put purchased item to equipment where similar items are already stored
         equipment = Equipment.objects.filter(
                 min_tempreture__gte=product.min_tempreture,
                 max_tempreture__lte=product.max_tempreture,
                 free_space__gt=0,
                 created_by=item.created_by
             ).prefetch_related('stockitem_set').order_by('free_space')
-        # first try to put purchased item to equipment where similar items are already stored
-        for e in equipment:
-            capacity = e.free_space / conv_ratio
-            if e.stockitem_set.filter(product=product).exists():
-                new_stock_item = StockItem.objects.create(
-                    product = product,
-                    equipment = e,
-                    unit = item.unit * to_prod_conv_ratio,
-                    volume = (quantity if capacity >= quantity else capacity) * to_prod_conv_ratio
-                )
-                quantity -= new_stock_item.volume / to_prod_conv_ratio
-                e.free_space = e.free_space - quantity * conv_ratio if capacity >= quantity else 0
-                e.save()
-            if quantity == 0:
-                break
+        
+        quantity = store_purchase_item(item, quantity, product.unit, equipment, conv_ratio, to_prod_conv_ratio, existing=True)
+        
         # if some quantity still not stored, try to put it into suitable equipment with free space
         if quantity > 0:
             # we need to retrieve equipment again to get current free space
@@ -125,47 +115,37 @@ def post_inventory(item: object, quantity: float) -> None:
                     free_space__gt=0,
                     created_by=item.created_by
                 ).order_by('free_space')
-            for e in equipment:
-                capacity = e.free_space / conv_ratio
-                new_stock_item = StockItem.objects.create(
-                    product = product,
-                    equipment = e,
-                    unit = product.unit,
-                    volume = (quantity if capacity >= quantity else capacity) * to_prod_conv_ratio
-                )
-                quantity -= new_stock_item.volume / to_prod_conv_ratio
-                e.free_space = e.free_space - quantity * conv_ratio if capacity >= quantity else 0
-                e.save()
-                if quantity == 0:
-                    break
+            
+            quantity = store_purchase_item(item, quantity, product.unit, equipment, conv_ratio, to_prod_conv_ratio)
+
         # if some quantity not stored even now, store it with NOTPLACED status for further manual alocation
         if quantity > 0:
             new_stock_item = StockItem.objects.create(
-                    product = product,
-                    equipment = e,
+                    purchase_item = item,
                     unit = product.unit,
                     volume = quantity * to_prod_conv_ratio,
-                    status = STOCK_STATUSES.NOTPLACED
+                    status = STOCK_STATUSES.NOTPLACED,
+                    created_by=item.created_by
                 )
             item.status = PurchaseStatuses.PARTIALLY_STORED
         else:
             item.status = PurchaseStatuses.STORED
-        item.save()
+        item.save(update_fields=['status'])
     else:
         # post consumption record to inventory
         stock_items = StockItem.objects.filter(
-            purchase_item__product = item.product,
+            purchase_item__product = product.pk,
             created_by = item.created_by,
             status__in = [STOCK_STATUSES.ACTIVE, STOCK_STATUSES.NOTPLACED]
         ).order_by('created_on')
         for stock_item in stock_items:
             if quantity > 0:
-                conv_ratio1 = get_conversion_ratio(item.product, stock_item.unit, item.unit, item.created_by)
-                equipment = Equipment.objects.get(pk=stock_item.equipment)
-                if stock_item.volume * conv_ratio1 <= quantity:
-                    quantity -= quantity - stock_item.volume * conv_ratio1
-                    if equipment != None:
-                        equipment.free_space += stock_item.volume * conv_ratio1 * conv_ratio
+                conv_ratio1 = get_conversion_ratio(product.pk, stock_item.unit, item.unit, item.created_by)
+                equipment = Equipment.objects.filter(pk=stock_item.equipment).first()
+                if stock_item.volume / conv_ratio1 <= quantity:
+                    quantity = quantity - stock_item.volume / conv_ratio1
+                    if equipment:
+                        equipment.free_space += stock_item.volume / conv_ratio1 * conv_ratio
                     if item.type == ConsumptionTypes.TRASHED:
                         transaction.on_commit(partial(
                             send_notification, 
@@ -175,14 +155,15 @@ def post_inventory(item: object, quantity: float) -> None:
                             ))
                     stock_item.delete()
                 else:
-                    stock_item.volume -= quantity / conv_ratio1
-                    if equipment != None:
+                    stock_item.volume = stock_item.volume - quantity * conv_ratio1
+                    stock_item.save()
+                    if equipment:
                         equipment.free_space += quantity * conv_ratio
                     quantity = 0
-                if equipment != None:
+                if equipment:
                     equipment.save()
         if quantity > 0:
-            raise Exception('Stored quantity of the product can not be negative.')
+            raise Exception(f'Stored quantity of the product can not be negative. Quantity is -{quantity}')
     
     if not check_minimal_stock(product) and config.notify_on_min_stock:
         # send notification
@@ -192,6 +173,65 @@ def post_inventory(item: object, quantity: float) -> None:
             type=NotificationTypes.OUTAGE, 
             send_email=config.notify_by_email
             ))
+
+def store_purchase_item(item: object, quantity: float, unit: int, equipment: [object], conv_ratio: float, to_prod_conv_ratio: float, existing : bool = False) -> float:
+    """Creates new stock item(s) on PurchaseItem creation or after existing PurchaseItemrecord 
+    modification leading to increase of inventory.
+
+    Parameters
+    ----------
+    item : object
+        instance of PurchaseItem class
+    quantity : float
+        quantity of product to be stored
+    unit : int
+        VolumeUnits enum value
+    equipment : [object]
+        list of Equipment objects to store in
+    conv_ratio : float
+        conversion ratio to convert quantity units into equipment units (liter)
+    to_prod_conv_ratio : float
+        conversion ratio to convert quantity units into product / stock units
+    existing : bool
+        defines whether to check that equipment is already used for this product or not;
+        default value is False
+
+    Returns
+    -------
+    float
+        remaining (not stored) quantity
+    """
+    for e in equipment:
+        capacity = e.free_space / conv_ratio
+        if existing:
+            if e.stockitem_set.filter(product=item.product).exists():
+                new_stock_item = StockItem.objects.create(
+                    purchase_item = item,
+                    equipment = e,
+                    unit = unit,
+                    volume = (quantity if capacity >= quantity else capacity) * to_prod_conv_ratio,
+                    created_by=item.created_by
+                )
+                quantity -= new_stock_item.volume / to_prod_conv_ratio
+                e.free_space = e.free_space - quantity * conv_ratio if capacity >= quantity else 0
+                e.save()
+            if quantity == 0:
+                break
+        else:
+            new_stock_item = StockItem.objects.create(
+                    purchase_item = item,
+                    equipment = e,
+                    unit = unit,
+                    volume = (quantity if capacity >= quantity else capacity) * to_prod_conv_ratio,
+                    created_by=item.created_by
+                )
+            quantity -= new_stock_item.volume / to_prod_conv_ratio
+            e.free_space = e.free_space - quantity * conv_ratio if capacity >= quantity else 0
+            e.save()
+            if quantity == 0:
+                break
+
+    return quantity
 
 def update_inventory_record(item: object) -> None:
     """Updates or creates new stock item(s) after existing PurchaseItem or Consumption record was modified.
@@ -290,7 +330,8 @@ def handle_cooking_plan_fulfillment(obj: object) -> None:
                 date = datetime.datetime.now(),
                 type = ConsumptionTypes.COOKED,
                 unit = recipe_prod.unit,
-                quantity = recipe_prod.volume
+                quantity = recipe_prod.volume / recipe.num_persons * obj.persons,
+                created_by = obj.created_by
             )
 
 def get_conversion_ratio(prod_pk: int, unit1: VolumeUnits, unit2: VolumeUnits, owner: int) -> float:
@@ -312,20 +353,22 @@ def get_conversion_ratio(prod_pk: int, unit1: VolumeUnits, unit2: VolumeUnits, o
     conv_rule.ratio : float
         convertion ratio or 1 if isn't defined
     """
+    conv_ratio = 1
     conv_rule = ConversionRule.objects.filter(
                             products__pk=prod_pk,
-                            unit_from=unit1,
-                            unit_to=unit2,
+                            from_unit=unit1,
+                            to_unit=unit2,
                             created_by=owner
-                        ).values('ratio').first()
+                        ).values('ratio')
     if not conv_rule:
-        conv_rule = ConversionRule.objects.get(
+        conv_rule = ConversionRule.objects.filter(
                             products__pk=prod_pk,
-                            unit_from=unit2,
-                            unit_to=unit1,
+                            from_unit=unit2,
+                            to_unit=unit1,
                             created_by=owner
-                        ).value('ratio')
-        conv_ratio = 1 / conv_ratio
-    if not conv_rule:
-        return 1
-    return conv_rule['ratio']
+                        ).values('ratio')
+        if conv_rule:
+            conv_ratio = 1 / conv_rule[0]['ratio']
+    else:
+        conv_ratio = conv_rule[0]['ratio']
+    return conv_ratio
