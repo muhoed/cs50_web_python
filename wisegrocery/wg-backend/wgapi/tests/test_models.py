@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import TransactionTestCase
 from django.test.utils import override_settings
 from django.core.exceptions import ValidationError
 from celery.contrib.testing.worker import start_worker
@@ -6,65 +6,121 @@ from celery.contrib.testing.worker import start_worker
 
 from ..models import *
 from ..wg_enumeration import *
-#from ...wgbackend.celery import celery_app
+from wgbackend.celery import celery_app
 
 
-class WgModelTestCase(TestCase):
-    # @classmethod
-    # def setUpClass(cls):
-    #     super().setUpClass()
-    #     cls.celery_worker = start_worker(celery_app)
-    #     cls.celery_worker.__enter__()
+class WgModelTestCase(TransactionTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        start_worker(celery_app, perform_ping_check=False)
+        # cls.celery_worker = start_worker(celery_app)
+        # cls.celery_worker.__enter__()
 
     # @classmethod
     # def tearDownClass(cls):
     #     super().tearDownClass()
     #     cls.celery_worker.__exit__(None, None, None)
 
-    @classmethod
-    def setUpTestData(cls):
-        cls.user = WiseGroceryUser.objects.create(
+    # @classmethod
+    # def setUpTestData(cls):
+    #     cls.user = WiseGroceryUser.objects.create(
+    #         username='TestUser',
+    #         email='TestUser@email.com'
+    #     )
+    #     cls.user.set_password('Test')
+    #     cls.user.save()
+
+    #     cls.test_eq_type = EquipmentType.objects.create(
+    #         name='Test',
+    #         description='Test equipment type',
+    #         base_type = BaseEquipmentTypes.BUFFET,
+    #         created_by=cls.user
+    #     )
+
+    #     cls.test_conv_rule_liter_to_gram = ConversionRule.objects.create(
+    #         name='Liter to gram rule',
+    #         type=ConversionRuleTypes.COMMON,
+    #         from_unit=VolumeUnits.LITER,
+    #         to_unit=VolumeUnits.GRAM,
+    #         ratio=1030,
+    #         created_by=cls.user
+    #     )
+
+    #     cls.test_conv_rule_liter_to_kilogram = ConversionRule.objects.create(
+    #         name='Liter to kilogram rule',
+    #         type=ConversionRuleTypes.COMMON,
+    #         from_unit=VolumeUnits.LITER,
+    #         to_unit=VolumeUnits.KILOGRAM,
+    #         ratio=1.03,
+    #         created_by=cls.user
+    #     )
+
+    #     cls.test_conv_rule = ConversionRule.objects.create(
+    #         name='Test rule',
+    #         type=ConversionRuleTypes.COMMON,
+    #         from_unit=VolumeUnits.GRAM,
+    #         to_unit=VolumeUnits.KILOGRAM,
+    #         ratio=1000,
+    #         created_by=cls.user
+    #     )
+
+    #     cls.test_prod = Product.objects.create(
+    #         name='Test',
+    #         description='Test product',
+    #         category=ProductCategories.FRUITS,
+    #         minimal_stock_volume=1,
+    #         unit=VolumeUnits.KILOGRAM,
+    #         min_tempreture=10,
+    #         max_tempreture=20,
+    #         created_by=cls.user
+    #     )
+        
+    def setUp(self):
+        user = WiseGroceryUser.objects.create(
             username='TestUser',
             email='TestUser@email.com'
         )
-        cls.user.set_password('Test')
-        cls.user.save()
+        user.set_password('Test')
+        user.save()
 
-        cls.test_eq_type = EquipmentType.objects.create(
+        self.user = user
+
+        self.test_eq_type = EquipmentType.objects.create(
             name='Test',
             description='Test equipment type',
             base_type = BaseEquipmentTypes.BUFFET,
-            created_by=cls.user
+            created_by=self.user
         )
 
-        cls.test_conv_rule_liter_to_gram = ConversionRule.objects.create(
+        self.test_conv_rule_liter_to_gram = ConversionRule.objects.create(
             name='Liter to gram rule',
             type=ConversionRuleTypes.COMMON,
             from_unit=VolumeUnits.LITER,
             to_unit=VolumeUnits.GRAM,
             ratio=1030,
-            created_by=cls.user
+            created_by=self.user
         )
 
-        cls.test_conv_rule_liter_to_kilogram = ConversionRule.objects.create(
+        self.test_conv_rule_liter_to_kilogram = ConversionRule.objects.create(
             name='Liter to kilogram rule',
             type=ConversionRuleTypes.COMMON,
             from_unit=VolumeUnits.LITER,
             to_unit=VolumeUnits.KILOGRAM,
             ratio=1.03,
-            created_by=cls.user
+            created_by=self.user
         )
 
-        cls.test_conv_rule = ConversionRule.objects.create(
+        self.test_conv_rule = ConversionRule.objects.create(
             name='Test rule',
             type=ConversionRuleTypes.COMMON,
             from_unit=VolumeUnits.GRAM,
             to_unit=VolumeUnits.KILOGRAM,
             ratio=1000,
-            created_by=cls.user
+            created_by=self.user
         )
 
-        cls.test_prod = Product.objects.create(
+        self.test_prod = Product.objects.create(
             name='Test',
             description='Test product',
             category=ProductCategories.FRUITS,
@@ -72,7 +128,7 @@ class WgModelTestCase(TestCase):
             unit=VolumeUnits.KILOGRAM,
             min_tempreture=10,
             max_tempreture=20,
-            created_by=cls.user
+            created_by=self.user
         )
 
     def test_user_config(self):
@@ -129,7 +185,8 @@ class WgModelTestCase(TestCase):
 
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
                        CELERY_ALWAYS_EAGER=True,
-                       CELERY_BROKER_URL = "memory://")
+                       CELERY_BROKER_URL = "memory://",
+                       CELERY_RESULT_BACKEND = "rpc://")
     def test_cooking_plan_fullfillment(self):
         """Asserts Consumption record is created on Cooking plan """
         # we need equipment to store stock of products
