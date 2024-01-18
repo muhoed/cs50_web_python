@@ -149,7 +149,7 @@ class Product(models.Model):
         return f'{self.name} / {wg_enumeration.ProductCategories(self.category).label}'
 
 class Recipe(models.Model):
-    name = models.CharField(max_length=50, blank=False, null=False, db_column="Rcp_Name", db_index=True)
+    name = models.CharField(max_length=50, unique=True, blank=False, null=False, db_column="Rcp_Name", db_index=True)
     description = models.TextField(max_length=1000, blank=False, null=False, db_column="Rcp_Description")
     items = models.ManyToManyField(Product, through="RecipeProduct", db_column="Rcp_Item")
     num_persons = models.IntegerField(
@@ -163,7 +163,7 @@ class Recipe(models.Model):
     created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="Rcp_Created_By")
 
     def __str__(self):
-        return f'Recipe of {self.name} for {self.output} persons.'
+        return f'Recipe of {self.name} for {self.num_persons} persons.'
 
 class RecipeProduct(models.Model):
     recipe = models.ForeignKey(
@@ -202,8 +202,28 @@ class CookingPlan(models.Model):
     updated_on = models.DateTimeField(auto_now=True, db_column="CookPlan_Updated_On")
     created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="CookPlan_Created_By")
 
+    class Meta:
+        unique_together = ['date', 'meal', 'created_by']
+
+    # def save(self, *args, **kwargs):
+    #     existing_plans = None
+    #     if not self.id:
+    #         existing_plans = CookingPlan.objects.filter(
+    #             date=self.date,
+    #             meal=self.meal,
+    #             created_by=self.created_by)
+    #     else:
+    #         existing_plans = CookingPlan.objects.filter(
+    #             id != self.id,
+    #             date=self.date,
+    #             meal=self.meal,
+    #             created_by=self.created_by)
+    #     if existing_plans and existing_plans.count() > 0:
+    #         raise ValidationError(f"Cooking plan of {wg_enumeration.Meals(self.meal).label} on {self.date} already exists. Modify the existing plan if needed.")
+    #     super().save(*args, **kwargs)
+
     def __str__(self):
-        return f'Cooking plan for {self.persons} on {self.date}.'
+        return f'Cooking plan of {wg_enumeration.Meals(self.meal).label} for {self.persons} on {self.date}.'
 
 class Purchase(models.Model):
     date = models.DateField(blank=False, null=False, db_column="Purchase_Date", db_index=True)

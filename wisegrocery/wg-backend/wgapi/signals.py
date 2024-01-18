@@ -37,12 +37,6 @@ def stockitem_handler(sender, instance, created, update_fields, **kwargs):
             print('StockItem post-save handler exception in stockitem_expired_handler.')
             raise e
 
-    # if created:
-    #     try:
-    #         handle_stock_change(instance, instance.volume)
-    #     except Exception as e:
-    #         print(e)
-
 @receiver(post_save, sender=PurchaseItem)
 def purchaseitem_handler(sender, instance, created, update_fields, **kwargs):
     if 'created' and not update_fields:
