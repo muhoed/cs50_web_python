@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.test import TransactionTestCase
 from django.test.utils import override_settings
 from django.core.exceptions import ValidationError
@@ -46,7 +47,7 @@ class WgModelTestCase(TransactionTestCase):
             type=ConversionRuleTypes.COMMON,
             from_unit=VolumeUnits.LITER,
             to_unit=VolumeUnits.KILOGRAM,
-            ratio=1.03,
+            ratio=Decimal(1.03),
             created_by=self.user
         )
 
@@ -70,6 +71,7 @@ class WgModelTestCase(TransactionTestCase):
             created_by=self.user
         )
 
+
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
                        CELERY_ALWAYS_EAGER=True,
                        CELERY_BROKER_URL = "memory://",
@@ -85,6 +87,9 @@ class WgModelTestCase(TransactionTestCase):
             height=2,
             width=2,
             depth=2,
+            min_tempreture=15,
+            max_tempreture=18,
+            rated_size=1,
             created_by=self.user
         )
         Equipment.objects.create(
@@ -94,6 +99,9 @@ class WgModelTestCase(TransactionTestCase):
             height=2,
             width=2,
             depth=2,
+            min_tempreture=15,
+            max_tempreture=18,
+            rated_size=1,
             created_by=self.user
         )
 
@@ -114,15 +122,153 @@ class WgModelTestCase(TransactionTestCase):
         stock_items = StockItem.objects.all().order_by('created_on')
         self.assertEqual(stock_items.count(), 2)
         # assert that stock_item records were created with correct quantity
-        self.assertEqual(stock_items[0].volume, eq1.volume * self.test_conv_rule_liter_to_kilogram)
-        self.assertEqual(stock_items[1].volume, test_purchase_item.quantity - eq1.volume * self.test_conv_rule_liter_to_kilogram)
+        self.assertEqual(stock_items[0].volume, round(eq1.volume * self.test_conv_rule_liter_to_kilogram.ratio, 2))
+        self.assertEqual(stock_items[1].volume, round(test_purchase_item.quantity - eq1.volume * self.test_conv_rule_liter_to_kilogram.ratio, 2))
         # assert that purchase_item record status was changed to Stored
         test_purchase_item = PurchaseItem.objects.first()
         self.assertEqual(test_purchase_item.status, PurchaseStatuses.STORED)
         # assert Equipment available space was recalculated correctly
-        equipments = Equipment.objects.all().order_by('created_on')
+        equipments = Equipment.objects.all().order_by('free_space')
         self.assertEqual(equipments[0].free_space, 0)
-        self.assertEqual(equipments[1].free_space, equipments[1].volume - stock_items[1].volume / self.test_conv_rule_liter_to_kilogram)
+        self.assertEqual(equipments[1].free_space, round(equipments[1].volume - stock_items[1].volume / self.test_conv_rule_liter_to_kilogram.ratio, 2))
+
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
+                       CELERY_ALWAYS_EAGER=True,
+                       CELERY_BROKER_URL = "memory://",
+                       CELERY_RESULT_BACKEND = "rpc://")
+    def test_purchase_item_posted_to_inventory_and_partially_stored(self):
+        """Asserts StoskItem records are created from PurchaseItem and partially stored in available equipment"""
+        # we need equipment to partially store stock of products
+        eq1 = Equipment.objects.create(
+            name='TestEq1',
+            description='Test equipment 1',
+            type=self.test_eq_type,
+            height=2,
+            width=2,
+            depth=2,
+            min_tempreture=15,
+            max_tempreture=18,
+            rated_size=1,
+            created_by=self.user
+        )
+
+        test_purchase = Purchase.objects.create(
+            date=datetime.datetime.now() - datetime.timedelta(days=1),
+            type=PurchaseTypes.BALANCE,
+            created_by=self.user
+        )
+        test_purchase_item = PurchaseItem.objects.create(
+            purchase=test_purchase,
+            product=self.test_prod,
+            unit=self.test_prod.unit,
+            quantity=1,
+            created_by=self.user
+        )
+
+        # assert that two stock_item record was created
+        stock_items = StockItem.objects.all().order_by('created_on')
+        self.assertEqual(stock_items.count(), 2)
+        # assert that stock_item records were created with correct quantity
+        self.assertEqual(stock_items[0].volume, round(eq1.volume * self.test_conv_rule_liter_to_kilogram.ratio, 2))
+        self.assertEqual(stock_items[1].volume, round(test_purchase_item.quantity - eq1.volume * self.test_conv_rule_liter_to_kilogram.ratio, 2))
+        # assert that purchase_item record status was changed to Partially Stored
+        test_purchase_item = PurchaseItem.objects.first()
+        self.assertEqual(test_purchase_item.status, PurchaseStatuses.PARTIALLY_STORED)
+        # assert Equipment available space was recalculated correctly
+        eq1 = Equipment.objects.first()
+        self.assertEqual(eq1.free_space, 0)
+
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
+                       CELERY_ALWAYS_EAGER=True,
+                       CELERY_BROKER_URL = "memory://",
+                       CELERY_RESULT_BACKEND = "rpc://")
+    def test_purchase_item_posted_to_inventory_and_not_stored(self):
+        """Asserts StoskItem records are created from PurchaseItem and stayed in not stored status"""
+        test_purchase = Purchase.objects.create(
+            date=datetime.datetime.now() - datetime.timedelta(days=1),
+            type=PurchaseTypes.BALANCE,
+            created_by=self.user
+        )
+        test_purchase_item = PurchaseItem.objects.create(
+            purchase=test_purchase,
+            product=self.test_prod,
+            unit=self.test_prod.unit,
+            quantity=1,
+            created_by=self.user
+        )
+
+        # assert that only one stock_item record was created
+        stock_items = StockItem.objects.all()
+        self.assertEqual(stock_items.count(), 1)
+        # assert that stock_item records were created with correct quantity
+        self.assertEqual(stock_items.first().volume, 1)
+        # assert that stock_item records status is Not Placed
+        self.assertEqual(stock_items.first().status, STOCK_STATUSES.NOTPLACED)
+        # assert that purchase_item record status remained Bought
+        test_purchase_item = PurchaseItem.objects.first()
+        self.assertEqual(test_purchase_item.status, PurchaseStatuses.BOUGHT)
+
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
+                       CELERY_ALWAYS_EAGER=True,
+                       CELERY_BROKER_URL = "memory://",
+                       CELERY_RESULT_BACKEND = "rpc://")
+    def test_purchase_item_edit_quantity_increase(self):
+        """Asserts new StockItem record is created when modifying existing PutchaseItem to increase quantity"""
+        test_purchase = Purchase.objects.create(
+            date=datetime.datetime.now() - datetime.timedelta(days=1),
+            type=PurchaseTypes.BALANCE,
+            created_by=self.user
+        )
+        test_purchase_item = PurchaseItem.objects.create(
+            purchase=test_purchase,
+            product=self.test_prod,
+            unit=self.test_prod.unit,
+            quantity=1,
+            created_by=self.user
+        )
+
+        test_purchase_item.quantity = 1.2
+        test_purchase_item.save(update_fields=['quantity'])
+
+        # assert that the second stock_item record was created
+        stock_items = StockItem.objects.all().order_by('created_on')
+        self.assertEqual(stock_items.count(), 2)
+        # assert that stock_item records were created with correct quantity
+        self.assertEqual(stock_items[0].volume, 1)
+        self.assertEqual(stock_items[1].volume, round(Decimal(0.2), 2))
+
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
+                       CELERY_ALWAYS_EAGER=True,
+                       CELERY_BROKER_URL = "memory://",
+                       CELERY_RESULT_BACKEND = "rpc://")
+    def test_purchase_item_edit_quantity_decrease_without_equipment(self):
+        """Asserts StockItem record volume decreased when modifying existing PutchaseItem to decrease quantity"""
+        test_purchase = Purchase.objects.create(
+            date=datetime.datetime.now() - datetime.timedelta(days=1),
+            type=PurchaseTypes.BALANCE,
+            created_by=self.user
+        )
+        test_purchase_item = PurchaseItem.objects.create(
+            purchase=test_purchase,
+            product=self.test_prod,
+            unit=self.test_prod.unit,
+            quantity=1,
+            created_by=self.user
+        )
+
+        test_purchase_item.quantity = 0.8
+        test_purchase_item.save(update_fields=['quantity'])
+
+        # assert that still onle one StockItem instance
+        stock_items = StockItem.objects.all()
+        self.assertEqual(stock_items.count(), 1)
+        # assert that stock_item record quantity was decreased
+        self.assertEqual(stock_items[0].volume, round(Decimal(0.8), 2))
+
 
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
                        CELERY_ALWAYS_EAGER=True,

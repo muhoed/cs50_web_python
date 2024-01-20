@@ -50,12 +50,15 @@ def stockitem_expired_handler(data):
 
 	except instance.DoesNotExist as e1:
 		print(e1)
+		raise e1
 
 	except config.DoesNotExist as e2:
 		print(e2)
+		raise e2
 
 	except Exception as e3:
 		print(e3)
+		raise e3
 
 # @shared_task
 # def repeat_shopping_plan_generator(data):

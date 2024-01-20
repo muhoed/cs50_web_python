@@ -1,4 +1,5 @@
 import datetime
+from decimal import Decimal
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
@@ -72,10 +73,10 @@ class Equipment(models.Model):
         blank=True, null=True, db_column="Eq_Depth"
         )
 
-    volume = models.FloatField(help_text=_("Volume, liters"), blank=True, null=True, db_column="Eq_Volume")
+    volume = models.DecimalField(help_text=_("Volume, liters"), blank=True, null=True, max_digits=9, decimal_places=2, db_column="Eq_Volume")
     rated_size = models.FloatField(blank=False, null=False, default=0.85, db_column="Eq_Rated_Size")
 
-    free_space = models.FloatField(blank=True, null=True, db_column="Eq_Free_Space")
+    free_space = models.DecimalField(blank=True, null=True, max_digits=9, decimal_places=2, db_column="Eq_Free_Space")
 
     min_tempreture = models.FloatField(help_text=_("Minimal tempreture"), blank=True, null=True, db_column="Eq_Min_Temp")
     max_tempreture = models.FloatField(help_text=_("Maximum tempreture"), blank=True, null=True, db_column="Eq_Max_Temp")
@@ -97,7 +98,7 @@ class Equipment(models.Model):
 
     def save(self, *args, **kwargs):
         if self.volume is None:
-            self.volume = self.get_volume() * self.rated_size
+            self.volume = Decimal(self.get_volume() * self.rated_size)
         if self.free_space is None:
             self.free_space = self.volume
         if self.min_tempreture is None:
@@ -122,14 +123,17 @@ class Product(models.Model):
     supplier = models.CharField(max_length=50, blank=True, null=True, db_column="Prod_Supplier")
     picture = models.ImageField(upload_to=get_icon_upload_path, blank=False, null=False, db_column="Prod_Picture")
     
-    minimal_stock_volume = models.FloatField(
-        help_text="Minimum amount of product to be maintained in stock.", validators=[MinValueValidator(0)],
+    minimal_stock_volume = models.DecimalField(
+        help_text="Minimum amount of product to be maintained in stock.", validators=[MinValueValidator(0)], max_digits=9, decimal_places=2,
         blank=True, null=True, db_column="Prod_Min_Stock"
         )
     unit = models.IntegerField(choices=wg_enumeration.VolumeUnits.choices, blank=False, null=False, db_column="Prod_Min_Unit")
 
     min_tempreture = models.FloatField(help_text=_("Minimal storing tempreture"), blank=False, null=False, db_column="Prod_Min_Temp")
     max_tempreture = models.FloatField(help_text=_("Maximum storing tempreture"), blank=False, null=False, db_column="Prod_Max_Temp")
+    expiraton_period = models.DurationField(
+        blank=True, null=True, db_column="Prod_Expiration_Period", db_index=True
+        )
 
     alternative_to = models.ForeignKey(
         'Product', related_name="replacement_products", on_delete=models.SET_NULL, 
@@ -175,7 +179,7 @@ class RecipeProduct(models.Model):
         db_column="RcpProd_Prod", db_index=True
         )
     unit = models.IntegerField(choices=wg_enumeration.VolumeUnits.choices, blank=False, null=False, db_column="RcpProd_Unit")
-    volume = models.FloatField(validators=[MinValueValidator(0)], blank=False, null=False, db_column="RcpProd_Volume")
+    volume = models.DecimalField(validators=[MinValueValidator(0)], max_digits=9, decimal_places=2, blank=False, null=False, db_column="RcpProd_Volume")
     
     created_on = models.DateTimeField(auto_now_add=True, db_column="RcpProd_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="RcpProd_Updated_On")
@@ -243,7 +247,10 @@ class PurchaseItem(models.Model):
     purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE, db_index=False, blank=False, null=True, db_column="PurchItem_Purchase")
     product = models.ForeignKey(Product, on_delete=models.RESTRICT, db_index=True, blank=False, null=False, db_column="PurchItem_Product")
     unit = models.IntegerField(choices=wg_enumeration.VolumeUnits.choices, blank=False, null=False, db_column="PurchItem_Unit")
-    quantity = models.FloatField(blank=False, null=False, validators=[MinValueValidator(0)], db_column="PurchItem_Qty")
+    quantity = models.DecimalField(blank=False, null=False, max_digits=9, decimal_places=2, validators=[MinValueValidator(0)], db_column="PurchItem_Qty")
+    use_till = models.DateField(
+        blank=True, null=True, db_column="PurchItem_Use_Till_Date", db_index=True
+        )
     price = models.DecimalField(decimal_places=2, max_digits=10, blank=True, null=True, validators=[MinValueValidator(0)], db_column="PurchItem_Price")
     status = models.IntegerField(
             choices=wg_enumeration.PurchaseStatuses.choices, default=wg_enumeration.PurchaseStatuses.BOUGHT,
@@ -253,14 +260,21 @@ class PurchaseItem(models.Model):
     updated_on = models.DateTimeField(auto_now=True, db_column="PurchItem_Updated_On")
     created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="PurchItem_Created_By")
 
-    @classmethod
-    def from_db(cls, db, field_names, values):
-        instance = super().from_db(db, field_names, values)
-        #save initial quantity to update related entities on save
-        original_values = dict(zip(field_names, (value for value in values if value is not models.DEFERRED)))
-        instance._original_quantity = original_values['quantity']
-        instance._original_unit = original_values['unit']
-        return instance
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        deferred_fields = self.get_deferred_fields()
+        watched_fields = ['unit', 'quantity']
+        
+        self.__watched_fields = list(filter(lambda x: x not in deferred_fields, watched_fields))
+        for field in self.__watched_fields:
+            setattr(self, '_original_%s' % field, getattr(self, field))
+    
+    def save(self, *args, **kwargs):
+        if not self.use_till:
+            prod = Product.objects.get(pk=self.product.pk)
+            self.use_till = datetime.datetime.now() + prod.expiraton_period if prod.expiraton_period else None
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.quantity}{self.unit} of {self.product.name} \
@@ -270,10 +284,9 @@ class StockItem(models.Model):
     purchase_item = models.ForeignKey(PurchaseItem, on_delete=models.CASCADE, blank=False, null=False, db_column="StkItem_Prod", db_index=True)
     equipment = models.ForeignKey(Equipment, on_delete=models.SET_NULL, blank=True, null=True, db_column="StkItem_Equip", db_index=True)
     unit = models.IntegerField(choices=wg_enumeration.VolumeUnits.choices, blank=False, null=False, db_column="StkItem_Unit")
-    volume = models.FloatField(blank=False, null=False, db_column="StkItem_Volume")
+    volume = models.DecimalField(blank=False, null=False, max_digits=9, decimal_places=2, db_column="StkItem_Volume")
     use_till = models.DateField(
-        blank=False, null=False, default=datetime.datetime.now()+datetime.timedelta(days=7), 
-        db_column="StkItem_Use_Till_Date", db_index=True
+        blank=False, null=False, db_column="StkItem_Use_Till_Date", db_index=True
         )
     status = models.IntegerField(
         choices=wg_enumeration.STOCK_STATUSES.choices, default=wg_enumeration.STOCK_STATUSES.ACTIVE,
@@ -287,6 +300,9 @@ class StockItem(models.Model):
     def save(self, *args, **kwargs):
         if not self.equipment and self.status == wg_enumeration.STOCK_STATUSES.ACTIVE:
             self.status = wg_enumeration.STOCK_STATUSES.NOTPLACED
+        if not self.use_till:
+            config = Config.objects.filter(created_by=self.created_by)
+            self.use_till = datetime.datetime.now() + config[0].default_expiration_period
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -305,21 +321,22 @@ class Consumption(models.Model):
         blank=False, null=False, db_column="Consumption_Type"
         )
     unit = models.IntegerField(choices=wg_enumeration.VolumeUnits.choices, blank=False, null=False, db_column="Consumption_Unit")
-    quantity = models.FloatField(blank=False, null=False, db_column="Consumption_Quantity")
+    quantity = models.DecimalField(blank=False, null=False, max_digits=9, decimal_places=2, db_column="Consumption_Quantity")
     note = models.TextField(max_length=5000, blank=True, null=True, db_column="Consumption_Note")
 
     created_on = models.DateTimeField(db_index=True, auto_now_add=True, db_column="Consumption_Created_On")
     updated_on = models.DateTimeField(auto_now=True, db_column="Consumption_Updated_On")
     created_by = models.ForeignKey(WiseGroceryUser, on_delete=models.CASCADE, blank=False, null=False, db_column="Consumption_Created_By")
 
-    @classmethod
-    def from_db(cls, db, field_names, values):
-        instance = super().from_db(db, field_names, values)
-        #save initial quantity to update related entities on save
-        original_values = dict(zip(field_names, (value for value in values if value is not models.DEFERRED)))
-        instance._original_quantity = original_values['quantity']
-        instance._original_unit = original_values['unit']
-        return instance
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        deferred_fields = self.get_deferred_fields()
+        watched_fields = ['unit', 'quantity']
+        
+        self.__watched_fields = list(filter(lambda x: x not in deferred_fields, watched_fields))
+        for field in self.__watched_fields:
+            setattr(self, '_original_%s' % field, getattr(self, field))
 
     def __str__(self):
         action = ''
@@ -345,8 +362,8 @@ class ConversionRule(models.Model):
     to_unit = models.IntegerField(
         choices=wg_enumeration.VolumeUnits.choices, blank=False, null=False, db_column="ConvRule_To_Unit"
         )
-    ratio = models.FloatField(
-        help_text="Ratio of 'To unit' to 'From unit' for a product.", validators=[MinValueValidator(0.0000000001)], 
+    ratio = models.DecimalField(
+        help_text="Ratio of 'To unit' to 'From unit' for a product.", validators=[MinValueValidator(0.0000000001)],  max_digits=15, decimal_places=9,
         blank=False, null=False, db_column="ConvRule_Ratio"
         )
     created_on = models.DateTimeField(db_index=True, auto_now_add=True, db_column="ConvRule_Created_On")
@@ -377,6 +394,9 @@ class Config(models.Model):
         )
     prolong_expired_for = models.DurationField(
         blank=False, null=False, default=datetime.timedelta(days=7), db_column="Conf_Prolong_Expired_Days"
+        )
+    default_expiration_period = models.DurationField(
+        blank=False, null=False, default=datetime.timedelta(days=14), db_column="Conf_Default_Expiration_Period"
         )
 
     notify_on_min_stock = models.BooleanField(blank=False, null=False, default=True, db_column="Conf_Notify_Min_Stock")

@@ -39,13 +39,13 @@ def stockitem_handler(sender, instance, created, update_fields, **kwargs):
 
 @receiver(post_save, sender=PurchaseItem)
 def purchaseitem_handler(sender, instance, created, update_fields, **kwargs):
-    if 'created' and not update_fields:
+    if created and not update_fields:
         try:
             post_inventory(instance, instance.quantity)
         except Exception as e:
             print('PurchaseItem post-save handler exception in create')
             raise e
-    if not 'created' and (update_fields and ('quantity' in update_fields or 'unit' in update_fields)):
+    if not created and update_fields and ('quantity' in update_fields or 'unit' in update_fields):
         try:
             update_inventory_record(instance)
         except Exception as e:
@@ -54,7 +54,7 @@ def purchaseitem_handler(sender, instance, created, update_fields, **kwargs):
 
 @receiver(post_save, sender=Consumption)
 def consumption_handler(sender, instance, created, update_fields, **kwargs):
-    if 'created' and not update_fields:
+    if created and not update_fields:
         try:
             post_inventory(instance, instance.quantity)
                     
@@ -62,7 +62,7 @@ def consumption_handler(sender, instance, created, update_fields, **kwargs):
             print(e)
             raise e
             
-    if not 'created' and (update_fields and ('quantity' in update_fields or 'unit' in update_fields)):
+    if not created and (update_fields and ('quantity' in update_fields or 'unit' in update_fields)):
         try:
             update_inventory_record(instance)
         except Exception as e:
@@ -79,7 +79,7 @@ def cookingplan_status_change_handler(sender, instance, update_fields, **kwargs)
 
 @receiver(post_save, sender=Product)
 def product_post_save_handler(sender, instance, created, update_fields, **kwargs):
-    if 'created':
+    if created:
         try:
             common_conv_rules = ConversionRule.objects.filter(type=ConversionRuleTypes.COMMON)
             for rule in common_conv_rules:

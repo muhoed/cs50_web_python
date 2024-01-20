@@ -8,18 +8,6 @@ from .models import *
 from .wg_enumeration import *
 
 
-# def handle_stock_change(stock_item, quantity):
-#     product = Product.objects.get(pk=stock_item.product, created_by=stock_item.created_by)
-#     equipment = Equipment.objects.get(pk=stock_item.equipment, created_by=stock_item.created_by)
-#     if stock_item.unit != product.unit:
-#         prod_conv_ratio = get_conversion_ratio(product.pk, stock_item.unit, product.unit, stock_item.created_by)
-#     if stock_item.unit != VolumeUnits.LITER:
-#         equip_conv_ratio = get_conversion_ratio(stock_item.product, stock_item.unit, VolumeUnits.LITER, stock_item.created_by)
-#     product.current_stock += quantity * prod_conv_ratio
-#     product.save()
-#     equipment.free_space -= quantity * equip_conv_ratio
-#     equipment.save()
-
 def send_notification(item: object, type: NotificationTypes, send_email: bool) -> None:
     """Creates new stock item(s) on Purchase or after existing PurchaseItem or Consumption record 
     modification led to increase of inventory.
@@ -86,6 +74,7 @@ def post_inventory(item: object, quantity: float) -> None:
     -------
     None
     """
+    initial_quantity = quantity
     config = Config.objects.get(created_by=item.created_by)
     product = item.product # Product.objects.get(pk=item.product, created_by=item.created_by)
     to_prod_conv_ratio = get_conversion_ratio(product.pk, item.unit, product.unit, item.created_by)
@@ -120,14 +109,16 @@ def post_inventory(item: object, quantity: float) -> None:
 
         # if some quantity not stored even now, store it with NOTPLACED status for further manual alocation
         if quantity > 0:
-            new_stock_item = StockItem.objects.create(
+            StockItem.objects.create(
                     purchase_item = item,
                     unit = product.unit,
                     volume = quantity * to_prod_conv_ratio,
+                    use_till = item.use_till,
                     status = STOCK_STATUSES.NOTPLACED,
                     created_by=item.created_by
                 )
-            item.status = PurchaseStatuses.PARTIALLY_STORED
+            if quantity < initial_quantity:
+                item.status = PurchaseStatuses.PARTIALLY_STORED
         else:
             item.status = PurchaseStatuses.STORED
         item.save(update_fields=['status'])
@@ -174,7 +165,7 @@ def post_inventory(item: object, quantity: float) -> None:
             send_email=config.notify_by_email
             ))
 
-def store_purchase_item(item: object, quantity: float, unit: int, equipment: [object], conv_ratio: float, to_prod_conv_ratio: float, existing : bool = False) -> float:
+def store_purchase_item(item: object, quantity: Decimal, unit: int, equipment: [object], conv_ratio: Decimal, to_prod_conv_ratio: Decimal, existing : bool = False) -> Decimal:
     """Creates new stock item(s) on PurchaseItem creation or after existing PurchaseItemrecord 
     modification leading to increase of inventory.
 
@@ -188,7 +179,7 @@ def store_purchase_item(item: object, quantity: float, unit: int, equipment: [ob
         VolumeUnits enum value
     equipment : [object]
         list of Equipment objects to store in
-    conv_ratio : float
+    conv_ratio : Decimal
         conversion ratio to convert quantity units into equipment units (liter)
     to_prod_conv_ratio : float
         conversion ratio to convert quantity units into product / stock units
@@ -198,23 +189,24 @@ def store_purchase_item(item: object, quantity: float, unit: int, equipment: [ob
 
     Returns
     -------
-    float
+    Decimal
         remaining (not stored) quantity
     """
     for e in equipment:
         capacity = e.free_space / conv_ratio
         if existing:
-            if e.stockitem_set.filter(product=item.product).exists():
+            if e.stockitem_set.filter(purchase_item__product=item.product).exists():
                 new_stock_item = StockItem.objects.create(
                     purchase_item = item,
                     equipment = e,
                     unit = unit,
                     volume = (quantity if capacity >= quantity else capacity) * to_prod_conv_ratio,
+                    use_till = item.use_till,
                     created_by=item.created_by
                 )
-                quantity -= new_stock_item.volume / to_prod_conv_ratio
-                e.free_space = e.free_space - quantity * conv_ratio if capacity >= quantity else 0
+                e.free_space = (e.free_space - quantity * conv_ratio) if capacity >= quantity else 0
                 e.save()
+                quantity -= new_stock_item.volume / to_prod_conv_ratio
             if quantity == 0:
                 break
         else:
@@ -223,15 +215,16 @@ def store_purchase_item(item: object, quantity: float, unit: int, equipment: [ob
                     equipment = e,
                     unit = unit,
                     volume = (quantity if capacity >= quantity else capacity) * to_prod_conv_ratio,
+                    use_till = item.use_till,
                     created_by=item.created_by
                 )
-            quantity -= new_stock_item.volume / to_prod_conv_ratio
-            e.free_space = e.free_space - quantity * conv_ratio if capacity >= quantity else 0
+            e.free_space = (e.free_space - quantity * conv_ratio) if capacity >= quantity else 0
             e.save()
+            quantity -= new_stock_item.volume / to_prod_conv_ratio
             if quantity == 0:
                 break
 
-    return quantity
+    return Decimal(quantity)
 
 def update_inventory_record(item: object) -> None:
     """Updates or creates new stock item(s) after existing PurchaseItem or Consumption record was modified.
@@ -248,12 +241,12 @@ def update_inventory_record(item: object) -> None:
     type = 1
     if isinstance(item, Consumption):
         type = 2
-
-    #update stock in equipmentif item.unit != VolumeUnits.LITER:
-    eq_conv_ratio = get_conversion_ratio(item.product, item.unit, VolumeUnits.LITER, item.created_by) if item.unit != VolumeUnits.LITER else 1
-    conv_ratio = get_conversion_ratio(item.product, item._original_unit, item.unit, item.created_by) if item._original_unit != item.unit else 1
     
-    quantity_change = (item.quantity - item._original_quantity * conv_ratio) if type == 1 else (item._original_quantity * conv_ratio - item.quantity)
+    #update stock in equipmentif item.unit != VolumeUnits.LITER:
+    eq_conv_ratio = get_conversion_ratio(item.product.id, item.unit, VolumeUnits.LITER, item.created_by) if item.unit != VolumeUnits.LITER else 1
+    conv_ratio = get_conversion_ratio(item.product.id, item._original_unit, item.unit, item.created_by) if item._original_unit != item.unit else 1
+    
+    quantity_change = Decimal(item.quantity - item._original_quantity * conv_ratio) if type == 1 else Decimal(item._original_quantity * conv_ratio - item.quantity)
     
     if type == 1:
         product_stock = StockItem.objects.filter(
@@ -276,16 +269,19 @@ def update_inventory_record(item: object) -> None:
     # decrease stored quantity if purchased quantity was reduced
     if quantity_change < 0:
         for stock_item in product_stock:
-            conv_ratio = get_conversion_ratio(item.product, item.unit, stock_item.unit, item.created_by) if item.unit != stock_item.unit else 1
-            if quantity_change < 0 and stock_item.volume >= abs(quantity_change) * conv_ratio:
+            conv_ratio = get_conversion_ratio(item.product.id, item.unit, stock_item.unit, item.created_by) if item.unit != stock_item.unit else 1
+            if quantity_change < 0 and stock_item.volume >= abs(quantity_change * conv_ratio):
                 stock_item.volume += quantity_change * conv_ratio
-                stock_item.equipment.free_space -= quantity_change * eq_conv_ratio
-                stock_item.equipment.save()
+                if stock_item.equipment:
+                    stock_item.equipment.free_space -= quantity_change * eq_conv_ratio
+                    stock_item.equipment.save()
                 stock_item.save()
+                quantity_change = 0
                 break
-            elif quantity_change < 0 and stock_item.volume < abs(quantity_change) * conv_ratio:
-                stock_item.equipment.free_space += stock_item.volume / conv_ratio * eq_conv_ratio
-                stock_item.equipment.save()
+            elif quantity_change < 0 and stock_item.volume < abs(quantity_change * conv_ratio):
+                if stock_item.equipment:
+                    stock_item.equipment.free_space += stock_item.volume / conv_ratio * eq_conv_ratio
+                    stock_item.equipment.save()
                 quantity_change = quantity_change + stock_item.volume / conv_ratio
                 stock_item.delete()
         if quantity_change != 0:
@@ -306,6 +302,7 @@ def update_inventory_record(item: object) -> None:
                 product = item.product,
                 unit = item.unit,
                 quantity = quantity_change,
+                use_till = product_stock[0].use_till,
                 status = PurchaseStatuses.MOVED
             )
 
@@ -334,7 +331,7 @@ def handle_cooking_plan_fulfillment(obj: object) -> None:
                 created_by = obj.created_by
             )
 
-def get_conversion_ratio(prod_pk: int, unit1: VolumeUnits, unit2: VolumeUnits, owner: int) -> float:
+def get_conversion_ratio(prod_pk: int, unit1: VolumeUnits, unit2: VolumeUnits, owner: int) -> Decimal:
     """Returns convertion ratio to convert quantity/volume from unit1 to unit2.
 
     Parameters
@@ -350,7 +347,7 @@ def get_conversion_ratio(prod_pk: int, unit1: VolumeUnits, unit2: VolumeUnits, o
 
     Returns
     -------
-    conv_rule.ratio : float
+    conv_rule.ratio : Decimal
         convertion ratio or 1 if isn't defined
     """
     conv_ratio = 1
@@ -371,4 +368,4 @@ def get_conversion_ratio(prod_pk: int, unit1: VolumeUnits, unit2: VolumeUnits, o
             conv_ratio = 1 / conv_rule[0]['ratio']
     else:
         conv_ratio = conv_rule[0]['ratio']
-    return conv_ratio
+    return Decimal(conv_ratio)
