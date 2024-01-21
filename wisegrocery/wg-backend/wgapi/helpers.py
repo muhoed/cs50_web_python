@@ -254,14 +254,14 @@ def update_inventory_record(item: object) -> None:
                                                 created_by=item.created_by
                                             ).prefetch_related(
                                                 'equipment'
-                                            ).order_by('-created_by')
+                                            ).order_by('-created_on')
     else:
         product_stock = StockItem.objects.filter(
                                                 purchase_item__product=item.product,
                                                 created_by=item.created_by
                                             ).prefetch_related(
                                                 'equipment'
-                                            ).order_by('-created_by')
+                                            ).order_by('-created_on')
 
     # do nothing if quantity wasn't changed
     if quantity_change == 0:

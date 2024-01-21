@@ -263,11 +263,77 @@ class WgModelTestCase(TransactionTestCase):
         test_purchase_item.quantity = 0.8
         test_purchase_item.save(update_fields=['quantity'])
 
-        # assert that still onle one StockItem instance
+        # assert that still only one StockItem instance
         stock_items = StockItem.objects.all()
         self.assertEqual(stock_items.count(), 1)
         # assert that stock_item record quantity was decreased
         self.assertEqual(stock_items[0].volume, round(Decimal(0.8), 2))
+
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
+                       CELERY_ALWAYS_EAGER=True,
+                       CELERY_BROKER_URL = "memory://",
+                       CELERY_RESULT_BACKEND = "rpc://")
+    def test_purchase_item_edit_quantity_decrease_with_two_equipment_of_enough_capacity(self):
+        """Asserts StockItem record deleted and volume decreased when modifying existing PutchaseItem to decrease quantity while storing in teo equipments"""
+        # create two equipment pieces with volume less than purchase quantity
+        eq1 = Equipment.objects.create(
+            name='TestEq1',
+            description='Test equipment 1',
+            type=self.test_eq_type,
+            height=2,
+            width=2,
+            depth=2,
+            min_tempreture=15,
+            max_tempreture=18,
+            rated_size=1,
+            created_by=self.user
+        )
+        eq2 = Equipment.objects.create(
+            name='TestEq2',
+            description='Test equipment 2',
+            type=self.test_eq_type,
+            height=2,
+            width=2,
+            depth=2,
+            min_tempreture=15,
+            max_tempreture=18,
+            rated_size=1,
+            created_by=self.user
+        )
+        
+        test_purchase = Purchase.objects.create(
+            date=datetime.datetime.now() - datetime.timedelta(days=1),
+            type=PurchaseTypes.BALANCE,
+            created_by=self.user
+        )
+        test_purchase_item = PurchaseItem.objects.create(
+            purchase=test_purchase,
+            product=self.test_prod,
+            unit=self.test_prod.unit,
+            quantity=1,
+            created_by=self.user
+        )
+
+        # get initial stock items quantities
+        stock_items = StockItem.objects.all().order_by('created_on')
+        first_stock_item_vol = stock_items[0].volume
+        second_stock_item_vol = stock_items[1].volume
+
+        test_purchase_item.quantity = 0.5
+        test_purchase_item.save(update_fields=['quantity'])
+
+        # assert that only one StockItem instance remained
+        stock_items = StockItem.objects.all()
+        self.assertEqual(stock_items.count(), 1)
+        # assert that stock_item record quantity was decreased
+        self.assertEqual(stock_items[0].volume, round(first_stock_item_vol - (Decimal(0.5) - second_stock_item_vol), 2))
+        # assert that free space of the second equipment is equal to its volume
+        eq2.refresh_from_db()
+        self.assertEqual(eq2.volume, eq2.free_space)
+        # assert that free space of the first equipment increased for correct value
+        eq1.refresh_from_db()
+        self.assertEqual(eq1.free_space, round(eq1.volume - stock_items[0].volume / self.test_conv_rule_liter_to_kilogram.ratio, 2))
 
 
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
