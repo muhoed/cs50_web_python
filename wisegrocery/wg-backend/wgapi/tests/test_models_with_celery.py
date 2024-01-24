@@ -1,8 +1,10 @@
 from decimal import Decimal
+import time
 from django.test import TransactionTestCase
 from django.test.utils import override_settings
 from django.core.exceptions import ValidationError
 from celery.contrib.testing.worker import start_worker
+from celery.apps.beat import Beat
 
 
 from ..models import *
@@ -15,6 +17,8 @@ class WgModelTestCase(TransactionTestCase):
     def setUpClass(cls):
         super().setUpClass()
         start_worker(celery_app)
+        # beat = Beat(app=celery_app, loglevel='warning', quiet=True)
+        # beat.run()
         
     def setUp(self):
         user = WiseGroceryUser.objects.create(
@@ -73,7 +77,7 @@ class WgModelTestCase(TransactionTestCase):
 
 
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
-                       CELERY_ALWAYS_EAGER=True,
+                       #CELERY_ALWAYS_EAGER=True,
                        CELERY_BROKER_URL = "memory://",
                        CELERY_RESULT_BACKEND = "rpc://")
     def test_purchase_item_posted_to_inventory_and_stored(self):
@@ -134,7 +138,7 @@ class WgModelTestCase(TransactionTestCase):
 
 
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
-                       CELERY_ALWAYS_EAGER=True,
+                       #CELERY_ALWAYS_EAGER=True,
                        CELERY_BROKER_URL = "memory://",
                        CELERY_RESULT_BACKEND = "rpc://")
     def test_purchase_item_posted_to_inventory_and_partially_stored(self):
@@ -181,7 +185,7 @@ class WgModelTestCase(TransactionTestCase):
 
 
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
-                       CELERY_ALWAYS_EAGER=True,
+                       #CELERY_ALWAYS_EAGER=True,
                        CELERY_BROKER_URL = "memory://",
                        CELERY_RESULT_BACKEND = "rpc://")
     def test_purchase_item_posted_to_inventory_and_not_stored(self):
@@ -212,7 +216,7 @@ class WgModelTestCase(TransactionTestCase):
 
 
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
-                       CELERY_ALWAYS_EAGER=True,
+                       #CELERY_ALWAYS_EAGER=True,
                        CELERY_BROKER_URL = "memory://",
                        CELERY_RESULT_BACKEND = "rpc://")
     def test_purchase_item_edit_quantity_increase(self):
@@ -242,7 +246,7 @@ class WgModelTestCase(TransactionTestCase):
 
 
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
-                       CELERY_ALWAYS_EAGER=True,
+                       #CELERY_ALWAYS_EAGER=True,
                        CELERY_BROKER_URL = "memory://",
                        CELERY_RESULT_BACKEND = "rpc://")
     def test_purchase_item_edit_quantity_decrease_without_equipment(self):
@@ -271,11 +275,11 @@ class WgModelTestCase(TransactionTestCase):
 
 
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
-                       CELERY_ALWAYS_EAGER=True,
+                       #CELERY_ALWAYS_EAGER=True,
                        CELERY_BROKER_URL = "memory://",
                        CELERY_RESULT_BACKEND = "rpc://")
     def test_purchase_item_edit_quantity_decrease_with_two_equipment_of_enough_capacity(self):
-        """Asserts StockItem record deleted and volume decreased when modifying existing PutchaseItem to decrease quantity while storing in teo equipments"""
+        """Asserts StockItem record deleted and volume decreased when modifying existing PutchaseItem to decrease quantity while storing in two equipments"""
         # create two equipment pieces with volume less than purchase quantity
         eq1 = Equipment.objects.create(
             name='TestEq1',
@@ -337,7 +341,103 @@ class WgModelTestCase(TransactionTestCase):
 
 
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
-                       CELERY_ALWAYS_EAGER=True,
+                       #CELERY_ALWAYS_EAGER=True,
+                       CELERY_TASK_ALWAYS_EAGER=True,
+                       CELERY_BROKER_URL = "memory://",
+                       CELERY_RESULT_BACKEND = "rpc://")
+    def test_stock_item_trashed_on_expiration(self):
+        """Asserts StockItem record deleted and Cunsumption record of type TRASHED created on stock item expiration"""
+        test_purchase = Purchase.objects.create(
+            date=datetime.datetime.now() - datetime.timedelta(days=1),
+            type=PurchaseTypes.BALANCE,
+            created_by=self.user
+        )
+        use_till = test_purchase.date + datetime.timedelta(days=1)
+        PurchaseItem.objects.create(
+            purchase=test_purchase,
+            product=self.test_prod,
+            unit=self.test_prod.unit,
+            quantity=1,
+            use_till=use_till,
+            created_by=self.user
+        )
+
+        # assert that no StockItem exists
+        stock_items = StockItem.objects.all()
+        self.assertEqual(stock_items.count(), 0)
+        # assert that Consumption record is created and has correct quantity and status
+        consumptions = Consumption.objects.all()
+        self.assertEqual(consumptions.count(), 1)
+        self.assertEqual(consumptions[0].quantity, 1)
+        self.assertEqual(consumptions[0].type, ConsumptionTypes.TRASHED)
+
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
+                       #CELERY_ALWAYS_EAGER=True,
+                       CELERY_TASK_ALWAYS_EAGER=True,
+                       CELERY_BROKER_URL = "memory://",
+                       CELERY_RESULT_BACKEND = "rpc://")
+    def test_stock_item_prolonged_on_expiration(self):
+        """Asserts StockItem record usage period prolonged on stock item expiration when Prolong on expiration Config setting is enabled"""
+        config = Config.objects.get(created_by=self.user)
+        config.default_expired_action = EXPIRED_ACTIONS.PROLONG
+        config.save()
+
+        test_purchase = Purchase.objects.create(
+            date=datetime.datetime.now() - datetime.timedelta(days=1),
+            type=PurchaseTypes.BALANCE,
+            created_by=self.user
+        )
+        use_till = test_purchase.date + datetime.timedelta(days=1)
+        purch_item = PurchaseItem.objects.create(
+            purchase=test_purchase,
+            product=self.test_prod,
+            unit=self.test_prod.unit,
+            quantity=1,
+            use_till=use_till,
+            created_by=self.user
+        )
+
+        # assert that StockItem use_till increased for 7 days (default value) and its status not changed 
+        stock_item_prolonged = StockItem.objects.first()
+        new_use_till = purch_item.use_till + config.prolong_expired_for
+        self.assertEqual(stock_item_prolonged.use_till, new_use_till.date())
+        self.assertEqual(stock_item_prolonged.status, STOCK_STATUSES.NOTPLACED.value)
+
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
+                       #CELERY_ALWAYS_EAGER=True,
+                       CELERY_TASK_ALWAYS_EAGER=True,
+                       CELERY_BROKER_URL = "memory://",
+                       CELERY_RESULT_BACKEND = "rpc://")
+    def test_stock_item_set_to_expired_on_expiration(self):
+        """Asserts StockItem record status changed to Expired on stock item expiration when default expiration action in Config setting is Allow"""
+        config = Config.objects.get(created_by=self.user)
+        config.default_expired_action = EXPIRED_ACTIONS.ALLOW
+        config.save()
+
+        test_purchase = Purchase.objects.create(
+            date=datetime.datetime.now() - datetime.timedelta(days=1),
+            type=PurchaseTypes.BALANCE,
+            created_by=self.user
+        )
+        use_till = test_purchase.date + datetime.timedelta(days=1)
+        PurchaseItem.objects.create(
+            purchase=test_purchase,
+            product=self.test_prod,
+            unit=self.test_prod.unit,
+            quantity=1,
+            use_till=use_till,
+            created_by=self.user
+        )
+
+        # assert that StockItem status changed to Expired 
+        stock_item = StockItem.objects.first()
+        self.assertEqual(stock_item.status, STOCK_STATUSES.EXPIRED.value)
+
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
+                       #CELERY_ALWAYS_EAGER=True,
                        CELERY_BROKER_URL = "memory://",
                        CELERY_RESULT_BACKEND = "rpc://")
     def test_cooking_plan_fullfillment(self):

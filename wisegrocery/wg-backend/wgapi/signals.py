@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 
 from .helpers import *
 from .models import Config, ConversionRule, CookingPlan, Product, PurchaseItem, StockItem, WiseGroceryUser
-from .tasks import stockitem_expired_handler
+from .tasks import stockitem_notify_expiration_handler, stockitem_expired_handler
 from .wg_enumeration import STOCK_STATUSES, ConversionRuleTypes, CookPlanStatuses, NotificationTypes, PurchaseStatuses
 
 
@@ -29,9 +29,13 @@ def stockitem_handler(sender, instance, created, update_fields, **kwargs):
         #initiate task to set status on expiration according to config
         try:
             config = Config.objects.get(created_by=instance.created_by)
-            stockitem_expired_handler.apply_async(
+            stockitem_notify_expiration_handler.apply_async(
                     ({'pk': instance.pk},), 
                     eta=instance.use_till-config.notify_on_expiration_before
+                )
+            stockitem_expired_handler.apply_async(
+                    ({'pk': instance.pk},), 
+                    eta=instance.use_till
                 )
         except Exception as e:
             print('StockItem post-save handler exception in stockitem_expired_handler.')

@@ -314,7 +314,7 @@ class Consumption(models.Model):
     product = models.ForeignKey(Product, on_delete=models.RESTRICT, db_index=True, blank=False, null=False, db_column="Consumption_Product")
     cooking_plan = models.ForeignKey(CookingPlan, on_delete=models.SET_NULL, db_index=True, blank=True, null=True, db_column="Consumption_CookingPlan")
     recipe_product = models.ForeignKey(RecipeProduct, on_delete=models.SET_NULL, db_index=True, blank=True, null=True, db_column="Consumption_RecipeProduct")
-    stock_items = models.ManyToManyField(StockItem, db_column="Consumption_StockItems")
+    #stock_items = models.ManyToManyField(StockItem, db_column="Consumption_StockItems")
     date = models.DateField(blank=False, null=False, db_column="Consumption_Date", db_index=True)
     type = models.IntegerField(
         choices=wg_enumeration.ConsumptionTypes.choices, default=wg_enumeration.ConsumptionTypes.COOKED,
@@ -345,8 +345,8 @@ class Consumption(models.Model):
         elif self.type == wg_enumeration.ConsumptionTypes.TRASHED:
             action = wg_enumeration.ConsumptionTypes.TRASHED.label
         else:
-            action = 'cunsumed'
-        return f'{self.volume}{self.unit} of {self.product.name} were {action}.'
+            action = 'consumed'
+        return f'{self.quantity}{self.unit} of {self.product.name} were {action}.'
 
 class ConversionRule(models.Model):
     name = models.CharField(max_length=50, blank=False, null=False, unique=True, db_column="ConvRule_Name")

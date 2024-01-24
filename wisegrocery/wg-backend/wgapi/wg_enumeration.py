@@ -75,6 +75,7 @@ class STOCK_STATUSES(models.IntegerChoices):
     ACTIVE = 0, _('Active')
     EXPIRED = 1, _('Expired')
     NOTPLACED = 2, _('Not placed')
+    TRASHED = 3, _('Trashed')
 
 class EXPIRED_ACTIONS(models.IntegerChoices):
     TRASH = 0, _('Trash')
@@ -95,6 +96,7 @@ class NotificationTypes(models.IntegerChoices):
     OUTAGE = 1, _('Outage')
     TRASH = 2, _('Stock item trashed')
     SHOPPINGPLAN = 3, _('Cooking plan generated')
+    BEFOREXPIRATION = 4, _('Stock item will expire soon')
 
 class CookPlanStatuses(models.IntegerChoices):
     ENTERED = 0, _('Entered')

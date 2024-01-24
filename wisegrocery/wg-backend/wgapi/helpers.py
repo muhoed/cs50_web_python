@@ -52,7 +52,8 @@ def check_minimal_stock(product: object) -> bool:
             purchase_item__product=product.pk,
             created_by=product.created_by
         ).aggregate(Sum('volume'))
-        if current_stock['volume__sum'] <= product.minimal_stock_volume:
+        
+        if (current_stock['volume__sum'] if current_stock['volume__sum'] else 0) <= product.minimal_stock_volume:
             return False
         return True
     except Exception as e:
@@ -124,37 +125,61 @@ def post_inventory(item: object, quantity: float) -> None:
         item.save(update_fields=['status'])
     else:
         # post consumption record to inventory
-        stock_items = StockItem.objects.filter(
-            purchase_item__product = product.pk,
-            created_by = item.created_by,
-            status__in = [STOCK_STATUSES.ACTIVE, STOCK_STATUSES.NOTPLACED]
-        ).order_by('created_on')
-        for stock_item in stock_items:
+        if item.type == ConsumptionTypes.TRASHED:
+            # in case of trashed we need to find one matching StockItem
+            # since Consumption of TRASH type is created from StockItem there always should be at least one
+            # in case of more than one match just grab the first
+            stock_items = StockItem.objects.filter(
+                purchase_item__product = product.pk,
+                unit = item.unit,
+                volume = item.quantity,
+                use_till = item.date,
+                created_by = item.created_by,
+                status = STOCK_STATUSES.TRASHED
+            ).order_by('created_on')
+            if stock_items.count() <= 0:
+                raise Exception('No match. Cannot trash stock item.')
+            stock_item = stock_items.first()
+            # free up equipment and delete the stock item
+            conv_ratio1 = get_conversion_ratio(product.pk, stock_item.unit, item.unit, item.created_by)
+            equipment = Equipment.objects.filter(pk=stock_item.equipment).first()
+            if equipment:
+                equipment.free_space += stock_item.volume / conv_ratio1 * conv_ratio
+                equipment.save()
+            stock_item.delete()
+            # create and send notification
+            transaction.on_commit(partial(
+                send_notification, 
+                item=stock_item, 
+                type=NotificationTypes.TRASH, 
+                send_email=config.notify_by_email
+                ))
+        else:
+            # we look for stock items based on FIFO method
+            stock_items = StockItem.objects.filter(
+                purchase_item__product = product.pk,
+                created_by = item.created_by,
+                status__in = [STOCK_STATUSES.ACTIVE, STOCK_STATUSES.NOTPLACED]
+            ).order_by('created_on')
+            for stock_item in stock_items:
+                if quantity > 0:
+                    conv_ratio1 = get_conversion_ratio(product.pk, stock_item.unit, item.unit, item.created_by)
+                    equipment = Equipment.objects.filter(pk=stock_item.equipment).first()
+                    if stock_item.volume / conv_ratio1 <= quantity:
+                        quantity = quantity - stock_item.volume / conv_ratio1
+                        if equipment:
+                            equipment.free_space += stock_item.volume / conv_ratio1 * conv_ratio
+                            equipment.save()
+                        stock_item.delete()
+                    else:
+                        stock_item.volume = stock_item.volume - quantity * conv_ratio1
+                        stock_item.save()
+                        if equipment:
+                            equipment.free_space += quantity * conv_ratio
+                            equipment.save()
+                        quantity = 0
             if quantity > 0:
-                conv_ratio1 = get_conversion_ratio(product.pk, stock_item.unit, item.unit, item.created_by)
-                equipment = Equipment.objects.filter(pk=stock_item.equipment).first()
-                if stock_item.volume / conv_ratio1 <= quantity:
-                    quantity = quantity - stock_item.volume / conv_ratio1
-                    if equipment:
-                        equipment.free_space += stock_item.volume / conv_ratio1 * conv_ratio
-                    if item.type == ConsumptionTypes.TRASHED:
-                        transaction.on_commit(partial(
-                            send_notification, 
-                            item=stock_item, 
-                            type=NotificationTypes.TRASH, 
-                            send_email=config.notify_by_email
-                            ))
-                    stock_item.delete()
-                else:
-                    stock_item.volume = stock_item.volume - quantity * conv_ratio1
-                    stock_item.save()
-                    if equipment:
-                        equipment.free_space += quantity * conv_ratio
-                    quantity = 0
-                if equipment:
-                    equipment.save()
-        if quantity > 0:
-            raise Exception(f'Stored quantity of the product can not be negative. Quantity is -{quantity}')
+                raise Exception(f'Stored quantity of the product can not be negative. Quantity is -{quantity}')
     
     if not check_minimal_stock(product) and config.notify_on_min_stock:
         # send notification

@@ -16,6 +16,25 @@ def import_django_instance():
 
 
 @shared_task
+def stockitem_notify_expiration_handler(data):
+	try:
+		import_django_instance()
+		from django.utils.translation import gettext_lazy as _
+		from wgapi.models import Config, StockItem, Consumption
+		from wgapi.helpers import send_notification
+		from wgapi.wg_enumeration import STOCK_STATUSES, EXPIRED_ACTIONS, NotificationTypes, ConsumptionTypes
+		
+		instance = StockItem.objects.get(pk=int(data.get('pk')))
+		config = Config.objects.get(created_by=instance.created_by)
+		if config.notify_on_expiration:
+			send_notification(instance, NotificationTypes.BEFOREXPIRATION, config.notify_by_email)
+
+	except Exception as e:
+		print(e)
+		raise e
+
+
+@shared_task
 def stockitem_expired_handler(data):
 	try:
 		import_django_instance()
@@ -27,15 +46,18 @@ def stockitem_expired_handler(data):
 		instance = StockItem.objects.get(pk=int(data.get('pk')))
 		config = Config.objects.get(created_by=instance.created_by)
 		if config.default_expired_action == EXPIRED_ACTIONS.TRASH:
+			# first change status of stock item to Trashed for further pairing
+			instance.status = STOCK_STATUSES.TRASHED
+			instance.save()
 			# create Consumption record of respective type
 			# stock_item deletion will be triggered by Consumption post_save signal 
-			Consumption.object.create(
-				product = instance.product,
-				stock_item = instance,
+			Consumption.objects.create(
+				product = instance.purchase_item.product,
 				date = instance.use_till,
 				type = ConsumptionTypes.TRASHED,
 				unit = instance.unit,
-				quantity = instance.volume
+				quantity = instance.volume,
+				created_by=instance.created_by
 			)
 		else:
 			# prolong if allowed
@@ -48,17 +70,9 @@ def stockitem_expired_handler(data):
 					send_notification(instance, NotificationTypes.EXPIRATION, config.notify_by_email)
 			instance.save()
 
-	except instance.DoesNotExist as e1:
-		print(e1)
-		raise e1
-
-	except config.DoesNotExist as e2:
-		print(e2)
-		raise e2
-
-	except Exception as e3:
-		print(e3)
-		raise e3
+	except Exception as e:
+		print(e)
+		raise e
 
 # @shared_task
 # def repeat_shopping_plan_generator(data):
