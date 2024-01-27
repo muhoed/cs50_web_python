@@ -1,8 +1,8 @@
 import os
 from dotenv import load_dotenv
-
 from datetime import timedelta
 from pathlib import Path
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
-    'django_celery_beat',
+    #'django_celery_beat',
     'wgapi',
 ]
 
@@ -177,4 +177,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CELERY_BROKER_URL = "redis://localhost:6379/0"
 CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
 CELERY_TIMEZONE = TIME_ZONE
-CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+#CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+CELERY_BEAT_SCHEDULE = {
+    'pre_expire_notification': {
+        'task': 'wgapi.tasks.stockitem_notify_expiration_handler',
+        'schedule': crontab(minute=0, hour=6),
+    },
+    'expiration_handling': {
+        'task': 'wgapi.tasks.stockitem_expired_handler',
+        'schedule': crontab(minute=0, hour=5),
+    },
+}

@@ -1,5 +1,6 @@
 # start worker 'celery -A wgbackend worker -l INFO'
 #from wgbackend.celery import app as celery_app
+import datetime
 from celery import shared_task
 
 
@@ -16,18 +17,28 @@ def import_django_instance():
 
 
 @shared_task
-def stockitem_notify_expiration_handler(data):
+def stockitem_notify_expiration_handler(): #(data):
 	try:
 		import_django_instance()
 		from django.utils.translation import gettext_lazy as _
-		from wgapi.models import Config, StockItem, Consumption
+		from wgapi.models import Config, StockItem
 		from wgapi.helpers import send_notification
-		from wgapi.wg_enumeration import STOCK_STATUSES, EXPIRED_ACTIONS, NotificationTypes, ConsumptionTypes
+		from wgapi.wg_enumeration import NotificationTypes, STOCK_STATUSES
 		
-		instance = StockItem.objects.get(pk=int(data.get('pk')))
-		config = Config.objects.get(created_by=instance.created_by)
-		if config.notify_on_expiration:
-			send_notification(instance, NotificationTypes.BEFOREXPIRATION, config.notify_by_email)
+		#instance = StockItem.objects.get(pk=int(data.get('pk')))
+		#config = Config.objects.get(created_by=instance.created_by)
+		configs = Config.objects.all()
+		for config in configs:
+			if config.notify_on_expiration:
+				stock_items = StockItem.objects.filter(
+					status__in=[STOCK_STATUSES.ACTIVE, STOCK_STATUSES.NOTPLACED],
+					use_till=datetime.datetime.now().date()+config.notify_on_expiration_before,
+					created_by=config.created_by
+				)
+				for stock_item in stock_items:
+					send_notification(stock_item, NotificationTypes.BEFOREXPIRATION, config.notify_by_email)
+		# if config.notify_on_expiration:
+		# 	send_notification(instance, NotificationTypes.BEFOREXPIRATION, config.notify_by_email)
 
 	except Exception as e:
 		print(e)
@@ -35,7 +46,7 @@ def stockitem_notify_expiration_handler(data):
 
 
 @shared_task
-def stockitem_expired_handler(data):
+def stockitem_expired_handler(): #(data):
 	try:
 		import_django_instance()
 		from django.utils.translation import gettext_lazy as _
@@ -43,32 +54,41 @@ def stockitem_expired_handler(data):
 		from wgapi.helpers import send_notification
 		from wgapi.wg_enumeration import STOCK_STATUSES, EXPIRED_ACTIONS, NotificationTypes, ConsumptionTypes
 		
-		instance = StockItem.objects.get(pk=int(data.get('pk')))
-		config = Config.objects.get(created_by=instance.created_by)
-		if config.default_expired_action == EXPIRED_ACTIONS.TRASH:
-			# first change status of stock item to Trashed for further pairing
-			instance.status = STOCK_STATUSES.TRASHED
-			instance.save()
-			# create Consumption record of respective type
-			# stock_item deletion will be triggered by Consumption post_save signal 
-			Consumption.objects.create(
-				product = instance.purchase_item.product,
-				date = instance.use_till,
-				type = ConsumptionTypes.TRASHED,
-				unit = instance.unit,
-				quantity = instance.volume,
-				created_by=instance.created_by
+		# instance = StockItem.objects.get(pk=int(data.get('pk')))
+		# config = Config.objects.get(created_by=instance.created_by)
+		print('expiration')
+		configs = Config.objects.all()
+		for config in configs:
+			stock_items = StockItem.objects.filter(
+				status__in=[STOCK_STATUSES.ACTIVE, STOCK_STATUSES.NOTPLACED],
+				use_till=datetime.datetime.now().date(),
+				created_by=config.created_by
 			)
-		else:
-			# prolong if allowed
-			if config.default_expired_action == EXPIRED_ACTIONS.PROLONG:
-				instance.use_till += config.prolong_expired_for
-			# otherwise mark as expired 
-			else:
-				instance.status = STOCK_STATUSES.EXPIRED
-				if config.notify_on_expiration:
-					send_notification(instance, NotificationTypes.EXPIRATION, config.notify_by_email)
-			instance.save()
+			for stock_item in stock_items:
+				if config.default_expired_action == EXPIRED_ACTIONS.TRASH:
+					# first change status of stock item to Trashed for further pairing
+					stock_item.status = STOCK_STATUSES.TRASHED
+					stock_item.save()
+					# create Consumption record of respective type
+					# stock_item deletion will be triggered by Consumption post_save signal 
+					Consumption.objects.create(
+						product = stock_item.purchase_item.product,
+						date = stock_item.use_till,
+						type = ConsumptionTypes.TRASHED,
+						unit = stock_item.unit,
+						quantity = stock_item.volume,
+						created_by=stock_item.created_by
+					)
+				else:
+					# prolong if allowed
+					if config.default_expired_action == EXPIRED_ACTIONS.PROLONG:
+						stock_item.use_till += config.prolong_expired_for
+					# otherwise mark as expired 
+					else:
+						stock_item.status = STOCK_STATUSES.EXPIRED
+						if config.notify_on_expiration:
+							send_notification(stock_item, NotificationTypes.EXPIRATION, config.notify_by_email)
+					stock_item.save()
 
 	except Exception as e:
 		print(e)

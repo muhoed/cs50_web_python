@@ -1,14 +1,14 @@
 import json
 
-from django_celery_beat.models import PeriodicTask, IntervalSchedule
-from django.db import transaction
+#from django_celery_beat.models import PeriodicTask, IntervalSchedule
+#from django.db import transaction
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 
 from .helpers import *
 from .models import Config, ConversionRule, CookingPlan, Product, PurchaseItem, StockItem, WiseGroceryUser
-from .tasks import stockitem_notify_expiration_handler, stockitem_expired_handler
+#from .tasks import stockitem_notify_expiration_handler, stockitem_expired_handler
 from .wg_enumeration import STOCK_STATUSES, ConversionRuleTypes, CookPlanStatuses, NotificationTypes, PurchaseStatuses
 
 
@@ -23,23 +23,23 @@ def wisegroceryuser_handler(sender, instance, created, **kwargs):
             print('Post-save user handler exception in create Config.')
             raise e
 
-@receiver(post_save, sender=StockItem)
-def stockitem_handler(sender, instance, created, update_fields, **kwargs):
-    if created or (update_fields and 'use_till' in update_fields):
-        #initiate task to set status on expiration according to config
-        try:
-            config = Config.objects.get(created_by=instance.created_by)
-            stockitem_notify_expiration_handler.apply_async(
-                    ({'pk': instance.pk},), 
-                    eta=instance.use_till-config.notify_on_expiration_before
-                )
-            stockitem_expired_handler.apply_async(
-                    ({'pk': instance.pk},), 
-                    eta=instance.use_till
-                )
-        except Exception as e:
-            print('StockItem post-save handler exception in stockitem_expired_handler.')
-            raise e
+# @receiver(post_save, sender=StockItem)
+# def stockitem_handler(sender, instance, created, update_fields, **kwargs):
+#     if created or (update_fields and 'use_till' in update_fields):
+#         #initiate task to set status on expiration according to config
+#         try:
+#             config = Config.objects.get(created_by=instance.created_by)
+#             stockitem_notify_expiration_handler.apply_async(
+#                     ({'pk': instance.pk},), 
+#                     eta=instance.use_till-config.notify_on_expiration_before
+#                 )
+#             stockitem_expired_handler.apply_async(
+#                     ({'pk': instance.pk},), 
+#                     eta=instance.use_till
+#                 )
+#         except Exception as e:
+#             print('StockItem post-save handler exception in stockitem_expired_handler.')
+#             raise e
 
 @receiver(post_save, sender=PurchaseItem)
 def purchaseitem_handler(sender, instance, created, update_fields, **kwargs):

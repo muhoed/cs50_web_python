@@ -1,4 +1,6 @@
 from decimal import Decimal
+from multiprocessing import Process
+from threading import Thread
 import time
 from django.test import TransactionTestCase
 from django.test.utils import override_settings
@@ -13,12 +15,12 @@ from wgbackend.celery import celery_app
 
 
 class WgModelTestCase(TransactionTestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        start_worker(celery_app)
-        # beat = Beat(app=celery_app, loglevel='warning', quiet=True)
-        # beat.run()
+    # @classmethod
+    # def setUpClass(cls):
+    #     super().setUpClass()
+    #     beat = Beat(app=celery_app, loglevel='debug', quiet=False)
+    #     beat.run()
+    #     start_worker(celery_app)
         
     def setUp(self):
         user = WiseGroceryUser.objects.create(
@@ -74,6 +76,13 @@ class WgModelTestCase(TransactionTestCase):
             max_tempreture=20,
             created_by=self.user
         )
+
+    def run_celery_worker(self):
+        start_worker(app=celery_app, loglevel='error')
+
+    def run_celery_beat_helper(self):
+        beat = Beat(app=celery_app, loglevel='error', quiet=True)
+        beat.run()
 
 
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
@@ -344,9 +353,21 @@ class WgModelTestCase(TransactionTestCase):
                        #CELERY_ALWAYS_EAGER=True,
                        CELERY_TASK_ALWAYS_EAGER=True,
                        CELERY_BROKER_URL = "memory://",
-                       CELERY_RESULT_BACKEND = "rpc://")
+                       CELERY_RESULT_BACKEND = "rpc://",
+                       CELERY_BEAT_SCHEDULE = {
+                            'expiration_handling': {
+                                'task': 'wgapi.tasks.stockitem_expired_handler',
+                                'schedule': 2.0,
+                            },
+                       })
     def test_stock_item_trashed_on_expiration(self):
         """Asserts StockItem record deleted and Cunsumption record of type TRASHED created on stock item expiration"""
+
+        p1 = Thread(target=self.run_celery_beat_helper, daemon=True)
+        p2 = Thread(target=self.run_celery_worker, daemon=True)
+        p1.start()
+        p2.start()
+        
         test_purchase = Purchase.objects.create(
             date=datetime.datetime.now() - datetime.timedelta(days=1),
             type=PurchaseTypes.BALANCE,
@@ -362,6 +383,8 @@ class WgModelTestCase(TransactionTestCase):
             created_by=self.user
         )
 
+        time.sleep(2)
+
         # assert that no StockItem exists
         stock_items = StockItem.objects.all()
         self.assertEqual(stock_items.count(), 0)
@@ -376,9 +399,21 @@ class WgModelTestCase(TransactionTestCase):
                        #CELERY_ALWAYS_EAGER=True,
                        CELERY_TASK_ALWAYS_EAGER=True,
                        CELERY_BROKER_URL = "memory://",
-                       CELERY_RESULT_BACKEND = "rpc://")
+                       CELERY_RESULT_BACKEND = "rpc://",
+                       CELERY_BEAT_SCHEDULE = {
+                            'expiration_handling': {
+                                'task': 'wgapi.tasks.stockitem_expired_handler',
+                                'schedule': 2.0,
+                            },
+                       })
     def test_stock_item_prolonged_on_expiration(self):
         """Asserts StockItem record usage period prolonged on stock item expiration when Prolong on expiration Config setting is enabled"""
+        
+        p1 = Thread(target=self.run_celery_beat_helper, daemon=True)
+        p2 = Thread(target=self.run_celery_worker, daemon=True)
+        p1.start()
+        p2.start()
+
         config = Config.objects.get(created_by=self.user)
         config.default_expired_action = EXPIRED_ACTIONS.PROLONG
         config.save()
@@ -398,6 +433,8 @@ class WgModelTestCase(TransactionTestCase):
             created_by=self.user
         )
 
+        time.sleep(2)
+
         # assert that StockItem use_till increased for 7 days (default value) and its status not changed 
         stock_item_prolonged = StockItem.objects.first()
         new_use_till = purch_item.use_till + config.prolong_expired_for
@@ -409,9 +446,21 @@ class WgModelTestCase(TransactionTestCase):
                        #CELERY_ALWAYS_EAGER=True,
                        CELERY_TASK_ALWAYS_EAGER=True,
                        CELERY_BROKER_URL = "memory://",
-                       CELERY_RESULT_BACKEND = "rpc://")
+                       CELERY_RESULT_BACKEND = "rpc://",
+                       CELERY_BEAT_SCHEDULE = {
+                            'expiration_handling': {
+                                'task': 'wgapi.tasks.stockitem_expired_handler',
+                                'schedule': 2.0,
+                            },
+                       })
     def test_stock_item_set_to_expired_on_expiration(self):
         """Asserts StockItem record status changed to Expired on stock item expiration when default expiration action in Config setting is Allow"""
+        
+        p1 = Thread(target=self.run_celery_beat_helper, daemon=True)
+        p2 = Thread(target=self.run_celery_worker, daemon=True)
+        p1.start()
+        p2.start()
+
         config = Config.objects.get(created_by=self.user)
         config.default_expired_action = EXPIRED_ACTIONS.ALLOW
         config.save()
@@ -430,6 +479,8 @@ class WgModelTestCase(TransactionTestCase):
             use_till=use_till,
             created_by=self.user
         )
+
+        time.sleep(2)
 
         # assert that StockItem status changed to Expired 
         stock_item = StockItem.objects.first()
