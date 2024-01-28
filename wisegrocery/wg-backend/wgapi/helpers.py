@@ -60,7 +60,7 @@ def check_minimal_stock(product: object) -> bool:
         print('Check minimal stock exception.')
         raise e
 
-def post_inventory(item: object, quantity: float) -> None:
+def post_inventory(item: object, quantity: Decimal) -> None:
     """Creates new stock item(s) on Purchase or after existing PurchaseItem or Consumption record 
     modification led to increase of inventory.
 
@@ -68,7 +68,7 @@ def post_inventory(item: object, quantity: float) -> None:
     ----------
     item : object
         instance of PurchaseItem or Consumption class
-    quantity : float
+    quantity : Decimal
         quantity of Item product to be stored
 
     Returns
@@ -164,7 +164,9 @@ def post_inventory(item: object, quantity: float) -> None:
             for stock_item in stock_items:
                 if quantity > 0:
                     conv_ratio1 = get_conversion_ratio(product.pk, stock_item.unit, item.unit, item.created_by)
-                    equipment = Equipment.objects.filter(pk=stock_item.equipment).first()
+                    equipment = None
+                    if stock_item.equipment:
+                        equipment = Equipment.objects.filter(pk=stock_item.equipment.id).first()
                     if stock_item.volume / conv_ratio1 <= quantity:
                         quantity = quantity - stock_item.volume / conv_ratio1
                         if equipment:
@@ -172,14 +174,14 @@ def post_inventory(item: object, quantity: float) -> None:
                             equipment.save()
                         stock_item.delete()
                     else:
-                        stock_item.volume = stock_item.volume - quantity * conv_ratio1
+                        stock_item.volume = stock_item.volume - Decimal(quantity) * conv_ratio1
                         stock_item.save()
                         if equipment:
-                            equipment.free_space += quantity * conv_ratio
+                            equipment.free_space += Decimal(quantity) * Decimal(conv_ratio)
                             equipment.save()
                         quantity = 0
             if quantity > 0:
-                raise Exception(f'Stored quantity of the product can not be negative. Quantity is -{quantity}')
+                raise ValidationError(f'Stored quantity of the product can not be negative. Quantity is -{quantity}')
     
     if not check_minimal_stock(product) and config.notify_on_min_stock:
         # send notification
@@ -310,7 +312,7 @@ def update_inventory_record(item: object) -> None:
                 quantity_change = quantity_change + stock_item.volume / conv_ratio
                 stock_item.delete()
         if quantity_change != 0:
-            raise Exception('Stored quantity of the product can not be negative.')
+            raise ValidationError(f'Stored quantity of the product can not be negative. Quantity is -{abs(round(quantity_change, 2))}')
     else:
         if type == 1:
             post_inventory(item, quantity_change)
@@ -320,7 +322,8 @@ def update_inventory_record(item: object) -> None:
             new_purchase = Purchase.objects.create(
                 date = item.date,
                 type = PurchaseTypes.BALANCE,
-                note = 'System purchase created to correct inventory balance due to reducing of quantity on an existing Consumption record.'
+                note = 'System purchase created to correct inventory balance due to reducing of quantity on an existing Consumption record.',
+                created_by=item.created_by
             )
             PurchaseItem.objects.create(
                 purchase = new_purchase,
@@ -328,7 +331,8 @@ def update_inventory_record(item: object) -> None:
                 unit = item.unit,
                 quantity = quantity_change,
                 use_till = product_stock[0].use_till,
-                status = PurchaseStatuses.MOVED
+                status = PurchaseStatuses.MOVED,
+                created_by=item.created_by
             )
 
 def handle_cooking_plan_fulfillment(obj: object) -> None:

@@ -108,7 +108,7 @@ class Equipment(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.name}, type: {self.type.label}, volume: {self.volume} l.'
+        return f'{self.name}, type: {self.type}, volume: {self.volume} l.'
 
 
 class Product(models.Model):
