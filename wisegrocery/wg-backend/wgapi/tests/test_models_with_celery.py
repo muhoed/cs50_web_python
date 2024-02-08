@@ -12,7 +12,7 @@ from ..wg_enumeration import *
 from wgbackend.celery import celery_app
 
 
-class WgModelTestCase(TransactionTestCase):
+class WgModelWithCeleryTestCase(TransactionTestCase):
     def setUp(self):
         user = WiseGroceryUser.objects.create(
             username='TestUser',

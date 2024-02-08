@@ -42,7 +42,8 @@ class ProductCategories(models.IntegerChoices):
     PERSONAL_CARE = 16, _('Personal care')
     PET_CARE = 17, _('Pet care')
     BABY_PRODUCTS = 18, _('Baby products')
-    OTHER = 19, _('Other')
+    MILK_PRODUCTS = 19, _('Milk products')
+    OTHER = 20, _('Other')
 
 class VolumeUnits(models.IntegerChoices):
     LITER = 1, _('Liter')
