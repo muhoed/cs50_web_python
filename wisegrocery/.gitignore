@@ -3,7 +3,9 @@
 */venv
 */.venv
 */.vs
+*/node_modules
 
 */*.sqlite3
 */*.env
 
+**/.vscode/
