@@ -1,14 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import AuthService from "../../services/auth.service";
 
-type UserType = {
-  username: string,
-  email: string | null,
-  password: string | null,
-  password1: string | null,
-  password2: string | null
-}
-
 const initialState: UserStateType = {
   user: {
     auth: {

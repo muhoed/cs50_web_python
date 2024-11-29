@@ -1,4 +1,4 @@
-const MODULES = [
+const MODULES: ModuleType[] = [
     {
       name: 'Groceries',
       text: 'Grocery inventories management',

@@ -3,7 +3,7 @@ import { SafeAreaView } from "react-native-web";
 import { StyleSheet, Text, View } from "react-native";
 import LogoutDrawerLink from "./LogoutDrawerLink";
 
-export default function NavSideBar (props) {
+export default function NavSideBar (props: any) {
     const {state, descriptors, navigation} = props;
     let lastGroupName = '';
     let newGroup = true;
@@ -11,7 +11,7 @@ export default function NavSideBar (props) {
     return (
         <SafeAreaView style={ {flex: 1} }>
             <DrawerContentScrollView {...props}>
-                {state.routes.map((route) => {
+                {state.routes.map((route: any) => {
                     const { drawerLabel, activeTintColor, groupName } = descriptors[route.key].options;
                     if (lastGroupName !== groupName) {
                         newGroup = true;
@@ -39,7 +39,7 @@ export default function NavSideBar (props) {
                             }
                             focused={
                                 state.routes.findIndex(
-                                    (e) => e.name === route.name
+                                    (e: any) => e.name === route.name
                                 ) === state.index
                             }
                             activeTintColor={activeTintColor}

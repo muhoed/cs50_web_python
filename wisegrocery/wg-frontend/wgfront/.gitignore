@@ -2,11 +2,13 @@
 
 # dependencies
 node_modules/
+**/mode_modules/
 
 # Expo
 .expo/
 dist/
 web-build/
+android/
 expo-env.d.ts
 
 # Native

@@ -5,7 +5,7 @@ import SettingSection from "../../components/SettingSection";
 import { EXPIRATION_ACTIONS } from "../../enumerations/expirationActions";
 import { DispatchType, RootStateType } from "@/store/redux/store";
 
-export default function Settings () {
+export default function Settings() {
     const settings = useSelector<RootStateType, ConfigType>(state => state.main.settings.config);
     const settingsStatus = useSelector<RootStateType, string>(state => state.main.settings.status);
     const dispatch = useDispatch<DispatchType>();
@@ -119,7 +119,7 @@ export default function Settings () {
           <SettingSection title="Shopping plan settings" settingsList={shoppingPlanSettings} />
         </SafeAreaView>
     );
-}
+};
 
 const styles = StyleSheet.create({
   container: {

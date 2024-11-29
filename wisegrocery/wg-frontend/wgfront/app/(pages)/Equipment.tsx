@@ -21,7 +21,7 @@ export default function Equipment() {
             {/* <StatusBar style="auto" /> */}
         </SafeAreaView>
     );
-}
+};
 
 const styles = StyleSheet.create({
   container: {

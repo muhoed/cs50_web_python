@@ -5,11 +5,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { settingsReset } from "../store/redux/settingsSlice";
 import Spinner from "./Spinner";
 import { logoutUser } from "../store/redux/userSlice";
+import { RootStateType } from "@/store/redux/store";
 
-export default function LogoutDrawerLink (props) {
+export default function LogoutDrawerLink (props: any) {
     const dispatch = useDispatch();
-    const user = useSelector(state => state.secure.user.auth);
-    const userError = useSelector(state => state.secure.user.error);
+    const user = useSelector<RootStateType, AuthType>(state => state.secure.user.auth);
+    const userError = useSelector<RootStateType>(state => state.secure.user.error);
     const [status, setStatus] = useState('idle');
 
     const onLogout = () => {

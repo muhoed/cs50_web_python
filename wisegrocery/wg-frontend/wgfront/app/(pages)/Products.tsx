@@ -31,9 +31,8 @@ export default function Products() {
                 {/* <StatusBar style="auto" /> */}
             </SafeAreaView>
         )
-    }
-    
-}
+    }  
+};
 
 const styles = StyleSheet.create({
   container: {

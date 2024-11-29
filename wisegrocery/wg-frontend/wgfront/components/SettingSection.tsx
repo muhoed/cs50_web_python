@@ -2,9 +2,9 @@ import { StyleSheet, Text, View } from "react-native";
 import { FlatList } from "react-native-web";
 import SettingLine from "./SettingLine";
 
-export default function SettingSection (props) {
+export default function SettingSection (props: any) {
 
-    const renderItem = ({item, index, separator}) => {
+    const renderItem = ({item, index}: {item: any, index: number}) => {
         return (
             <SettingLine 
                 key={index}
@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
   section: {
     borderWidth: 2,
     borderRadius: 10,
-    alignItems: "left",
+    alignItems: "flex-start",
     width: "30%",
     maxHeight: "80%",
     marginTop: "3%",
@@ -41,7 +41,6 @@ const styles = StyleSheet.create({
     marginRight: "1%",
   },
   sectionTitle: {
-    fontSize: "1em",
     fontWeight: "bold",
     marginTop: "5%",
     marginBottom: "2%",

@@ -1,13 +1,13 @@
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation } from "expo-router";
 import { Button, Pressable, StyleSheet, Text, View } from "react-native";
 
-export default function ModuleTile({ module }) {
+export default function ModuleTile({ module }: { module: ModuleType }) {
     const navigation = useNavigation();
 
     return (
-        <Pressable style={styles.container} onPress={() => navigation.navigate(module.item.name)}>
-            <Text style={styles.button}>{module.item.name}</Text>
-            <Text style={styles.label}>{module.item.text}</Text>
+        <Pressable style={styles.container} onPress={() => navigation.navigate(module.name as never)}>
+            <Text style={styles.button}>{module.name}</Text>
+            <Text style={styles.label}>{module.text}</Text>
         </Pressable>
     );
 }

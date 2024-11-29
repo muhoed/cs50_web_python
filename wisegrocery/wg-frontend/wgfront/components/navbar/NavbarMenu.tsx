@@ -1,17 +1,20 @@
 import React, {useState} from 'react';
-import { Link } from "@react-navigation/native";
-import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import { Appbar, Divider, List, Menu } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
 import { settingsReset } from '../../store/redux/settingsSlice';
 import { logoutUser } from '../../store/redux/userSlice';
 import { Pressable } from 'react-native-web';
 import useScreenSize from '../../hooks/useScreenSize';
+import { RootStateType } from '@/store/redux/store';
+// import { Link } from '@react-navigation/native';
+import { Link, router } from 'expo-router';
 
-export default function NavbarMenu (props) {
+export default function NavbarMenu (props: { navigation: { navigate: (arg0: any) => void; }; }) {
     const dispatch = useDispatch();
-    const user = useSelector(state => state.secure.user.auth);
+    const user = useSelector<RootStateType, AuthType>(state => state.secure.user.auth);
     const [homeVisible, setHomeVisible] = useState(false);
+    const [status, setStatus] = useState('idle');
     const screenSize = useScreenSize();
 
     const mainMenuItems = (
@@ -20,33 +23,33 @@ export default function NavbarMenu (props) {
             leadingIcon="home-outline"
             title="Home"
             titleStyle={{fontSize: 16, fontWeight: "bold"}}
-            onPress={() => onMenuItemPress("Home")} />
+            onPress={() => onMenuItemPress("/(pages)")} />
         <Divider bold={true} />
         <Menu.Item 
             title="Groceries" 
             titleStyle={{fontWeight: "bold"}}
-            onPress={() => onMenuItemPress("Groceries")} />
+            onPress={() => onMenuItemPress("/(pages)/Groceries")} />
         <Divider />
         <Menu.Item
             leadingIcon="chevron-right" 
             title="Products" 
-            onPress={() => onMenuItemPress("Products")} />
+            onPress={() => onMenuItemPress("/(pages)/Products")} />
         <Menu.Item
             leadingIcon="chevron-right"  
             title="Equipment" 
-            onPress={() => onMenuItemPress("Equipment")} />
+            onPress={() => onMenuItemPress("/(pages)/Equipment")} />
         <Menu.Item 
             leadingIcon="chevron-right" 
             title="Stock" 
-            onPress={() => onMenuItemPress("Stock")} />
+            onPress={() => onMenuItemPress("/(pages)/Stock")} />
         <Divider />
         <Menu.Item 
             title="Shopping" 
-            onPress={() => onMenuItemPress("Shopping")} />
+            onPress={() => onMenuItemPress("/(pages)/Shopping")} />
         <Divider />
         <Menu.Item 
             title="Cooking" 
-            onPress={() => onMenuItemPress("Cooking")} />
+            onPress={() => onMenuItemPress("/(pages)/Cooking")} />
         </>
     )
   
@@ -85,21 +88,24 @@ export default function NavbarMenu (props) {
         openHomeMenu();
     }
 
-    function onMenuItemPress(screen) {
-        props.navigation.navigate(screen);
+    function onMenuItemPress(routeName: any) {
+        router.replace(routeName);
         closeHomeMenu();
     }
 
     if (screenSize.isDesktop || !screenSize.isPortrait) {
         return (
             <View style={styles.container}>
-                <View style={{ flex: 1, flexGrow: 1, justifyContent: "start" }}>
-                    <Link to={{ screen: "Home" }} style={styles.navbarItem}>Wise Grocery</Link>
+                <View style={{ flex: 1, flexGrow: 1, justifyContent: "flex-start" }}>
+                    {/* <Link screen="Home" style={styles.navbarItem}>Wise Grocery</Link> */}
+                    <Link href='/(pages)' style={styles.navbarItem}>Wise Grocery</Link>
                 </View>
                 {!user.authenticated ? (
                     <>
-                    <Link style={styles.navbarItem} to={{ screen: 'SignIn' }}>Log In</Link>
-                    <Link style={styles.navbarItem} to={{ screen: 'SignUn' }}>Register</Link>
+                    {/* <Link style={styles.navbarItem} screen='SignIn'>Log In</Link>
+                    <Link style={styles.navbarItem} screen='SignUp'>Register</Link> */}
+                    <Link style={styles.navbarItem} href='/(pages)/Login'>Log In</Link>
+                    <Link style={styles.navbarItem} href='/(pages)/Register'>Register</Link>
                     </>
                 ) : (
                     <>
@@ -116,10 +122,12 @@ export default function NavbarMenu (props) {
                             {mainMenuItems}
                         </Menu>
                     </View>
-                    <Link style={styles.navbarItem} to={{ screen: 'Notifications' }}>
+                    {/* <Link style={styles.navbarItem} screen='Notifications'> */}
+                    <Link style={styles.navbarItem} href='/(pages)/Notifications'>
                         Notifications
                     </Link>
-                    <Link style={styles.navbarItem} to={{ screen: 'Settings' }}>
+                    {/* <Link style={styles.navbarItem} screen='Settings'> */}
+                    <Link style={styles.navbarItem} href='/(pages)/Settings'>
                         Settings
                     </Link>
                     {renderLogoutBtn()}
@@ -138,15 +146,15 @@ export default function NavbarMenu (props) {
             }>
             {!user.authenticated ? (
                 <>
-                <Menu.Item style={styles.navbarItem} onPress={() => onMenuItemPress('SignIn')} title="Log In" />
-                <Menu.Item style={styles.navbarItem} onPress={() => onMenuItemPress('SignUn')} title="Register" />
+                <Menu.Item style={styles.navbarItem} onPress={() => onMenuItemPress('/(pages)/Login')} title="Log In" />
+                <Menu.Item style={styles.navbarItem} onPress={() => onMenuItemPress('/(pages)/Register')} title="Register" />
                 </>
             ) : (
                 <>
                 {mainMenuItems}
                 <Divider bold={true} />
-                <Menu.Item style={styles.navbarItem} onPress={() => onMenuItemPress('Notifications')} title="Notifications" />
-                <Menu.Item style={styles.navbarItem} onPress={() => onMenuItemPress('Settings')} title="Settings" />
+                <Menu.Item style={styles.navbarItem} onPress={() => onMenuItemPress('/(pages)/Notifications')} title="Notifications" />
+                <Menu.Item style={styles.navbarItem} onPress={() => onMenuItemPress('/(pages)/Settings')} title="Settings" />
                 <Divider bold={true} />
                 <Menu.Item style={styles.navbarItem} onPress={() => onLogout()} title="Log Out" />
                 </>
@@ -159,6 +167,14 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         flexDirection: "row",
+    },
+    parentItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderBottomWidth: 1,
+      borderBottomColor: '#F0F0F0',
+      paddingTop: 4,
+      paddingBottom: 4,
     },
     navbarItem: {
         fontSize: 16,

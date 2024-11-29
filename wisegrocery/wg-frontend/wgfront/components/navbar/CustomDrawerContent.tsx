@@ -1,19 +1,13 @@
 import React, {useState} from 'react';
-import { StyleSheet, ScrollView, View, Text, TouchableOpacity } from 'react-native';
+import { SafeAreaView, StyleSheet, ScrollView, View, Text, TouchableOpacity } from 'react-native';
 import { useDispatch, useSelector } from "react-redux";
 import { settingsReset } from '../../store/redux/settingsSlice';
 import { logoutUser } from '../../store/redux/userSlice';
 import { RootStateType } from '@/store/redux/store';
-import { SafeAreaView } from 'react-native-web';
 
 var previousFilteredItems: any[] = [];
 var returnName = 'Main menu';
 
-type AuthType = {
-    accessToken: string | null, 
-    refreshToken: string | null, 
-    authenticated: boolean
-}
 export default function CustomDrawerContent(props: { drawerItems: any[]; navigation: { toggleDrawer: () => void; navigate: (arg0: any, arg1: { screen: any; }) => void; closeDrawer: () => void; }; }) {
     const dispatch = useDispatch();
     const user = useSelector<RootStateType, AuthType>(state => state.secure.user.auth);
@@ -160,7 +154,8 @@ export default function CustomDrawerContent(props: { drawerItems: any[]; navigat
         <ScrollView style={styles.drawerContainer}>
         <SafeAreaView
             style={styles.container}
-            forceInset={{top: 'always', horizontal: 'never'}}>
+            // forceInset={{top: 'always', horizontal: 'never'}}
+            >
             <View style={styles.centered}>
             <Text style={styles.headerText}>
                 {'Wise Grocery'}

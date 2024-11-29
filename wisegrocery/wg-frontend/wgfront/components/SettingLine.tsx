@@ -1,9 +1,9 @@
 import { StyleSheet, Text, View } from "react-native";
-import { CheckBox, Picker, TextInput } from "react-native-web";
+import { CheckBox, TextInput } from "react-native-web";
 import InputSpinner from "react-native-input-spinner";
-import { pureFinalPropsSelectorFactory } from "react-redux/es/connect/selectorFactory";
+import { Picker } from "@react-native-picker/picker";
 
-export default function SettingLine(props) {
+export default function SettingLine(props: any) {
     let settingInput;
 
     switch(props.type) {
@@ -34,10 +34,10 @@ export default function SettingLine(props) {
         case "select":
             settingInput = <Picker
                                 style={[{opacity: props.readonly ? 50 : 100}, styles.picker]}
-                                value={props.value}
-                                onValueChange={(val) => props.callback(val)}
+                                selectedValue={props.value}
+                                onValueChange={(val: any) => props.callback(val)}
                                 enabled={!props.readonly}>
-                                {Object.values(props.choices).map((option) => {
+                                {Object.values(props.choices).map((option: any) => {
                                     return (
                                         <Picker.Item
                                             key={option.key}
@@ -78,7 +78,6 @@ const styles = StyleSheet.create({
     marginBottom: "3%",
   },
   label: {
-    fontSize: "1em",
     textAlign: "left",
     width: "75%",
   },
@@ -91,4 +90,12 @@ const styles = StyleSheet.create({
   picker: {
     width: "100%",
   },
+  textinput: {
+    fontSize: 20,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    marginVertical: 20,
+  },
+  checkbox: {},
+  timedelta: {},
 });

@@ -1,29 +1,31 @@
-import { createDrawerNavigator } from "@react-navigation/drawer";
-import Cooking from '../../app/(pages)/Cooking';
-import Groceries from '../../app/(pages)/Groceries';
-import Shopping from '../../app/(pages)/Shopping';
-import Products from '../../app/(pages)/Products';
-import Equipment from '../../app/(pages)/Equipment';
-import Stock from '../../app/(pages)/Stock';
+// import { createDrawerNavigator } from "@react-navigation/drawer";
+import { Drawer } from 'expo-router/drawer';
+// import Cooking from '../../app/(pages)/Cooking';
+// import Groceries from '../../app/(pages)/Groceries';
+// import Shopping from '../../app/(pages)/Shopping';
+// import Products from '../../app/(pages)/Products';
+// import Equipment from '../../app/(pages)/Equipment';
+// import Stock from '../../app/(pages)/Stock';
 import NavSideBar from "../NavSideBar";
 
-const Drawer = createDrawerNavigator();
+// const Drawer = createDrawerNavigator();
 
 export default function HomeDrawer() {
     return (
-        <Drawer.Navigator 
-            initialRouteName='Groceries'
-            drawerContent={(props) => <NavSideBar {...props} />} 
+        // <Drawer.Navigator
+        <Drawer 
+            initialRouteName='/(pages)/Groceries'
+            drawerContent={(props: any) => <NavSideBar {...props} />} 
             // useLegacyImplementation={false}
             >
             <Drawer.Screen 
-                name="Groceries" 
-                component={Groceries} 
+                name="/(pages)/Groceries" 
+                // component={Groceries} 
                 options={{ 
                     //title: 'Groceries',
                     drawerLabel: 'Groceries',
-                    groupName: 'Home',
-                    activeTintColor: '#FF6F00', 
+                    // groupName: 'Home',
+                    // activeTintColor: '#FF6F00', 
                 }} />
             {/* <Drawer.Screen 
                 name="Products" 
@@ -53,23 +55,24 @@ export default function HomeDrawer() {
                     activeTintColor: '#FF6F00', 
                 }} /> */}
             <Drawer.Screen 
-                name="Shopping" 
-                component={Shopping} 
+                name="/(pages)/Shopping" 
+                // component={Shopping} 
                 options={{ 
                     //title: 'Shopping planning',
                     drawerLabel: 'Shopping',
-                    groupName: 'Home',
-                    activeTintColor: '#FF6F00', 
+                    // groupName: 'Home',
+                    // activeTintColor: '#FF6F00', 
                 }} />
             <Drawer.Screen 
-                name="Cooking" 
-                component={Cooking} 
+                name="/(pages)/Cooking" 
+                // component={Cooking} 
                 options={{
                     //title: 'Cooking planning',
                     drawerLabel: 'Cooking',
-                    groupName: 'Home',
-                    activeTintColor: '#FF6F00', 
+                    // groupName: 'Home',
+                    // activeTintColor: '#FF6F00', 
                 }} />
-        </Drawer.Navigator>
+        {/* </Drawer.Navigator> */}
+        </Drawer>
     )
 }

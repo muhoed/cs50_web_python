@@ -21,7 +21,7 @@ export default function Groceries() {
             {/* <StatusBar style="auto" /> */}
         </SafeAreaView>
     );
-}
+};
 
 const styles = StyleSheet.create({
   container: {

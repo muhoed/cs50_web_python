@@ -21,14 +21,30 @@ type SettingsStateType = {
   }
 }
 
+type UserType = {
+  username: string,
+  email: string | null,
+  password: string | null,
+  password1: string | null,
+  password2: string | null
+}
+  
+type AuthType = {
+  accessToken: string | null, 
+  refreshToken: string | null, 
+  authenticated: boolean
+};
+
 type UserStateType = {
     user: {
-      auth: {
-        accessToken: string?,
-        refreshToken: string?,
-        authenticated: boolean,
-      },
+      auth: AuthType,
       status: string,
       error: any,
     },
   };
+
+type ModuleType = {
+  name: string,
+  text: string,
+  parent: string,
+}

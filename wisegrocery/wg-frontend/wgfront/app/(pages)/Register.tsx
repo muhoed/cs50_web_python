@@ -15,6 +15,7 @@ import Spinner from '../../components/Spinner';
 import { fetchSettings, setSettings } from '../../store/redux/settingsSlice';
 import { loginUser, registerUser } from '../../store/redux/userSlice';
 import { DispatchType, RootStateType } from '@/store/redux/store';
+import { router } from 'expo-router';
 
 type RegisterFormType = {
     username: string | null,
@@ -22,9 +23,9 @@ type RegisterFormType = {
     password1: string | null,
     password2: string | null,
     form: string[] | null
-}
+};
 
-export default function Register ({ navigation } : { navigation: any }) {
+export default function Register() {
     // store
     const dispatch = useDispatch<DispatchType>();
     const settingsStatus = useSelector<RootStateType>(state => state.main.settings.status);
@@ -179,7 +180,7 @@ export default function Register ({ navigation } : { navigation: any }) {
             </Pressable>
             <View>
                 <Text style={styles.signUpText}>or</Text>
-                <Pressable style={({ pressed }) => [{opacity: pressed ? 75 : 100}, styles.signUpText]} onPress={() => navigation.navigate('SignIn')}>
+                <Pressable style={({ pressed }) => [{opacity: pressed ? 75 : 100}, styles.signUpText]} onPress={() => router.navigate('/(pages)/Login')}>
                     <Text style={styles.signInLink}>Sign In</Text>
                 </Pressable>
                 <Text style={styles.signUpText}>if already registered</Text>

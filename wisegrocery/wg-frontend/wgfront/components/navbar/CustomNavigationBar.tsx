@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react';
 import { Appbar } from 'react-native-paper';
-import { Platform } from 'react-native-web';
 import useScreenSize from '../../hooks/useScreenSize';
 import NavbarMenu from './NavbarMenu';
+import { Platform } from 'react-native';
 
-export default function CustomNavigationBar(props) {
+export default function CustomNavigationBar(props: any) {
     const screenSize = useScreenSize();
 
     return (

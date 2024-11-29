@@ -1,5 +1,6 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { secureStore } from "../storage.native";
+// import AsyncStorage from "@react-native-async-storage/async-storage";
+// import { secureStore } from "../storage.native";
+import { reduxRootStorage, reduxAuthStorage } from '../mmkv.storage';
 import { 
     persistReducer, 
     persistStore,
@@ -18,13 +19,13 @@ import { Platform } from "react-native";
 
 const rootPersistConfig = {
     key: 'wgstoreroot',
-    storage: AsyncStorage,
+    storage: reduxRootStorage,
     blacklist: ['auth'],
 };
 
 const authPersistConfig = {
     key: 'wgstoreauth',
-    storage: Platform.OS === 'web' ? AsyncStorage : secureStore,
+    storage: reduxAuthStorage, // Platform.OS === 'web' ? AsyncStorage : secureStore,
 };
 
 const rootReducer = combineReducers({
