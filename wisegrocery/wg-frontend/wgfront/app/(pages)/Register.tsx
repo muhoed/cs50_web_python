@@ -28,7 +28,7 @@ type RegisterFormType = {
 export default function Register() {
     // store
     const dispatch = useDispatch<DispatchType>();
-    const settingsStatus = useSelector<RootStateType>(state => state.main.settings.status);
+    const settingsStatus = useSelector<RootStateType, string>(state => state.main.settings.status);
 
     // local state
     const [username, setUsername] = useState('');

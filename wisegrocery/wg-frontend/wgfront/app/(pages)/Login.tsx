@@ -62,7 +62,7 @@ export default function Login() {
                     })).unwrap()
                         .then((response: any) => {
                             if (settingsStatus !== 'loading') {
-                                dispatch(fetchSettings())
+                                dispatch(fetchSettings());
                             }
                             setStatus('success');
                         }).catch((error: any) => {
