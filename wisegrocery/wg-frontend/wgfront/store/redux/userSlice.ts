@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import AuthService from "../../services/auth.service";
 
-const initialState: UserStateType = {
+const initialState = {
   user: {
     auth: {
       accessToken: null,
@@ -11,9 +11,9 @@ const initialState: UserStateType = {
     status: 'idle',
     error: null,
   },
-};
+} satisfies UserStateType as UserStateType;
 
-export const registerUser = createAsyncThunk<any, UserType>('user/registerUser', async ({username, email, password1, password2}) => {
+export const registerUser = createAsyncThunk('user/registerUser', async ({username, email, password1, password2}: UserType) => {
   try {
     const response = await AuthService.register(username, email ?? "", password1 ?? "", password2 ?? "");
     //console.log('Response: ');
@@ -28,7 +28,7 @@ export const registerUser = createAsyncThunk<any, UserType>('user/registerUser',
   }
 });
 
-export const loginUser = createAsyncThunk<any, UserType>('user/loginUser', async ({username, password}) => {
+export const loginUser = createAsyncThunk('user/loginUser', async ({username, password}: UserType) => {
   try {
     const response = await AuthService.login(username, password ?? "");
     return Promise.resolve(response.data);

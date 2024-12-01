@@ -20,7 +20,7 @@ export const fetchSettings = createAsyncThunk('settings/fetchSettings', async ()
 });
 
 export const setSettings 
-    = createAsyncThunk<any, SettingsInterface>('settings/setSettings', async ({id, payload}) => {
+    = createAsyncThunk('settings/setSettings', async ({id, payload}: SettingsInterface) => {
   const response = await SettingsService.updateSettings(id, payload);
   return response.data;
 });
@@ -46,8 +46,8 @@ const settingsSlice = createSlice({
         state.settings.error = null;
       })
       .addCase(fetchSettings.rejected, (state, action) => {
-        state.settings.status = 'failed'
-        state.settings.error = action.error.message
+        state.settings.status = 'failed';
+        state.settings.error = action.error.message;
       })
       .addCase(setSettings.pending, (state) => {
         state.settings.status = 'updating';

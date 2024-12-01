@@ -8,4 +8,4 @@ export default function authHeader(refresh=false) {
     } else {
       return {};
     }
-  }
+  };
