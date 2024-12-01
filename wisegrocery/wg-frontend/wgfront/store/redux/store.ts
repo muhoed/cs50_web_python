@@ -1,5 +1,5 @@
 // import AsyncStorage from "@react-native-async-storage/async-storage";
-import { secureStore } from "../storage.native";
+import * as secureStore from "../storage.native";
 import secureLocalStorage from 'react-secure-storage';
 // import { reduxRootStorage, reduxAuthStorage } from '../mmkv.storage';
 import { 
@@ -12,7 +12,7 @@ import {
     PURGE,
     REGISTER,
 } from 'redux-persist';
-import { combineReducers } from "redux";
+import { combineReducers } from '@reduxjs/toolkit'; //"redux";
 import { configureStore } from '@reduxjs/toolkit';
 import settingsReducer from "./settingsSlice";
 import userReducer from "./userSlice";
@@ -27,6 +27,7 @@ const rootPersistConfig = {
 const authPersistConfig = {
     key: 'wgstoreauth',
     storage: Platform.OS === 'web' ? secureLocalStorage : secureStore, // reduxAuthStorage,
+    whitelist: ['auth'],
 };
 
 const rootReducer = combineReducers({
@@ -46,4 +47,4 @@ export const store = configureStore({
 export type RootStateType = ReturnType<typeof store.getState>;
 export type DispatchType = typeof store.dispatch;
 
-export const persistor = persistStore(store)
+export const persistor = persistStore(store);
