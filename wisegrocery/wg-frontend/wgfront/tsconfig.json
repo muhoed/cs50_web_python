@@ -7,11 +7,13 @@
         "./*"
       ]
     },
-    "allowSyntheticDefaultImports": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    "types/*.ts"
+    "types/*.ts",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
   ]
 }

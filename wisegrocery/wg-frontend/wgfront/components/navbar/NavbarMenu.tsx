@@ -1,18 +1,17 @@
 import React, {useState} from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import { Appbar, Divider, List, Menu } from "react-native-paper";
-import { useDispatch, useSelector } from "react-redux";
 import { settingsReset } from '../../store/redux/settingsSlice';
 import { logoutUser } from '../../store/redux/userSlice';
 import { Pressable } from 'react-native-web';
 import useScreenSize from '../../hooks/useScreenSize';
-import { RootStateType } from '@/store/redux/store';
-// import { Link } from '@react-navigation/native';
 import { Link, router } from 'expo-router';
+import { useWGDispatch } from '@/hooks/useWGDispatch';
+import { useWGSelector } from '@/hooks/useWGSelector';
 
 export default function NavbarMenu (props: { navigation: { navigate: (arg0: any) => void; }; }) {
-    const dispatch = useDispatch();
-    const user = useSelector<RootStateType, AuthType>(state => state.secure.user.auth);
+    const dispatch = useWGDispatch();
+    const user = useWGSelector(state => state.secure.user.auth);
     const [homeVisible, setHomeVisible] = useState(false);
     const [status, setStatus] = useState('idle');
     const screenSize = useScreenSize();
@@ -89,21 +88,19 @@ export default function NavbarMenu (props: { navigation: { navigate: (arg0: any)
     }
 
     function onMenuItemPress(routeName: any) {
-        router.replace(routeName);
+        router.push(routeName);
         closeHomeMenu();
     }
 
     if (screenSize.isDesktop || !screenSize.isPortrait) {
         return (
             <View style={styles.container}>
+                <Link href='/' style={styles.navbarItem}>Wise Grocery</Link>
                 <View style={{ flex: 1, flexGrow: 1, justifyContent: "flex-start" }}>
-                    {/* <Link screen="Home" style={styles.navbarItem}>Wise Grocery</Link> */}
-                    <Link href='/(pages)' style={styles.navbarItem}>Wise Grocery</Link>
+                    {/* <Link href='/(pages)' style={styles.navbarItem}>Wise Grocery</Link> */}
                 </View>
                 {!user.authenticated ? (
                     <>
-                    {/* <Link style={styles.navbarItem} screen='SignIn'>Log In</Link>
-                    <Link style={styles.navbarItem} screen='SignUp'>Register</Link> */}
                     <Link style={styles.navbarItem} href='/(pages)/Login'>Log In</Link>
                     <Link style={styles.navbarItem} href='/(pages)/Register'>Register</Link>
                     </>
@@ -122,11 +119,9 @@ export default function NavbarMenu (props: { navigation: { navigate: (arg0: any)
                             {mainMenuItems}
                         </Menu>
                     </View>
-                    {/* <Link style={styles.navbarItem} screen='Notifications'> */}
                     <Link style={styles.navbarItem} href='/(pages)/Notifications'>
                         Notifications
                     </Link>
-                    {/* <Link style={styles.navbarItem} screen='Settings'> */}
                     <Link style={styles.navbarItem} href='/(pages)/Settings'>
                         Settings
                     </Link>
@@ -181,5 +176,6 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         marginLeft: "3%",
         marginRight: "3%",
+        color: 'whitesmoke'
     }
 });

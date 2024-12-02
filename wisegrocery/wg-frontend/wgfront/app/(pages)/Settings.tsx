@@ -1,14 +1,15 @@
 import { Platform, SafeAreaView, StyleSheet, Text, View } from "react-native";
-import { useDispatch, useSelector } from "react-redux";
+
 import { setSettings } from "../../store/redux/settingsSlice";
 import SettingSection from "../../components/SettingSection";
 import { EXPIRATION_ACTIONS } from "../../enumerations/expirationActions";
-import { DispatchType, RootStateType } from "@/store/redux/store";
+import { useWGSelector } from "@/hooks/useWGSelector";
+import { useWGDispatch } from "@/hooks/useWGDispatch";
 
 export default function Settings() {
-    const settings = useSelector<RootStateType, ConfigType>(state => state.main.settings.config);
-    const settingsStatus = useSelector<RootStateType, string>(state => state.main.settings.status);
-    const dispatch = useDispatch<DispatchType>();
+    const settings = useWGSelector(state => state.main.settings.config);
+    const settingsStatus = useWGSelector(state => state.main.settings.status);
+    const dispatch = useWGDispatch();
 
     const setConfigValue = (name: string) => {
       return function(value: string) {

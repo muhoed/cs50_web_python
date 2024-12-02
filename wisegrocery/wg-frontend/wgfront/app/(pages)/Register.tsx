@@ -8,14 +8,14 @@ import {
     FlatList,
   } from 'react-native';
 import React, {useState} from 'react';
-import { useValidation } from 'react-native-form-validator';
-import { useDispatch, useSelector } from 'react-redux';
+import { router } from 'expo-router';
+import { useValidation } from 'react-simple-form-validator';
 
 import Spinner from '../../components/Spinner';
-import { fetchSettings, setSettings } from '../../store/redux/settingsSlice';
 import { loginUser, registerUser } from '../../store/redux/userSlice';
-import { DispatchType, RootStateType } from '@/store/redux/store';
-import { router } from 'expo-router';
+import { useWGDispatch } from '@/hooks/useWGDispatch';
+import { useWGSelector } from '@/hooks/useWGSelector';
+import { fetchSettings } from '@/store/redux/settingsSlice';
 
 type RegisterFormType = {
     username: string | null,
@@ -27,8 +27,8 @@ type RegisterFormType = {
 
 export default function Register() {
     // store
-    const dispatch = useDispatch<DispatchType>();
-    const settingsStatus = useSelector<RootStateType, string>(state => state.main.settings.status);
+    const dispatch = useWGDispatch();
+    const settingsStatus = useWGSelector(state => state.main.settings.status);
 
     // local state
     const [username, setUsername] = useState('');
@@ -44,21 +44,20 @@ export default function Register() {
     });
     const [status, setStatus] = useState('idle');
 
-    const { validate, isFieldInError, getErrorsInField } =
+    const { isFieldInError, getErrorsInField, isFormValid } =
     useValidation({
-      state: { username, email, password1, password2 },
+        fieldsRules: {
+          username: { required: true },
+          email: { required: true, email: true },
+          password1: { required: true, minlength: 8 },
+          password2: { required: true, equalPassword: password1 }
+        },
+        state: { username, email, password1, password2 },
     });
 
     const onRegister = async () => {
         setStatus('loading');
-        if (
-            validate({
-                username: { required: true },
-                email: { email: true, required: true },
-                password1: { required: true },
-                password2: { equalPassword: password1 },
-            })
-        ) 
+        if (isFormValid)
         {
             await dispatch(registerUser({
                 username, email, password1, password2,

@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import AuthService from "../../services/auth.service";
 
-const initialState = {
+const initialState: UserStateType = {
   user: {
     auth: {
       accessToken: null,
@@ -11,14 +11,15 @@ const initialState = {
     status: 'idle',
     error: null,
   },
-} satisfies UserStateType as UserStateType;
+};
 
-export const registerUser = createAsyncThunk('user/registerUser', async ({username, email, password1, password2}: UserType) => {
+export const registerUser = createAsyncThunk<AuthType, UserType>('user/registerUser', async ({username, email, password1, password2}: UserType) => {
   try {
     const response = await AuthService.register(username, email ?? "", password1 ?? "", password2 ?? "");
     //console.log('Response: ');
     //console.log(response);
-    return Promise.resolve(response.data);
+    // return Promise.resolve(response.data);
+    return (await response.data.json()) as AuthType;
   } catch (error: any) {
     if (error.response?.data) {
       throw new Error(JSON.stringify(error.response.data));
@@ -28,10 +29,11 @@ export const registerUser = createAsyncThunk('user/registerUser', async ({userna
   }
 });
 
-export const loginUser = createAsyncThunk('user/loginUser', async ({username, password}: UserType) => {
+export const loginUser = createAsyncThunk<AuthType, UserType>('user/loginUser', async ({username, password}: UserType) => {
   try {
     const response = await AuthService.login(username, password ?? "");
-    return Promise.resolve(response.data);
+    // return Promise.resolve(response.data);
+    return (await response.data.json()) as AuthType;
   } catch (error: any) {
     if (error.response?.data) {
       throw new Error(JSON.stringify(error.response.data));
@@ -46,8 +48,8 @@ const userSlice = createSlice({
   initialState,
   reducers: {
     refreshUserTokens(state, action) {
-        state.user.auth.accessToken = action.payload.access;
-        state.user.auth.refreshToken = action.payload.refresh;
+        state.user.auth.accessToken = action.payload.accessToken; //access;
+        state.user.auth.refreshToken = action.payload.refreshToken; //refresh;
     },
     logoutUser(state) {
       state.user = initialState.user;
@@ -72,8 +74,8 @@ const userSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.user.status = 'succeeded';
-        state.user.auth.accessToken = action.payload.access;
-        state.user.auth.refreshToken = action.payload.refresh;
+        state.user.auth.accessToken = action.payload.accessToken; //access;
+        state.user.auth.refreshToken = action.payload.refreshToken; //refresh;
         state.user.auth.authenticated = true;
         state.user.error = null;
       })

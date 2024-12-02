@@ -1,11 +1,11 @@
-import { useNavigation } from "expo-router";
+import { router } from "expo-router";
 import { Button, Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function ModuleTile({ module }: { module: ModuleType }) {
-    const navigation = useNavigation();
+    //const navigation = useNavigation();
 
     return (
-        <Pressable style={styles.container} onPress={() => navigation.navigate(module.name as never)}>
+        <Pressable style={styles.container} onPress={() => router.push(`/(pages)/${module.name}`)}>
             <Text style={styles.button}>{module.name}</Text>
             <Text style={styles.label}>{module.text}</Text>
         </Pressable>

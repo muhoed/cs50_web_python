@@ -8,14 +8,14 @@ import {
     FlatList,
   } from 'react-native';
 import React, { useState } from 'react';
-import { useValidation } from 'react-native-form-validator';
-import { useDispatch, useSelector } from 'react-redux';
+import { router } from 'expo-router';
+import { useValidation } from 'react-simple-form-validator';
 
 import { fetchSettings } from '../../store/redux/settingsSlice';
 import Spinner from '../../components/Spinner';
 import { loginUser } from '../../store/redux/userSlice';
-import { DispatchType, RootStateType } from '@/store/redux/store';
-import { router } from 'expo-router';
+import { useWGDispatch } from '@/hooks/useWGDispatch';
+import { useWGSelector } from '@/hooks/useWGSelector';
 
 type LoginFormType = {
     username: string | null,
@@ -25,9 +25,9 @@ type LoginFormType = {
   
 export default function Login() {
     // store
-    const dispatch = useDispatch<DispatchType>();
-    const settingsStatus = useSelector<RootStateType, string>(state => state.main.settings.status);
-    const userStatus = useSelector<RootStateType, string>(state => state.secure.user.status);
+    const dispatch = useWGDispatch();
+    const settingsStatus = useWGSelector(state => state.main.settings.status);
+    const userStatus = useWGSelector(state => state.secure.user.status);
     // local state
     const [status, setStatus] = useState('idle');
     const [username, setUsername] = useState('');
@@ -38,18 +38,17 @@ export default function Login() {
         form: null,
     });
 
-    const { validate, isFieldInError, getErrorsInField, getErrorMessages } =
+    const { isFieldInError, getErrorsInField, isFormValid } =
     useValidation({
-      state: { username, password },
+        fieldsRules: {
+          username: { required: true },
+          password: { required: true }
+        },
+        state: { username, password },
     });
 
     const onLogin = async () => {
-        if (
-            validate({
-                username: { required: true },
-                password: { required: true },
-            })
-        ) 
+        if (isFormValid) 
         {
             try {
                 setStatus('loading');

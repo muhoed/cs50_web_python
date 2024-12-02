@@ -1,16 +1,16 @@
 import React, {useState} from 'react';
 import { SafeAreaView, StyleSheet, ScrollView, View, Text, TouchableOpacity } from 'react-native';
-import { useDispatch, useSelector } from "react-redux";
 import { settingsReset } from '../../store/redux/settingsSlice';
 import { logoutUser } from '../../store/redux/userSlice';
-import { RootStateType } from '@/store/redux/store';
+import { useWGDispatch } from '@/hooks/useWGDispatch';
+import { useWGSelector } from '@/hooks/useWGSelector';
 
 var previousFilteredItems: any[] = [];
 var returnName = 'Main menu';
 
 export default function CustomDrawerContent(props: { drawerItems: any[]; navigation: { toggleDrawer: () => void; navigate: (arg0: any, arg1: { screen: any; }) => void; closeDrawer: () => void; }; }) {
-    const dispatch = useDispatch();
-    const user = useSelector<RootStateType, AuthType>(state => state.secure.user.auth);
+    const dispatch = useWGDispatch();
+    const user = useWGSelector(state => state.secure.user.auth);
     const [mainDrawer, setMainDrawer] = useState(true);
     const [filteredItems, setFilteredItems] = useState<any>([]);
     const [status, setStatus] = useState('idle');

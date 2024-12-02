@@ -16,13 +16,15 @@ const initialState: SettingsStateType = {
 
 export const fetchSettings = createAsyncThunk('settings/fetchSettings', async () => {
   const response = await SettingsService.getSettings();
-  return response.data[0];
+  //return response.data[0];
+  return (await response.data[0].json()) as ConfigType;
 });
 
 export const setSettings 
-    = createAsyncThunk('settings/setSettings', async ({id, payload}: SettingsInterface) => {
+    = createAsyncThunk<ConfigType, SettingsInterface>('settings/setSettings', async ({id, payload}: SettingsInterface) => {
   const response = await SettingsService.updateSettings(id, payload);
-  return response.data;
+  //return response.data;
+  return (await response.data.json()) as ConfigType;
 });
 
 const settingsSlice = createSlice({

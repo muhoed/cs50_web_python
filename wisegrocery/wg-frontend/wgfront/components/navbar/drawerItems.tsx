@@ -2,12 +2,12 @@ const drawerItemsAccount = [
     {
       key: 'SignIn',
       title: 'Sign In',
-      routes: [{nav: 'MainDrawer', routeName: 'SignIn', title: 'Sign In'}],
+      routes: [{nav: 'MainDrawer', routeName: 'Login', title: 'Sign In'}],
     },
     {
       key: 'SignUp',
       title: 'Sign Up',
-      routes: [{nav: 'MainDrawer', routeName: 'SignUp', title: 'Sign Up'}],
+      routes: [{nav: 'MainDrawer', routeName: 'Register', title: 'Sign Up'}],
     },
 ];
 
