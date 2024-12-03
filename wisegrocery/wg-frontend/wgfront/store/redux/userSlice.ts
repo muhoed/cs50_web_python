@@ -14,19 +14,20 @@ const initialState: UserStateType = {
 };
 
 export const registerUser = createAsyncThunk<AuthType, UserType>('user/registerUser', async ({username, email, password1, password2}: UserType) => {
-  try {
+  // try {
     const response = await AuthService.register(username, email ?? "", password1 ?? "", password2 ?? "");
-    //console.log('Response: ');
-    //console.log(response);
-    // return Promise.resolve(response.data);
-    return (await response.data.json()) as AuthType;
-  } catch (error: any) {
-    if (error.response?.data) {
-      throw new Error(JSON.stringify(error.response.data));
-    } else {
-      throw new Error(JSON.stringify(error.message));
-    }
-  }
+    // console.log('Response: ');
+    // console.log(response);
+    return Promise.resolve<AuthType>(response.data);
+    //return (await response.data.json()) as AuthType;
+  // } 
+  // catch (error: any) {
+  //   if (error.response?.data) {
+  //     throw new Error(JSON.stringify(error.response.data));
+  //   } else {
+  //     throw new Error(JSON.stringify(error.message));
+  //   }
+  // }
 });
 
 export const loginUser = createAsyncThunk<AuthType, UserType>('user/loginUser', async ({username, password}: UserType) => {

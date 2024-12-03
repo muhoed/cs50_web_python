@@ -1,4 +1,4 @@
-import { FlatList, Platform, SafeAreaView, StyleSheet, StatusBar, Text, View } from "react-native";
+import { FlatList, Platform, SafeAreaView, StyleSheet, Text, View } from "react-native";
 
 import ModuleTile from "../../components/ModuleTile";
 import { MODULES } from "../../enumerations/modules";

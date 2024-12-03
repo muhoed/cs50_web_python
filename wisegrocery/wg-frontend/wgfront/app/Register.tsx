@@ -11,8 +11,8 @@ import React, {useState} from 'react';
 import { router } from 'expo-router';
 import { useValidation } from 'react-simple-form-validator';
 
-import Spinner from '../../components/Spinner';
-import { loginUser, registerUser } from '../../store/redux/userSlice';
+import Spinner from '@/components/Spinner';
+import { loginUser, registerUser } from '@/store/redux/userSlice';
 import { useWGDispatch } from '@/hooks/useWGDispatch';
 import { useWGSelector } from '@/hooks/useWGSelector';
 import { fetchSettings } from '@/store/redux/settingsSlice';

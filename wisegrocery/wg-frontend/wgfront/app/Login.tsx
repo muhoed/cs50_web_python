@@ -11,9 +11,9 @@ import React, { useState } from 'react';
 import { router } from 'expo-router';
 import { useValidation } from 'react-simple-form-validator';
 
-import { fetchSettings } from '../../store/redux/settingsSlice';
-import Spinner from '../../components/Spinner';
-import { loginUser } from '../../store/redux/userSlice';
+import { fetchSettings } from '@/store/redux/settingsSlice';
+import Spinner from '@/components/Spinner';
+import { loginUser } from '@/store/redux/userSlice';
 import { useWGDispatch } from '@/hooks/useWGDispatch';
 import { useWGSelector } from '@/hooks/useWGSelector';
 
@@ -32,6 +32,10 @@ export default function Login() {
     const [status, setStatus] = useState('idle');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [touchedFields, setTouchedFields] = useState({
+        username: false,
+        password: false,
+      });
     const [formErrors, setFormErrors] = useState<LoginFormType>({
         username: null,
         password: null,
@@ -46,6 +50,9 @@ export default function Login() {
         },
         state: { username, password },
     });
+
+    const onBlurHandler = (field: string) =>
+        setTouchedFields((prevFields) => ({ ...prevFields, [field]: true }));
 
     const onLogin = async () => {
         if (isFormValid) 
@@ -84,9 +91,14 @@ export default function Login() {
                 }
             } catch (error) {
                 console.log(error);
+                setFormErrors({
+                    ...formErrors,
+                    form: ["Login failed. " + JSON.stringify(error)],
+                });
                 setStatus('error');
             }
-        }   
+        }
+        setTouchedFields({ username: false, password: false }); 
     };
 
     const renderFieldError = ({ item, index, separators }: {item: string, index: number, separators: any}) => {
@@ -110,9 +122,10 @@ export default function Login() {
                     keyboardType="default"
                     autoCapitalize="none"
                     onChangeText={text => setUsername(text)}
+                    onBlur={() => onBlurHandler('username')}
                     value={username}
                 />
-                {isFieldInError('username') && getErrorsInField('username').map((errorMessage: string, index: number) => (
+                {touchedFields.username && isFieldInError('username') && getErrorsInField('username').map((errorMessage: string, index: number) => (
                   <Text key={index} style={styles.formErrorMessage}>{errorMessage}</Text>
                 ))}
                 <FlatList data={formErrors?.username} renderItem={renderFieldError} />
@@ -122,19 +135,20 @@ export default function Login() {
                     placeholder="Password"
                     secureTextEntry
                     onChangeText={text => setPassword(text)}
+                    onBlur={() => onBlurHandler('password')}
                     value={password}
                 />
-                {isFieldInError('password') && getErrorsInField('password').map((errorMessage: string, index: number) => (
+                {touchedFields.password && isFieldInError('password') && getErrorsInField('password').map((errorMessage: string, index: number) => (
                   <Text key={index} style={styles.formErrorMessage}>{errorMessage}</Text>
                 ))}
                 <FlatList data={formErrors?.password} renderItem={renderFieldError} />
             </View>
-            <Pressable style={({ pressed }) => [{opacity: pressed ? 75 : 100}, styles.button]} onPress={() => onLogin()}>
+            <Pressable style={({ pressed }) => [{opacity: pressed ? 75 : 100}, styles.button]} onPress={() => onLogin()} disabled={!isFormValid}>
                 <Text style={styles.buttonText}>Login</Text>
             </Pressable>
             <View>
                 <Text style={styles.signUpText}>or</Text>
-                <Pressable style={({ pressed }) => [{opacity: pressed ? 75 : 100}]} onPress={() => router.navigate('/(pages)/Register')}>
+                <Pressable style={({ pressed }) => [{opacity: pressed ? 75 : 100}]} onPress={() => router.navigate('/Register')}>
                     <Text style={styles.signUpLink}>Sign Up</Text>
                 </Pressable>
             </View>

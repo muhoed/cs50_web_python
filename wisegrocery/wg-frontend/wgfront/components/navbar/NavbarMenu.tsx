@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
-import { Appbar, Divider, List, Menu } from "react-native-paper";
+import { Appbar, Divider, Menu } from "react-native-paper";
 import { settingsReset } from '../../store/redux/settingsSlice';
 import { logoutUser } from '../../store/redux/userSlice';
 import { Pressable } from 'react-native-web';
@@ -101,8 +101,8 @@ export default function NavbarMenu (props: { navigation: { navigate: (arg0: any)
                 </View>
                 {!user.authenticated ? (
                     <>
-                    <Link style={styles.navbarItem} href='/(pages)/Login'>Log In</Link>
-                    <Link style={styles.navbarItem} href='/(pages)/Register'>Register</Link>
+                    <Link style={styles.navbarItem} href='/Login'>Log In</Link>
+                    <Link style={styles.navbarItem} href='/Register'>Register</Link>
                     </>
                 ) : (
                     <>
@@ -141,8 +141,8 @@ export default function NavbarMenu (props: { navigation: { navigate: (arg0: any)
             }>
             {!user.authenticated ? (
                 <>
-                <Menu.Item style={styles.navbarItem} onPress={() => onMenuItemPress('/(pages)/Login')} title="Log In" />
-                <Menu.Item style={styles.navbarItem} onPress={() => onMenuItemPress('/(pages)/Register')} title="Register" />
+                <Menu.Item style={styles.navbarItem} onPress={() => onMenuItemPress('/Login')} title="Log In" />
+                <Menu.Item style={styles.navbarItem} onPress={() => onMenuItemPress('/Register')} title="Register" />
                 </>
             ) : (
                 <>

@@ -1,16 +1,16 @@
 import { DrawerContentScrollView, DrawerItem, DrawerItemList } from "@react-navigation/drawer";
 import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 
 import { settingsReset } from "../store/redux/settingsSlice";
 import Spinner from "./Spinner";
 import { logoutUser } from "../store/redux/userSlice";
-import { RootStateType } from "@/store/redux/store";
+import { useWGDispatch } from "@/hooks/useWGDispatch";
+import { useWGSelector } from "@/hooks/useWGSelector";
 
 export default function LogoutDrawerLink (props: any) {
-    const dispatch = useDispatch();
-    const user = useSelector<RootStateType, AuthType>(state => state.secure.user.auth);
-    const userError = useSelector<RootStateType>(state => state.secure.user.error);
+    const dispatch = useWGDispatch();
+    const user = useWGSelector(state => state.secure.user.auth);
+    const userError = useWGSelector(state => state.secure.user.error);
     const [status, setStatus] = useState('idle');
 
     const onLogout = () => {

@@ -53,16 +53,22 @@ const rootReducerPersistent = combineReducers({
 // });
 
 let storeTmp = null;
-let persistorTmp = null;
+//let persistorTmp = null;
 
 // if (Platform.OS !== 'web')
 //   setStoreForAuthHeader(persistantStore);
 // else
 //   setStoreForAuthHeader(store);
 
-if (Platform.OS === 'web') {
+if (typeof window === 'undefined') { //(Platform.OS === 'web') {
   storeTmp = configureStore({
     reducer: rootReducer,
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware({
+        serializableCheck: {
+          ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+        },
+      }),
   });
 } else {
   storeTmp = configureStore({
@@ -74,7 +80,7 @@ if (Platform.OS === 'web') {
         },
       }),
   });
-  persistorTmp = persistStore(storeTmp);
+  //persistorTmp = persistStore(storeTmp);
 }
 
 export const store = storeTmp;
@@ -89,4 +95,4 @@ export type DispatchType = typeof store.dispatch;
 //export type PersistantDispatchType = typeof persistantStore.dispatch;
 
 //export const persistor = persistStore(persistantStore);
-export const persistor = persistorTmp;
+export const persistor = persistStore(store); //persistorTmp;

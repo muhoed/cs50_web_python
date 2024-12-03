@@ -11,7 +11,7 @@ export default function WGDrawerNavigator() {
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <Drawer 
-                initialRouteName={!user?.authenticated ? 'Login' : 'index'} 
+                initialRouteName={!user?.authenticated ? 'Login' : 'Home'} 
                 drawerContent={
                     (props: any) => <CustomDrawerContent 
                                         drawerItems={!user?.authenticated ? drawerItemsAccount : drawerItemsMain} 
@@ -25,7 +25,7 @@ export default function WGDrawerNavigator() {
                     </>
                 ) : (
                     <>
-                    <Drawer.Screen name="index" />
+                    <Drawer.Screen name="Home" />
                     <Drawer.Screen name="Groceries" />
                     <Drawer.Screen name="Products" />
                     <Drawer.Screen name="Shopping" />

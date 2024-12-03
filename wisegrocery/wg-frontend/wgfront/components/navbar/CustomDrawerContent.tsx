@@ -4,16 +4,19 @@ import { settingsReset } from '../../store/redux/settingsSlice';
 import { logoutUser } from '../../store/redux/userSlice';
 import { useWGDispatch } from '@/hooks/useWGDispatch';
 import { useWGSelector } from '@/hooks/useWGSelector';
+import { drawerItemsAccount, drawerItemsMain } from '@/components/navbar/drawerItems';
 
 var previousFilteredItems: any[] = [];
 var returnName = 'Main menu';
 
-export default function CustomDrawerContent(props: { drawerItems: any[]; navigation: { toggleDrawer: () => void; navigate: (arg0: any, arg1: { screen: any; }) => void; closeDrawer: () => void; }; }) {
+export default function CustomDrawerContent(props: any) {
     const dispatch = useWGDispatch();
     const user = useWGSelector(state => state.secure.user.auth);
     const [mainDrawer, setMainDrawer] = useState(true);
     const [filteredItems, setFilteredItems] = useState<any>([]);
     const [status, setStatus] = useState('idle');
+
+    const drawerItems = user.authenticated ? drawerItemsMain : drawerItemsAccount;
   
     const toggleMainDrawer = () => {
         setMainDrawer(true);
@@ -22,17 +25,17 @@ export default function CustomDrawerContent(props: { drawerItems: any[]; navigat
   
     const onItemParentPress = (key: any) => {
         returnName = 'Main manu';
-        const filteredMainDrawerRoutes = props.drawerItems.find((e: { key: any; }) => {
+        const filteredMainDrawerRoutes = drawerItems.find((e: { key: any; }) => {
             return e.key === key;
         });
-        if (filteredMainDrawerRoutes.routes.length === 1) {
+        if (filteredMainDrawerRoutes?.routes.length === 1) {
             const selectedRoute = filteredMainDrawerRoutes.routes[0];
             props.navigation.toggleDrawer();
             props.navigation.navigate(selectedRoute.nav, {
                 screen: selectedRoute.routeName,
             });
         } else {
-            props.navigation.navigate(filteredMainDrawerRoutes.routes[0].nav, {
+            props.navigation.navigate(filteredMainDrawerRoutes?.routes[0].nav, {
                 screen: key,
             });
             setMainDrawer(false);
@@ -73,7 +76,7 @@ export default function CustomDrawerContent(props: { drawerItems: any[]; navigat
     function renderMainDrawer() {
         return (
             <View>
-                {props.drawerItems.map((parent) => (
+                {drawerItems.map((parent: any) => (
                     <View key={parent.key}>
                         <TouchableOpacity
                             key={parent.key}
@@ -97,7 +100,7 @@ export default function CustomDrawerContent(props: { drawerItems: any[]; navigat
         <View>
             <TouchableOpacity
                 onPress={() => {
-                    if (props.drawerItems.findIndex((e) => {
+                    if (drawerItems.findIndex((e) => {
                         return e.key === filteredItems.routes[0].parent;
                     }) < 0) {
                         returnName = filteredItems.routes[0].parent;

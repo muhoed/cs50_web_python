@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { Button, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text } from "react-native";
 
 export default function ModuleTile({ module }: { module: ModuleType }) {
     //const navigation = useNavigation();
