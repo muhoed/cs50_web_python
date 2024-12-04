@@ -35,6 +35,12 @@ export default function Register() {
     const [email, setEmail] = useState('');
     const [password1, setPassword1] = useState('');
     const [password2, setPassword2] = useState('');
+    const [touchedFields, setTouchedFields] = useState({
+        username: false,
+        email: false,
+        password1: false,
+        password2: false,
+      });
     const [formErrors, setFormErrors] = useState<RegisterFormType>({
         username: null,
         email: null,
@@ -54,6 +60,9 @@ export default function Register() {
         },
         state: { username, email, password1, password2 },
     });
+
+    const onBlurHandler = (field: string) =>
+        setTouchedFields((prevFields) => ({ ...prevFields, [field]: true }));
 
     const onRegister = async () => {
         setStatus('loading');
@@ -104,6 +113,7 @@ export default function Register() {
         } else {
             setStatus('error');
         }
+        setTouchedFields({ username: false, email: false, password1: false, password2: false }); 
     };
 
     const renderFieldError = ({ item, index, separators }: {item: string, index: number, separators: any}) => {
@@ -127,9 +137,10 @@ export default function Register() {
                     keyboardType="default"
                     autoCapitalize="none"
                     onChangeText={text => setUsername(text)}
+                    onBlur={() => onBlurHandler('username')}
                     value={username}
                 />
-                {isFieldInError('username') && getErrorsInField('username')
+                {touchedFields.username && isFieldInError('username') && getErrorsInField('username')
                     .map((errorMessage: string, index: number) => (
                   <Text key={index} style={styles.formErrorMessage}>{errorMessage}</Text>
                 ))}
@@ -140,9 +151,10 @@ export default function Register() {
                     keyboardType="email-address"
                     autoCapitalize="none"
                     onChangeText={text => setEmail(text)}
+                    onBlur={() => onBlurHandler('email')}
                     value={email}
                 />
-                {isFieldInError('email') && getErrorsInField('email')
+                {touchedFields.email && isFieldInError('email') && getErrorsInField('email')
                     .map((errorMessage: string, index: number) => (
                   <Text key={index} style={styles.formErrorMessage}>{errorMessage}</Text>
                 ))}
@@ -153,9 +165,10 @@ export default function Register() {
                     keyboardType="visible-password"
                     secureTextEntry
                     onChangeText={text => setPassword1(text)}
+                    onBlur={() => onBlurHandler('password1')}
                     value={password1}
                 />
-                {isFieldInError('password1') && getErrorsInField('password1')
+                {touchedFields.password1 && isFieldInError('password1') && getErrorsInField('password1')
                     .map((errorMessage: string, index: number) => (
                   <Text key={index} style={styles.formErrorMessage}>{errorMessage}</Text>
                 ))}
@@ -166,9 +179,10 @@ export default function Register() {
                     keyboardType="visible-password"
                     secureTextEntry
                     onChangeText={text => setPassword2(text)}
+                    onBlur={() => onBlurHandler('password2')}
                     value={password2}
                 />
-                {isFieldInError('password2') && getErrorsInField('password2')
+                {touchedFields.password2 && isFieldInError('password2') && getErrorsInField('password2')
                     .map((errorMessage: string, index: number) => (
                   <Text key={index} style={styles.formErrorMessage}>{errorMessage}</Text>
                 ))}
@@ -179,7 +193,7 @@ export default function Register() {
             </Pressable>
             <View>
                 <Text style={styles.signUpText}>or</Text>
-                <Pressable style={({ pressed }) => [{opacity: pressed ? 75 : 100}, styles.signUpText]} onPress={() => router.navigate('/(pages)/Login')}>
+                <Pressable style={({ pressed }) => [{opacity: pressed ? 75 : 100}, styles.signUpText]} onPress={() => router.navigate('/Login')}>
                     <Text style={styles.signInLink}>Sign In</Text>
                 </Pressable>
                 <Text style={styles.signUpText}>if already registered</Text>
@@ -233,6 +247,7 @@ const styles = StyleSheet.create({
     signInLink: {
         color:'blue',
         textDecorationLine: 'underline',
+        textAlign: 'center',
     },
     formErrorMessage: {
         color: 'red',

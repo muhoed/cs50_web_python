@@ -31,11 +31,11 @@ export default function CustomDrawerContent(props: any) {
         if (filteredMainDrawerRoutes?.routes.length === 1) {
             const selectedRoute = filteredMainDrawerRoutes.routes[0];
             props.navigation.toggleDrawer();
-            props.navigation.navigate(selectedRoute.nav, {
+            props.navigation.navigate(selectedRoute.routeName, {
                 screen: selectedRoute.routeName,
             });
         } else {
-            props.navigation.navigate(filteredMainDrawerRoutes?.routes[0].nav, {
+            props.navigation.navigate(filteredMainDrawerRoutes?.routes[0].routeName, {
                 screen: key,
             });
             setMainDrawer(false);
@@ -47,11 +47,11 @@ export default function CustomDrawerContent(props: any) {
     const onItemChildPress = (route: any) => {
         returnName = route.parent;
         if (route.routes.length < 1) {
-            props.navigation.navigate(route.nav, {
+            props.navigation.navigate(route.routeName, {
                 screen: route.routeName,
                 });
         } else {
-            props.navigation.navigate(route.nav, {
+            props.navigation.navigate(route.routeName, {
                 screen: route.routeName,
             });
             previousFilteredItems = JSON.parse(JSON.stringify(filteredItems));
@@ -104,13 +104,13 @@ export default function CustomDrawerContent(props: any) {
                         return e.key === filteredItems.routes[0].parent;
                     }) < 0) {
                         returnName = filteredItems.routes[0].parent;
-                        props.navigation.navigate(filteredItems.routes[0].nav, {
+                        props.navigation.navigate(filteredItems.routes[0].routeName, {
                             screen: filteredItems.routes[0].parent,
                         });
                         setFilteredItems(previousFilteredItems);
                     } else {
                         returnName = 'Main manu';
-                        props.navigation.navigate(filteredItems.routes[0].nav, {
+                        props.navigation.navigate(filteredItems.routes[0].routeName, {
                             screen: filteredItems.routes[0].parent,
                         });
                         previousFilteredItems = [];
