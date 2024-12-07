@@ -47,7 +47,7 @@ class EquipmentTypeViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsOwner]
 
     def perform_create(self, serializer):
-        serializer.save(creaated_by=self.request.user)
+        serializer.save(created_by=self.request.user)
 
 class EquipmentViewSet(viewsets.ModelViewSet):
     queryset = Equipment.objects.prefetch_related('stockitem_set')
@@ -56,7 +56,7 @@ class EquipmentViewSet(viewsets.ModelViewSet):
     filterset_class = EquipmentFilterSet
 
     def perform_create(self, serializer):
-        serializer.save(creaated_by=self.request.user)
+        serializer.save(created_by=self.request.user)
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.prefetch_related('replacement_products', 'stockitem_set', 'recipeproduct_set')
@@ -65,7 +65,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     filterset_class = ProductFilterSet
 
     def perform_create(self, serializer):
-        serializer.save(creaated_by=self.request.user)
+        serializer.save(created_by=self.request.user)
 
 class StockItemViewSet(viewsets.ModelViewSet):
     queryset = StockItem.objects.prefetch_related('product', 'equipment')
@@ -80,7 +80,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilterSet
 
     def perform_create(self, serializer):
-        serializer.save(creaated_by=self.request.user)
+        serializer.save(created_by=self.request.user)
 
 class RecipeProductViewSet(viewsets.ModelViewSet):
     queryset = RecipeProduct.objects.prefetch_related('recipe', 'product')
@@ -88,7 +88,7 @@ class RecipeProductViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsOwner]
 
     def perform_create(self, serializer):
-        serializer.save(creaated_by=self.request.user)
+        serializer.save(created_by=self.request.user)
 
 class CookingPlanViewSet(viewsets.ModelViewSet):
     queryset = CookingPlan.objects.prefetch_related('recipe')
@@ -97,7 +97,7 @@ class CookingPlanViewSet(viewsets.ModelViewSet):
     filterset_class = CookingPlanFilterSet
 
     def perform_create(self, serializer):
-        serializer.save(creaated_by=self.request.user)
+        serializer.save(created_by=self.request.user)
 
 class PurchaseViewSet(viewsets.ModelViewSet):
     queryset = Purchase.objects.prefetch_related('purchaseitem_set')
@@ -106,7 +106,7 @@ class PurchaseViewSet(viewsets.ModelViewSet):
     filterset_class = PurchaseFilterSet
 
     def perform_create(self, serializer):
-        serializer.save(creaated_by=self.request.user)
+        serializer.save(created_by=self.request.user)
 
 class PurchaseItemViewSet(viewsets.ModelViewSet):
     queryset = PurchaseItem.objects.prefetch_related('purchase', 'product')
@@ -115,7 +115,7 @@ class PurchaseItemViewSet(viewsets.ModelViewSet):
     filterset_class = PurchaseItemFilterSet
 
     def perform_create(self, serializer):
-        serializer.save(creaated_by=self.request.user)
+        serializer.save(created_by=self.request.user)
 
 class ShoppingListViewSet(viewsets.ViewSet):
 
@@ -133,7 +133,7 @@ class ConsumptionViewSet(viewsets.ModelViewSet):
     filterset_class = ConsumptionFilterSet
 
     def perform_create(self, serializer):
-        serializer.save(creaated_by=self.request.user)
+        serializer.save(created_by=self.request.user)
 
 class ConversionRuleViewSet(viewsets.ModelViewSet):
     queryset = ConversionRule.objects.prefetch_related('products')
@@ -142,7 +142,7 @@ class ConversionRuleViewSet(viewsets.ModelViewSet):
     filterset_fields = ('products', 'from_unit', 'to_unit', 'created_by')
 
     def perform_create(self, serializer):
-        serializer.save(creaated_by=self.request.user)
+        serializer.save(created_by=self.request.user)
 
 class ConfigViewSet(viewsets.ModelViewSet):
     queryset = Config.objects.all()
@@ -151,4 +151,4 @@ class ConfigViewSet(viewsets.ModelViewSet):
     filterset_fields = ('created_by')
 
     def perform_create(self, serializer):
-        serializer.save(creaated_by=self.request.user)
+        serializer.save(created_by=self.request.user)
