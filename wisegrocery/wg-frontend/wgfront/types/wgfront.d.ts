@@ -30,8 +30,8 @@ type UserType = {
 }
   
 type AuthType = {
-  accessToken: string | null, 
-  refreshToken: string | null, 
+  access: string | null, 
+  refresh: string | null, 
   authenticated: boolean
 };
 

@@ -71,6 +71,7 @@ export default function Login() {
                                 dispatch(fetchSettings());
                             }
                             setStatus('success');
+                            router.navigate('/(pages)');
                         }).catch((error: any) => {
                             if (error.message) {
                                 const errors = JSON.parse(error.message);
@@ -99,6 +100,9 @@ export default function Login() {
             }
         }
         setTouchedFields({ username: false, password: false }); 
+
+        if (status === 'success')
+            router.navigate('/(pages)');
     };
 
     const renderFieldError = ({ item, index, separators }: {item: string, index: number, separators: any}) => {

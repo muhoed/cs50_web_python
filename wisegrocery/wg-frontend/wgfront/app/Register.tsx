@@ -88,7 +88,7 @@ export default function Register() {
                             setStatus('success');
                         }).catch((error) => {
                             console.log(error);
-                            setStatus('érror');
+                            setStatus('error');
                         });
                 })
                 .catch((error) => {
@@ -113,7 +113,7 @@ export default function Register() {
         } else {
             setStatus('error');
         }
-        setTouchedFields({ username: false, email: false, password1: false, password2: false }); 
+        setTouchedFields({ username: false, email: false, password1: false, password2: false });
     };
 
     const renderFieldError = ({ item, index, separators }: {item: string, index: number, separators: any}) => {

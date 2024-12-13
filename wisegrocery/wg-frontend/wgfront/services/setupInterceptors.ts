@@ -31,7 +31,7 @@ const setupInterceptors = (store: any) => {
           try {
             const state = store.getState();
             const rs = await publicAxios.post("/token/refresh/", {
-              refresh: state.secure.user.auth.refreshToken,
+              refresh: state.secure.user.auth.refresh,
             });
             dispatch(refreshUserTokens(rs.data));
 

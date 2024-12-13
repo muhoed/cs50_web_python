@@ -1,5 +1,5 @@
 import * as secureStore from "../storage.native";
-//import secureLocalStorage from 'react-secure-storage';
+import secureLocalStorage from 'react-secure-storage';
 import { 
     persistReducer, 
     persistStore,
@@ -18,72 +18,72 @@ import { setStoreForAuthHeader } from "@/services/auth-header";
 
 const rootPersistConfig = {
     key: 'wgstoreroot',
-    storage: secureStore, // Platform.OS === 'web' ? secureLocalStorage : secureStore,
+    storage: (typeof window === 'undefined') ? secureLocalStorage : secureStore,
     blacklist: ['wgstoreauth'],
 };
 
 const authPersistConfig = {
     key: 'wgstoreauth',
-    storage: secureStore, // Platform.OS === 'web' ? secureLocalStorage : secureStore,
+    storage: (typeof window === 'undefined') ? secureLocalStorage : secureStore,
     blacklist: ['wgstoreroot'],
 };
 
-const rootReducer = combineReducers({
-    secure: userReducer,
-    main: settingsReducer,
-  });
+// const rootReducer = combineReducers({
+//     secure: userReducer,
+//     main: settingsReducer,
+//   });
 
 const rootReducerPersistent = combineReducers({
   secure: persistReducer(authPersistConfig, userReducer),
   main: persistReducer(rootPersistConfig, settingsReducer),
 });
 
-// export const persistantStore = configureStore({
-//   reducer: rootReducerPersistent,
-//   middleware: (getDefaultMiddleware) =>
-//     getDefaultMiddleware({
-//       serializableCheck: {
-//         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
-//       },
-//     }),
-// });
+export const persistantStore = configureStore({
+  reducer: rootReducerPersistent,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+      },
+    }),
+});
 
 // export const storea = configureStore({
 //   reducer: rootReducer,
 // });
 
-let storeTmp = null;
-//let persistorTmp = null;
+// let storeTmp = null;
+// //let persistorTmp = null;
 
-// if (Platform.OS !== 'web')
-//   setStoreForAuthHeader(persistantStore);
-// else
-//   setStoreForAuthHeader(store);
+// // if (Platform.OS !== 'web')
+// //   setStoreForAuthHeader(persistantStore);
+// // else
+// //   setStoreForAuthHeader(store);
 
-if (typeof window === 'undefined') { //(Platform.OS === 'web') {
-  storeTmp = configureStore({
-    reducer: rootReducer,
-    middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware({
-        serializableCheck: {
-          ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
-        },
-      }),
-  });
-} else {
-  storeTmp = configureStore({
-    reducer: rootReducerPersistent,
-    middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware({
-        serializableCheck: {
-          ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
-        },
-      }),
-  });
-  //persistorTmp = persistStore(storeTmp);
-}
+// if (typeof window === 'undefined') { //(Platform.OS === 'web') {
+//   storeTmp = configureStore({
+//     reducer: rootReducerPersistent,
+//     middleware: (getDefaultMiddleware) =>
+//       getDefaultMiddleware({
+//         serializableCheck: {
+//           ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+//         },
+//       }),
+//   });
+// } else {
+//   storeTmp = configureStore({
+//     reducer: rootReducerPersistent,
+//     middleware: (getDefaultMiddleware) =>
+//       getDefaultMiddleware({
+//         serializableCheck: {
+//           ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+//         },
+//       }),
+//   });
+//   //persistorTmp = persistStore(storeTmp);
+// }
 
-export const store = storeTmp;
+export const store = persistantStore;
 
 setStoreForAuthHeader(store);
 
