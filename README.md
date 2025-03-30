@@ -34,3 +34,150 @@ My solutions and implementations of CS50's Web Programming with Python and JS co
   - message can be sent to a list of recipients
   - archive / unarchive email messaage
   
+
+# WiseGrocery
+
+WiseGrocery is a comprehensive grocery management application designed to help users manage their food inventory, plan meals, track food expiration, and generate shopping lists.
+
+## Project Structure
+
+```
+wisegrocery/
+├── wg-frontend/      # React Native/Expo mobile application
+├── wg-backend/       # Django REST API backend
+├── .venv/            # Python virtual environment
+├── requirements.txt  # Python dependencies
+└── umlchart.uxf      # UML diagram file
+```
+
+## Features
+
+- **Inventory Management**: Track food items in multiple storage locations (fridge, freezer, pantry)
+- **Equipment Management**: Define different storage equipment with temperature ranges
+- **Recipe Management**: Create and store recipes with required ingredients
+- **Meal Planning**: Plan meals for different days and meal types
+- **Shopping List Generation**: Generate shopping lists based on meal plans and inventory
+- **Expiration Tracking**: Monitor food expiration dates and receive notifications
+- **Consumption Tracking**: Track food usage and consumption patterns
+
+## Technology Stack
+
+### Backend (wg-backend)
+- **Framework**: Django with Django REST Framework
+- **Database**: SQLite (development) / Can be configured for production
+- **Task Queue**: Celery for background tasks (expiration notifications, etc.)
+- **API**: RESTful API endpoints for all functionality
+
+### Frontend (wg-frontend)
+- **Framework**: React Native with Expo
+- **State Management**: Redux with Redux Toolkit
+- **Navigation**: React Navigation
+- **UI Components**: React Native Paper
+- **API Integration**: Axios
+
+## Setup and Installation
+
+### Backend Setup
+
+1. Create and activate Python virtual environment:
+```bash
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+```
+
+2. Install Python dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. Navigate to the backend directory:
+```bash
+cd wg-backend
+```
+
+4. Run migrations:
+```bash
+python manage.py migrate
+```
+
+5. Create a superuser:
+```bash
+python manage.py createsuperuser
+```
+
+6. Start the development server:
+```bash
+python manage.py runserver
+```
+
+### Frontend Setup
+
+1. Navigate to the frontend directory:
+```bash
+cd wg-frontend/wgfront
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Start the Expo development server:
+```bash
+npm start
+```
+
+## Core Models
+
+- **User**: Extended Django user model for authentication
+- **Equipment**: Storage locations (refrigerator, pantry, etc.)
+- **Product**: Food items with details like categories, temperature requirements
+- **Recipe**: Collection of products with quantities for meal preparation
+- **CookingPlan**: Schedule for meal preparation
+- **Purchase**: Record of grocery shopping
+- **StockItem**: Individual inventory items with expiration dates
+- **Consumption**: Record of product usage
+
+## Key Components
+
+### Shopping Module
+
+The `Shopping` class provides the core functionality for generating intelligent shopping lists based on user configurations and needs:
+
+- **Smart Shopping List Generation**: Creates shopping lists based on:
+  - Current cooking plans and recipes
+  - Historical consumption data
+  - Minimum stock requirements
+  - Current inventory levels
+  
+- **Configurable Shopping Logic**: Users can customize their shopping experience:
+  - Base shopping lists on cooking plans
+  - Use historical consumption data for recurring items
+  - Set minimum stock thresholds for essential items
+  
+- **Stock Management Integration**: Automatically accounts for:
+  - Current stock levels
+  - Available storage space in appropriate equipment
+  - Temperature requirements of products
+  
+- **Unit Conversion Support**: Handles different units of measurement with automatic conversion
+
+The shopping list generation algorithm follows these steps:
+1. Calculate needed product quantities from active cooking plans
+2. Analyze historical consumption patterns
+3. Compare with minimum stock levels for each product
+4. Adjust based on current inventory
+5. Generate the final shopping list with precise quantities
+
+## Development
+
+The application follows a client-server architecture with a RESTful API:
+
+1. The Django backend provides API endpoints for all data operations
+2. The React Native frontend consumes these APIs for user interaction
+3. Background tasks handle scheduled operations like expiration checking
+
+## License
+
+This project is for educational purposes as part of the CS50 Web Development with Python and JavaScript course.
+  

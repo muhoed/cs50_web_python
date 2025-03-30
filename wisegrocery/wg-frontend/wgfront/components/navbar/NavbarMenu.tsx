@@ -1,6 +1,6 @@
-import React, {useState} from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
-import { Appbar, Divider, Menu } from "react-native-paper";
+import React, { useState } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, Platform } from "react-native";
+import { Appbar, Divider, Menu, Searchbar, useTheme } from "react-native-paper";
 import { settingsReset } from '../../store/redux/settingsSlice';
 import { logoutUser } from '../../store/redux/userSlice';
 import { Pressable } from 'react-native-web';
@@ -9,54 +9,52 @@ import { Link, router } from 'expo-router';
 import { useWGDispatch } from '@/hooks/useWGDispatch';
 import { useWGSelector } from '@/hooks/useWGSelector';
 
-export default function NavbarMenu (props: { navigation: { navigate: (arg0: any) => void; }; }) {
+export default function NavbarMenu() {
     const dispatch = useWGDispatch();
     const user = useWGSelector(state => state.secure.user.auth);
     const [homeVisible, setHomeVisible] = useState(false);
     const [status, setStatus] = useState('idle');
+    const [searchQuery, setSearchQuery] = useState('');
     const screenSize = useScreenSize();
+    const theme = useTheme();
 
     const mainMenuItems = (
         <>
-        <Menu.Item
-            leadingIcon="home-outline"
-            title="Home"
-            titleStyle={{fontSize: 16, fontWeight: "bold"}}
-            onPress={() => onMenuItemPress("/(pages)")} />
-        <Divider bold={true} />
-        <Menu.Item 
-            title="Groceries" 
-            titleStyle={{fontWeight: "bold"}}
-            onPress={() => onMenuItemPress("/(pages)/Groceries")} />
-        <Divider />
-        <Menu.Item
-            leadingIcon="chevron-right" 
-            title="Products" 
-            onPress={() => onMenuItemPress("/(pages)/Products")} />
-        <Menu.Item
-            leadingIcon="chevron-right"  
-            title="Equipment" 
-            onPress={() => onMenuItemPress("/(pages)/Equipment")} />
-        <Menu.Item 
-            leadingIcon="chevron-right" 
-            title="Stock" 
-            onPress={() => onMenuItemPress("/(pages)/Stock")} />
-        <Divider />
-        <Menu.Item 
-            title="Shopping" 
-            onPress={() => onMenuItemPress("/(pages)/Shopping")} />
-        <Divider />
-        <Menu.Item 
-            title="Cooking" 
-            onPress={() => onMenuItemPress("/(pages)/Cooking")} />
+            <Menu.Item
+                leadingIcon="home-outline"
+                title="Home"
+                titleStyle={styles.menuTitle}
+                onPress={() => onMenuItemPress("/(pages)")} />
+            <Divider bold={true} />
+            <Menu.Item 
+                title="Groceries" 
+                titleStyle={styles.menuTitle}
+                onPress={() => onMenuItemPress("/(pages)/Groceries")} />
+            <Divider />
+            <Menu.Item
+                leadingIcon="chevron-right" 
+                title="Products" 
+                onPress={() => onMenuItemPress("/(pages)/Products")} />
+            <Menu.Item
+                leadingIcon="chevron-right"  
+                title="Equipment" 
+                onPress={() => onMenuItemPress("/(pages)/Equipment")} />
+            <Menu.Item 
+                leadingIcon="chevron-right" 
+                title="Stock" 
+                onPress={() => onMenuItemPress("/(pages)/Stock")} />
+            <Divider />
+            <Menu.Item 
+                title="Shopping" 
+                onPress={() => onMenuItemPress("/(pages)/Shopping")} />
+            <Divider />
+            <Menu.Item 
+                title="Cooking" 
+                onPress={() => onMenuItemPress("/(pages)/Cooking")} />
         </>
-    )
-  
-    const openHomeMenu = () => setHomeVisible(true);
-  
-    const closeHomeMenu = () => setHomeVisible(false);
+    );
 
-    const onLogout = () => {
+    const handleLogout = () => {
         setStatus('loading');
         try {
             dispatch(logoutUser());
@@ -68,114 +66,145 @@ export default function NavbarMenu (props: { navigation: { navigate: (arg0: any)
         }
     };
 
-    function renderLogoutBtn() {
-        if (user.authenticated) {
-            return (
-                <View style={{marginLeft: "3%", marginRight: "3%"}}>
-                    <TouchableOpacity onPress={onLogout} testID="customDrawer-logout">
-                        <View style={styles.parentItem}>
-                            <Text style={{fontSize: 16, fontWeight: "bold"}}>{'Sign Out'}</Text>
-                        </View>
-                    </TouchableOpacity>
-                </View>
-            );
-        }
-        return null;
-    }
+    const renderWebNav = () => (
+        <View style={styles.webNav}>
+            <Link href='/' style={styles.logo}>
+                <Text style={styles.logoText}>Wise Grocery</Text>
+            </Link>
+            
+            <View style={styles.searchContainer}>
+                <Searchbar
+                    placeholder="Search..."
+                    onChangeText={setSearchQuery}
+                    value={searchQuery}
+                    style={styles.searchBar}
+                    iconColor={theme.colors.primary}
+                    placeholderTextColor="#666"
+                />
+            </View>
 
-    function onMenuPress() {
-        openHomeMenu();
-    }
-
-    function onMenuItemPress(routeName: any) {
-        router.push(routeName);
-        closeHomeMenu();
-    }
-
-    if (screenSize.isDesktop || !screenSize.isPortrait) {
-        return (
-            <View style={styles.container}>
-                <Link href='/' style={styles.navbarItem}>Wise Grocery</Link>
-                <View style={{ flex: 1, flexGrow: 1, justifyContent: "flex-start" }}>
-                    {/* <Link href='/(pages)' style={styles.navbarItem}>Wise Grocery</Link> */}
-                </View>
+            <View style={styles.navLinks}>
                 {!user.authenticated ? (
                     <>
-                    <Link style={styles.navbarItem} href='/Login'>Log In</Link>
-                    <Link style={styles.navbarItem} href='/Register'>Register</Link>
+                        <Link style={styles.navLink} href='/Login'>
+                            <Text style={styles.navLinkText}>Log In</Text>
+                        </Link>
+                        <Link style={styles.navLink} href='/Register'>
+                            <Text style={styles.navLinkText}>Register</Text>
+                        </Link>
                     </>
                 ) : (
                     <>
-                    <View style={{marginLeft: "3%", marginRight: "3%"}}>
-                        <Menu
-                            visible={homeVisible}
-                            onDismiss={closeHomeMenu}
-                            anchor={
-                                <Pressable onPress={() => onMenuPress()}>
-                                    <Text style={{fontSize: 16, fontWeight: "bold"}}>Menu</Text>
-                                </Pressable>
-                            }
-                            anchorPosition="bottom">
-                            {mainMenuItems}
-                        </Menu>
-                    </View>
-                    <Link style={styles.navbarItem} href='/(pages)/Notifications'>
-                        Notifications
-                    </Link>
-                    <Link style={styles.navbarItem} href='/(pages)/Settings'>
-                        Settings
-                    </Link>
-                    {renderLogoutBtn()}
+                        <View style={styles.menuContainer}>
+                            <Menu
+                                visible={homeVisible}
+                                onDismiss={() => setHomeVisible(false)}
+                                anchor={
+                                    <Pressable onPress={() => setHomeVisible(true)}>
+                                        <Text style={styles.navLinkText}>Menu</Text>
+                                    </Pressable>
+                                }
+                                anchorPosition="bottom">
+                                {mainMenuItems}
+                            </Menu>
+                        </View>
+                        <Link style={styles.navLink} href='/(pages)/Notifications'>
+                            <Text style={styles.navLinkText}>Notifications</Text>
+                        </Link>
+                        <Link style={styles.navLink} href='/(pages)/Settings'>
+                            <Text style={styles.navLinkText}>Settings</Text>
+                        </Link>
+                        <TouchableOpacity onPress={handleLogout} style={styles.navLink}>
+                            <Text style={styles.navLinkText}>Logout</Text>
+                        </TouchableOpacity>
                     </>
                 )}
             </View>
-        );
-    }
+        </View>
+    );
 
-    return (
+    const renderMobileNav = () => (
         <Menu 
             visible={homeVisible}
-            onDismiss={closeHomeMenu}
+            onDismiss={() => setHomeVisible(false)}
             anchor={
-                <Appbar.Action icon="menu" onPress={openHomeMenu} />
+                <Appbar.Action icon="menu" onPress={() => setHomeVisible(true)} />
             }>
             {!user.authenticated ? (
                 <>
-                <Menu.Item style={styles.navbarItem} onPress={() => onMenuItemPress('/Login')} title="Log In" />
-                <Menu.Item style={styles.navbarItem} onPress={() => onMenuItemPress('/Register')} title="Register" />
+                    <Menu.Item style={styles.menuItem} onPress={() => onMenuItemPress('/Login')} title="Log In" />
+                    <Menu.Item style={styles.menuItem} onPress={() => onMenuItemPress('/Register')} title="Register" />
                 </>
             ) : (
                 <>
-                {mainMenuItems}
-                <Divider bold={true} />
-                <Menu.Item style={styles.navbarItem} onPress={() => onMenuItemPress('/(pages)/Notifications')} title="Notifications" />
-                <Menu.Item style={styles.navbarItem} onPress={() => onMenuItemPress('/(pages)/Settings')} title="Settings" />
-                <Divider bold={true} />
-                <Menu.Item style={styles.navbarItem} onPress={() => onLogout()} title="Log Out" />
+                    {mainMenuItems}
+                    <Divider bold={true} />
+                    <Menu.Item style={styles.menuItem} onPress={() => onMenuItemPress('/(pages)/Notifications')} title="Notifications" />
+                    <Menu.Item style={styles.menuItem} onPress={() => onMenuItemPress('/(pages)/Settings')} title="Settings" />
+                    <Divider bold={true} />
+                    <Menu.Item style={styles.menuItem} onPress={handleLogout} title="Log Out" />
                 </>
             )}
         </Menu>
     );
-};
+
+    const onMenuItemPress = (routeName: string) => {
+        router.push(routeName);
+        setHomeVisible(false);
+    };
+
+    return Platform.OS === 'web' ? renderWebNav() : renderMobileNav();
+}
 
 const styles = StyleSheet.create({
-    container: {
+    webNav: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+        backgroundColor: '#2a2a2a',
+        justifyContent: 'space-between',
+    },
+    logo: {
+        marginRight: 24,
+    },
+    logoText: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#ffffff',
+    },
+    searchContainer: {
         flex: 1,
-        flexDirection: "row",
+        maxWidth: 400,
+        marginHorizontal: 16,
     },
-    parentItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderBottomWidth: 1,
-      borderBottomColor: '#F0F0F0',
-      paddingTop: 4,
-      paddingBottom: 4,
+    searchBar: {
+        backgroundColor: '#1a1a1a',
+        borderRadius: 8,
+        elevation: 0,
     },
-    navbarItem: {
+    navLinks: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 16,
+    },
+    navLink: {
+        padding: 8,
+    },
+    navLinkText: {
+        color: '#ffffff',
         fontSize: 16,
-        fontWeight: "bold",
+        fontWeight: '500',
+    },
+    menuContainer: {
         marginLeft: "3%",
         marginRight: "3%",
-        color: 'whitesmoke'
-    }
+    },
+    menuTitle: {
+        fontSize: 16,
+        fontWeight: "bold",
+        color: '#ffffff',
+    },
+    menuItem: {
+        color: '#ffffff',
+    },
 });
