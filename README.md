@@ -97,7 +97,8 @@ cd wg-backend
 
 4. Run migrations:
 ```bash
-python manage.py migrate
+docker-compose up -d db  # Start only the database container
+docker-compose run web python manage.py migrate  # Run migrations
 ```
 
 5. Create a superuser:

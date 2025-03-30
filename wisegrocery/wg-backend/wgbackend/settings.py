@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from datetime import timedelta
 from pathlib import Path
 from celery.schedules import crontab
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,7 +22,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']  # Update this in production
 
 
 # Application definition
@@ -37,7 +38,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
-    #'django_celery_beat',
+    'django_celery_beat',  # Uncommented for PostgreSQL support
     'wgapi',
 ]
 
@@ -117,11 +118,20 @@ WSGI_APPLICATION = 'wgbackend.wsgi.application'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default='postgres://postgres:postgres@db:5432/wisegrocery',
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
+
+# SQLite fallback configuration
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 AUTH_USER_MODEL = 'wgapi.WiseGroceryUser'
 
@@ -174,10 +184,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Celery specific settings
 
-CELERY_BROKER_URL = "amqp://celery_user:celery_user_password@localhost:5672/celeryvhost" # "redis://localhost:6379/0"
-CELERY_RESULT_BACKEND = "rpc://celery_user:celery_user_password@localhost:5672/celeryvhost" # "redis://localhost:6379/0"
+CELERY_BROKER_URL = "redis://redis:6379/0"
+CELERY_RESULT_BACKEND = "redis://redis:6379/0"
 CELERY_TIMEZONE = TIME_ZONE
-#CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CELERY_BEAT_SCHEDULE = {
     'pre_expire_notification': {
         'task': 'wgapi.tasks.stockitem_notify_expiration_handler',

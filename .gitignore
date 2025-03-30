@@ -7,3 +7,5 @@
 .env
 .venv
 .vs
+.specstory
+.specstory-cache
