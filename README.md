@@ -77,56 +77,7 @@ wisegrocery/
 
 ## Setup and Installation
 
-### Backend Setup
-
-1. Create and activate Python virtual environment:
-```bash
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-```
-
-2. Install Python dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-3. Navigate to the backend directory:
-```bash
-cd wg-backend
-```
-
-4. Run migrations:
-```bash
-docker-compose up -d db  # Start only the database container
-docker-compose run web python manage.py migrate  # Run migrations
-```
-
-5. Create a superuser:
-```bash
-python manage.py createsuperuser
-```
-
-6. Start the development server:
-```bash
-python manage.py runserver
-```
-
-### Frontend Setup
-
-1. Navigate to the frontend directory:
-```bash
-cd wg-frontend/wgfront
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Start the Expo development server:
-```bash
-npm start
-```
+See wisegrocery/README.md file for details.
 
 ## Core Models
 

@@ -3,20 +3,24 @@ version: '3.8'
 services:
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    command: >
+      bash -c "./init.sh python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
-      - postgres_data:/var/lib/postgresql/data
     ports:
       - "8000:8000"
     environment:
       - SECRET_KEY=${SECRET_KEY}
       - DJANGO_SETTINGS_MODULE=wgbackend.settings
       - DATABASE_URL=postgres://postgres:postgres@db:5432/wisegrocery
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=wisegrocery
     depends_on:
-      - db
-      - redis
-      - celery
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   db:
     image: postgres:15-alpine
@@ -28,38 +32,67 @@ services:
       - POSTGRES_PASSWORD=postgres
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   celery:
     build: .
-    command: celery -A wgbackend worker -l INFO
+    command: >
+      bash -c "./wait-for-db.sh db && 
+               celery -A wgbackend worker -l INFO"
     volumes:
       - .:/app
     environment:
       - SECRET_KEY=${SECRET_KEY}
       - DJANGO_SETTINGS_MODULE=wgbackend.settings
       - DATABASE_URL=postgres://postgres:postgres@db:5432/wisegrocery
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=wisegrocery
     depends_on:
-      - db
-      - redis
+      web:
+        condition: service_started
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   celery-beat:
     build: .
-    command: celery -A wgbackend beat -l INFO
+    command: >
+      bash -c "./wait-for-db.sh db && 
+               celery -A wgbackend beat -l INFO"
     volumes:
       - .:/app
     environment:
       - SECRET_KEY=${SECRET_KEY}
       - DJANGO_SETTINGS_MODULE=wgbackend.settings
       - DATABASE_URL=postgres://postgres:postgres@db:5432/wisegrocery
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=wisegrocery
     depends_on:
-      - db
-      - redis
-      - celery
+      web:
+        condition: service_started
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      celery:
+        condition: service_started
 
 volumes:
   postgres_data: 
