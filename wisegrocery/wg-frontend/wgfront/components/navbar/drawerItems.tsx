@@ -13,22 +13,22 @@ const drawerItemsAccount = [
 
 const drawerItemsMain = [
     {
-        key: 'Home',
+        key: 'index',
         title: 'Home',
         routes: [
             {
                 nav: 'MainDrawer', 
                 routeName: 'Groceries', 
                 title: 'Groceries', 
-                parent: 'Home',
+                parent: 'index',
                 routes: [
                     {nav: 'MainDrawer', routeName: 'Products', title: 'Products', parent: 'Groceries', routes: []},
                     {nav: 'MainDrawer', routeName: 'Shopping', title: 'Shopping', parent: 'Groceries', routes: []},
                     {nav: 'MainDrawer', routeName: 'Cooking', title: 'Cooking', parent: 'Groceries', routes: []},
                 ]
             },
-            {nav: 'MainDrawer', routeName: 'Equipment', title: 'Equipment', parent: 'Home', routes: []},
-            {nav: 'MainDrawer', routeName: 'Stock', title: 'Stock', parent: 'Home', routes: []},
+            {nav: 'MainDrawer', routeName: 'Equipment', title: 'Equipment', parent: 'index', routes: []},
+            {nav: 'MainDrawer', routeName: 'Stock', title: 'Stock', parent: 'index', routes: []},
         ]
     },
     {

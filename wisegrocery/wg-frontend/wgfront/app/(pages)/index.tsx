@@ -1,4 +1,4 @@
-import { FlatList, Platform, SafeAreaView, StyleSheet, View, ListRenderItemInfo, Text } from "react-native";
+import { FlatList, Platform, SafeAreaView, StyleSheet, View, ListRenderItemInfo, Text, useWindowDimensions } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
 import { Link } from "expo-router";
@@ -9,27 +9,40 @@ import { MODULES } from "../../enumerations/modules";
 
 export default function Home() {
   const screenSize = useScreenSize();
+  const { width: screenWidth } = useWindowDimensions();
   const homeModules = MODULES.filter(module => module.parent === "Home");
+  console.log("Home Modules Count:", homeModules.length);
+
+  const isWeb = Platform.OS === 'web';
+  const numColumns = isWeb ? 3 : 2;
+  const padding = styles.listContentContainer.padding ?? 0;
+  const gap = styles.listContentContainer.gap ?? 0;
+  const totalHorizontalPadding = padding * 2;
+  const totalGapWidth = isWeb ? gap * (numColumns - 1) : gap;
+  const availableWidth = screenWidth - totalHorizontalPadding - totalGapWidth;
+  const tileWidth = isWeb ? Math.floor(availableWidth / numColumns) : undefined;
 
   const renderItem = ({ item }: ListRenderItemInfo<ModuleType>): React.ReactElement => {
-    return <ModuleTile module={item} />;
+    return <ModuleTile module={item} tileWidth={isWeb ? tileWidth : undefined} />;
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.mainContent}>
         <FlatList<ModuleType>
-          contentContainerStyle={styles.innerContainer}
-          horizontal={Platform.OS === 'web' && screenSize.isDesktop}
+          numColumns={Platform.OS === 'web' ? undefined : 2}
           data={homeModules}
           renderItem={renderItem}
           keyExtractor={(item) => item.name}
+          style={Platform.OS === 'web' ? styles.webListStyle : undefined}
+          contentContainerStyle={styles.listContentContainer}
         />
       </View>
       <View style={styles.footer}>
         <Text style={styles.footerText}>© 2024 WiseGrocery. All rights reserved.</Text>
         <View style={styles.footerLinks}>
-          <Link href="/Privacy" style={styles.footerLink}>
+          {/* Commenting out links until pages are created */}
+          {/* <Link href="/Privacy" style={styles.footerLink}>
             <Text style={styles.footerLinkText}>Privacy Policy</Text>
           </Link>
           <Link href="/Terms" style={styles.footerLink}>
@@ -37,7 +50,7 @@ export default function Home() {
           </Link>
           <Link href="/Contact" style={styles.footerLink}>
             <Text style={styles.footerLinkText}>Contact Us</Text>
-          </Link>
+          </Link> */}
         </View>
       </View>
       <StatusBar style="light" />
@@ -48,7 +61,7 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: Platform.OS === 'web' ? '#ffffff' : '#1a1a1a',
   },
   mainContent: {
     flex: 1,
@@ -83,5 +96,17 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 14,
     textDecorationLine: 'underline',
+  },
+  webListStyle: {
+    width: '100%',
+    flex: 1,
+  },
+  listContentContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    padding: 16,
+    gap: 16,
   },
 }); 

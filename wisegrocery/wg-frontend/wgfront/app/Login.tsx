@@ -6,10 +6,11 @@ import {
     TextInput,
     Pressable,
     FlatList,
-  } from 'react-native';
+    Platform
+} from 'react-native';
 import React, { useState } from 'react';
 import { router } from 'expo-router';
-import { useValidation } from 'react-simple-form-validator';
+import { useForm, Controller } from 'react-hook-form';
 
 import { fetchSettings } from '@/store/redux/settingsSlice';
 import Spinner from '@/components/Spinner';
@@ -18,11 +19,10 @@ import { useWGDispatch } from '@/hooks/useWGDispatch';
 import { useWGSelector } from '@/hooks/useWGSelector';
 
 type LoginFormType = {
-    username: string | null,
-    password: string | null,
-    form: string[] | null
+    username: string;
+    password: string;
 }
-  
+
 export default function Login() {
     // store
     const dispatch = useWGDispatch();
@@ -30,82 +30,66 @@ export default function Login() {
     const userStatus = useWGSelector(state => state.secure.user.status);
     // local state
     const [status, setStatus] = useState('idle');
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [touchedFields, setTouchedFields] = useState({
-        username: false,
-        password: false,
-      });
-    const [formErrors, setFormErrors] = useState<LoginFormType>({
-        username: null,
-        password: null,
-        form: null,
-    });
+    const [formErrors, setFormErrors] = useState<{
+        username?: string[];
+        password?: string[];
+        form?: string[];
+    }>({});
 
-    const { isFieldInError, getErrorsInField, isFormValid } =
-    useValidation({
-        fieldsRules: {
-          username: { required: true },
-          password: { required: true }
-        },
-        state: { username, password },
-    });
-
-    const onBlurHandler = (field: string) =>
-        setTouchedFields((prevFields) => ({ ...prevFields, [field]: true }));
-
-    const onLogin = async () => {
-        if (isFormValid) 
-        {
-            try {
-                setStatus('loading');
-                if (userStatus !== 'loading') {
-                    await dispatch(loginUser({
-                        username, password,
-                        email: null,
-                        password1: null,
-                        password2: null
-                    })).unwrap()
-                        .then((response: any) => {
-                            if (settingsStatus !== 'loading') {
-                                dispatch(fetchSettings());
-                            }
-                            setStatus('success');
-                            router.navigate('/(pages)');
-                        }).catch((error: any) => {
-                            if (error.message) {
-                                const errors = JSON.parse(error.message);
-                                setFormErrors({
-                                    ...formErrors,
-                                    username: errors.username || null,
-                                    password: errors.password || null,
-                                    form: errors.detail ? [errors.detail] : null,
-                                });
-                            } else {
-                                setFormErrors({
-                                    ...formErrors,
-                                    form: ["Login failed. " + JSON.stringify(error)],
-                                });
-                            }
-                            setStatus('error');
-                        });
-                }
-            } catch (error) {
-                console.log(error);
-                setFormErrors({
-                    ...formErrors,
-                    form: ["Login failed. " + JSON.stringify(error)],
-                });
-                setStatus('error');
-            }
+    const { control, handleSubmit, formState: { errors, isValid } } = useForm<LoginFormType>({
+        mode: 'onChange',
+        defaultValues: {
+            username: '',
+            password: ''
         }
-        setTouchedFields({ username: false, password: false }); 
+    });
 
-        if (status === 'success')
-            router.navigate('/(pages)');
+    const onLogin = async (data: LoginFormType) => {
+        try {
+            setStatus('loading');
+            setFormErrors({});
+            dispatch(loginUser({
+                username: data.username,
+                password: data.password,
+                email: null,
+                password1: null,
+                password2: null
+            })).unwrap()
+                .then(() => {
+                    if (settingsStatus !== 'loading') {
+                        dispatch(fetchSettings());
+                    }
+                    setStatus('success');
+                    router.navigate('/(pages)');
+                })
+                .catch((error) => {
+                    if (error.message) {
+                        try {
+                            const errors = JSON.parse(error.message);
+                            setFormErrors({
+                                username: errors.username || undefined,
+                                password: errors.password || undefined,
+                                form: errors.detail ? [errors.detail] : errors.non_field_errors || undefined
+                            });
+                        } catch (parseError) {
+                            console.log("Error parsing login error:", parseError);
+                            setFormErrors({ form: ["Login failed. Please try again."] });
+                        }
+                    } else {
+                        setFormErrors({ form: ["Login failed. An unknown error occurred."] });
+                    }
+                    setStatus('error');
+                });
+        } catch (error) {
+            console.log(error);
+            setFormErrors({
+                form: ["Login failed. " + JSON.stringify(error)],
+            });
+            setStatus('error');
+        }
     };
 
-    const renderFieldError = ({ item, index, separators }: {item: string, index: number, separators: any}) => {
+    const renderFieldError = ({ item, index }: {item: string, index: number}) => {
         return (<Text key={index} style={styles.formErrorMessage}>{item}</Text>);
     };
 
@@ -120,34 +104,58 @@ export default function Login() {
             <Text style={[styles.logo, {textAlign: 'center'}]}>Wise Grocery</Text>
             <View style={styles.form}>
                 <FlatList data={formErrors?.form} renderItem={renderFieldError} />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Username"
-                    keyboardType="default"
-                    autoCapitalize="none"
-                    onChangeText={text => setUsername(text)}
-                    onBlur={() => onBlurHandler('username')}
-                    value={username}
+                
+                <Controller
+                    control={control}
+                    rules={{
+                        required: 'Username is required',
+                    }}
+                    render={({ field: { onChange, onBlur, value } }) => (
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Username"
+                            keyboardType="default"
+                            autoCapitalize="none"
+                            onChangeText={onChange}
+                            onBlur={onBlur}
+                            value={value}
+                        />
+                    )}
+                    name="username"
                 />
-                {touchedFields.username && isFieldInError('username') && getErrorsInField('username').map((errorMessage: string, index: number) => (
-                  <Text key={index} style={styles.formErrorMessage}>{errorMessage}</Text>
-                ))}
+                {errors.username && (
+                    <Text style={styles.formErrorMessage}>{errors.username.message}</Text>
+                )}
                 <FlatList data={formErrors?.username} renderItem={renderFieldError} />
 
-                <TextInput
-                    style={styles.input}
-                    placeholder="Password"
-                    secureTextEntry
-                    onChangeText={text => setPassword(text)}
-                    onBlur={() => onBlurHandler('password')}
-                    value={password}
+                <Controller
+                    control={control}
+                    rules={{
+                        required: 'Password is required',
+                    }}
+                    render={({ field: { onChange, onBlur, value } }) => (
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Password"
+                            secureTextEntry
+                            onChangeText={onChange}
+                            onBlur={onBlur}
+                            value={value}
+                            onSubmitEditing={handleSubmit(onLogin)}
+                        />
+                    )}
+                    name="password"
                 />
-                {touchedFields.password && isFieldInError('password') && getErrorsInField('password').map((errorMessage: string, index: number) => (
-                  <Text key={index} style={styles.formErrorMessage}>{errorMessage}</Text>
-                ))}
+                {errors.password && (
+                    <Text style={styles.formErrorMessage}>{errors.password.message}</Text>
+                )}
                 <FlatList data={formErrors?.password} renderItem={renderFieldError} />
             </View>
-            <Pressable style={({ pressed }) => [{opacity: pressed ? 75 : 100}, styles.button]} onPress={() => onLogin()} disabled={!isFormValid}>
+            <Pressable 
+                style={({ pressed }) => [{opacity: pressed ? 75 : 100}, styles.button]} 
+                onPress={handleSubmit(onLogin)} 
+                disabled={!isValid}
+            >
                 <Text style={styles.buttonText}>Login</Text>
             </Pressable>
             <View>
@@ -169,11 +177,13 @@ const styles = StyleSheet.create({
     },
     logo: {
         fontSize: 60,
-        margin: '5%',
+        marginVertical: '5%',
+        textAlign: 'center'
     },
     form: {
-        width: '80%',
-        margin: '1%',
+        width: Platform.OS === 'web' ? '25%' : '80%',
+        alignSelf: 'center',
+        marginVertical: '1%',
     },
     input: {
         fontSize: 20,

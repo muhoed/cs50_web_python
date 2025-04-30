@@ -5,7 +5,7 @@ import { settingsReset } from '../../store/redux/settingsSlice';
 import { logoutUser } from '../../store/redux/userSlice';
 import { Pressable } from 'react-native-web';
 import useScreenSize from '../../hooks/useScreenSize';
-import { Link, router } from 'expo-router';
+import { Link, router, Href } from 'expo-router';
 import { useWGDispatch } from '@/hooks/useWGDispatch';
 import { useWGSelector } from '@/hooks/useWGSelector';
 
@@ -15,6 +15,7 @@ export default function NavbarMenu() {
     const [homeVisible, setHomeVisible] = useState(false);
     const [status, setStatus] = useState('idle');
     const [searchQuery, setSearchQuery] = useState('');
+    const [isSearchFocused, setIsSearchFocused] = useState(false);
     const screenSize = useScreenSize();
     const theme = useTheme();
 
@@ -23,12 +24,12 @@ export default function NavbarMenu() {
             <Menu.Item
                 leadingIcon="home-outline"
                 title="Home"
-                titleStyle={styles.menuTitle}
+                /*titleStyle={styles.menuTitle}*/
                 onPress={() => onMenuItemPress("/(pages)")} />
             <Divider bold={true} />
             <Menu.Item 
                 title="Groceries" 
-                titleStyle={styles.menuTitle}
+                /*titleStyle={styles.menuTitle}*/
                 onPress={() => onMenuItemPress("/(pages)/Groceries")} />
             <Divider />
             <Menu.Item
@@ -71,19 +72,23 @@ export default function NavbarMenu() {
             <Link href='/' style={styles.logo}>
                 <Text style={styles.logoText}>Wise Grocery</Text>
             </Link>
-            
-            <View style={styles.searchContainer}>
-                <Searchbar
-                    placeholder="Search..."
-                    onChangeText={setSearchQuery}
-                    value={searchQuery}
-                    style={styles.searchBar}
-                    iconColor={theme.colors.primary}
-                    placeholderTextColor="#666"
-                />
-            </View>
-
             <View style={styles.navLinks}>
+                {/* Search bar now here */}
+                {user.authenticated && (
+                    <View style={styles.searchContainer}> {/* Re-use container for potential sizing */} 
+                        <Searchbar
+                            placeholder="Search..."
+                            onChangeText={setSearchQuery}
+                            value={searchQuery}
+                            style={[styles.searchBar, isSearchFocused && styles.searchBarFocused]}
+                            iconColor='#ffffff'
+                            placeholderTextColor='#ffffff'
+                            inputStyle={styles.searchInput}
+                            onFocus={() => setIsSearchFocused(true)}
+                            onBlur={() => setIsSearchFocused(false)}
+                        />
+                    </View>
+                )}
                 {!user.authenticated ? (
                     <>
                         <Link style={styles.navLink} href='/Login'>
@@ -148,7 +153,7 @@ export default function NavbarMenu() {
         </Menu>
     );
 
-    const onMenuItemPress = (routeName: string) => {
+    const onMenuItemPress = (routeName: Href) => {
         router.push(routeName);
         setHomeVisible(false);
     };
@@ -160,8 +165,9 @@ const styles = StyleSheet.create({
     webNav: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
-        backgroundColor: '#2a2a2a',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        width: '100%',
         justifyContent: 'space-between',
     },
     logo: {
@@ -173,18 +179,32 @@ const styles = StyleSheet.create({
         color: '#ffffff',
     },
     searchContainer: {
-        flex: 1,
-        maxWidth: 400,
-        marginHorizontal: 16,
+        maxWidth: 300,
     },
     searchBar: {
-        backgroundColor: '#1a1a1a',
+        backgroundColor: 'transparent',
         borderRadius: 8,
         elevation: 0,
+        height: 40,
+        borderColor: '#ffffff',
+        borderWidth: 1,
+        alignItems: 'center',
+    },
+    searchBarFocused: {
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    searchInput: {
+        color: '#ffffff',
+        fontSize: 14,
+        textAlignVertical: 'center',
+        lineHeight: 40,
+        height: 40,
+        minHeight: 40,
     },
     navLinks: {
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'flex-end',
         gap: 16,
     },
     navLink: {

@@ -1,5 +1,6 @@
 import * as secureStore from "../storage.native";
-import secureLocalStorage from 'react-secure-storage';
+// import secureLocalStorage from 'react-secure-storage'; // No longer using this for web
+import storage from 'redux-persist/lib/storage'; // Import default web storage
 import { 
     persistReducer, 
     persistStore,
@@ -18,13 +19,15 @@ import { setStoreForAuthHeader } from "@/services/auth-header";
 
 const rootPersistConfig = {
     key: 'wgstoreroot',
-    storage: (typeof window === 'undefined') ? secureLocalStorage : secureStore,
+    // Use standard localStorage for web (window defined), secureStore for native
+    storage: typeof window !== 'undefined' ? storage : secureStore, 
     blacklist: ['wgstoreauth'],
 };
 
 const authPersistConfig = {
     key: 'wgstoreauth',
-    storage: (typeof window === 'undefined') ? secureLocalStorage : secureStore,
+    // Use standard localStorage for web (window defined), secureStore for native
+    storage: typeof window !== 'undefined' ? storage : secureStore,
     blacklist: ['wgstoreroot'],
 };
 

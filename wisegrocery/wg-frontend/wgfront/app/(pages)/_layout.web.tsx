@@ -2,6 +2,7 @@ import 'react-native-gesture-handler';
 import { Redirect, Stack } from 'expo-router';
 
 import { useWGSelector } from '@/hooks/useWGSelector';
+import CustomNavigationBar from '../../components/navbar/CustomNavigationBar.web';
 
 export default function PageLayout() {
   const user = useWGSelector(state => state.secure.user.auth);
@@ -11,7 +12,9 @@ export default function PageLayout() {
   }
 
   return (
-    <Stack>
+    <Stack screenOptions={{
+        header: (props: any) => <CustomNavigationBar {...props} /> 
+      }}>
       <Stack.Screen name="Home" />
       <Stack.Screen name="Groceries" />
       <Stack.Screen name="Products" />

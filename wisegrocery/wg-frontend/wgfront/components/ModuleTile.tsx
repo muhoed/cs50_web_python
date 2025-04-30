@@ -1,5 +1,6 @@
-import { router } from "expo-router";
-import { Pressable, StyleSheet, Text, Image, View } from "react-native";
+import { router, Href } from "expo-router";
+import { Pressable, StyleSheet, Text, ImageBackground, View, Platform } from "react-native";
+import React, { useState } from 'react'; // Restore useState
 
 const MODULE_IMAGES = {
   'Equipment': require('../assets/images/equipment.jpg'),
@@ -8,64 +9,86 @@ const MODULE_IMAGES = {
   'Groceries': require('../assets/images/groceries.jpg'),
 };
 
-export default function ModuleTile({ module }: { module: ModuleType }) {
-    //const navigation = useNavigation();
+interface ModuleTileProps {
+    module: ModuleType;
+    tileWidth?: number; // Add optional tileWidth prop
+}
+
+export default function ModuleTile({ module, tileWidth }: ModuleTileProps) { // Destructure tileWidth
+    const [isHovered, setIsHovered] = useState(false); // Restore state
+
+    const handlePress = () => router.push(`/(pages)/${module.name}` as Href);
+
+    // Restore hoverProps
+    const hoverProps = Platform.OS === 'web' ? {
+        onHoverIn: () => setIsHovered(true),
+        onHoverOut: () => setIsHovered(false),
+    } : {};
 
     return (
         <Pressable 
-            style={styles.container} 
-            onPress={() => router.push(`/(pages)/${module.name}`)}
+            style={[styles.container, tileWidth ? { width: tileWidth, height: tileWidth } : styles.nativeContainer]} // Apply calculated size or default native size
+            onPress={handlePress}
+            {...hoverProps} // Restore hover props
         >
-            <Image 
-                source={MODULE_IMAGES[module.name as keyof typeof MODULE_IMAGES] || MODULE_IMAGES['Groceries']}
-                style={styles.image}
+            <ImageBackground 
+                source={MODULE_IMAGES[module.name as keyof typeof MODULE_IMAGES] || MODULE_IMAGES['Groceries']} // Restore dynamic source
+                style={styles.imageBackground} 
                 resizeMode="cover"
-            />
-            <View style={styles.textContainer}>
-                <Text style={styles.button}>{module.name}</Text>
-                <Text style={styles.label}>{module.text}</Text>
-            </View>
+            >
+                {/* Overlay only on hover, rendered first */}
+                {isHovered && (
+                    <View style={styles.overlay} />
+                )}
+                {/* Text background and name always visible, rendered last (on top) */}
+                <View style={styles.textBackground}>
+                    <Text style={styles.moduleName}>{module.name}</Text>
+                </View>
+            </ImageBackground>
         </Pressable>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-        width: '33.33%',
-        height: '100%',
         alignItems: 'center',
         justifyContent: 'center',
-        flexDirection: 'column',
-        margin: 8,
         borderRadius: 12,
         overflow: 'hidden',
-        backgroundColor: '#2a2a2a',
-        elevation: 4,
+        elevation: 4, 
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
+        borderWidth: 3, // Add border width
+        borderColor: '#1E90FF', // Add border color (lighter blue from top bar)
     },
-    image: {
-        width: '100%',
-        height: '60%',
+    nativeContainer: {
+        width: '45%', // Example native sizing (adjust as needed)
+        aspectRatio: 1, 
     },
-    textContainer: {
-        width: '100%',
-        padding: 12,
-        backgroundColor: '#2a2a2a',
+    imageBackground: {
+        flex: 1, 
+        width: '100%', 
+        height: '100%', 
+        justifyContent: 'flex-end', // Push text container to bottom
+        alignItems: 'center', // Keep items centered horizontally
     },
-    button: {
-        fontSize: 18,
+    overlay: {
+        ...StyleSheet.absoluteFillObject, 
+        backgroundColor: 'rgba(0, 0, 0, 0.6)', 
+    },
+    // New style for the text background view
+    textBackground: {
+        width: '100%', // Span full width
+        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+        paddingVertical: 8, // Add vertical padding
+        paddingHorizontal: 12, // Add horizontal padding
+    },
+    moduleName: {
+        fontSize: 20, // Slightly smaller font size might look better
         fontWeight: 'bold',
         color: '#ffffff',
         textAlign: 'center',
-        marginBottom: 4,
-    },
-    label: {
-        fontSize: 14,
-        color: '#cccccc',
-        textAlign: 'center',
-        lineHeight: 20,
     },
 });

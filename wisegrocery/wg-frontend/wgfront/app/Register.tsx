@@ -6,10 +6,11 @@ import {
     TextInput,
     Pressable,
     FlatList,
-  } from 'react-native';
-import React, {useState} from 'react';
+    Platform
+} from 'react-native';
+import React, { useState } from 'react';
 import { router } from 'expo-router';
-import { useValidation } from 'react-simple-form-validator';
+import { useForm, Controller } from 'react-hook-form';
 
 import Spinner from '@/components/Spinner';
 import { loginUser, registerUser } from '@/store/redux/userSlice';
@@ -18,11 +19,10 @@ import { useWGSelector } from '@/hooks/useWGSelector';
 import { fetchSettings } from '@/store/redux/settingsSlice';
 
 type RegisterFormType = {
-    username: string | null,
-    email: string | null,
-    password1: string | null,
-    password2: string | null,
-    form: string[] | null
+    username: string;
+    email: string;
+    password1: string;
+    password2: string;
 };
 
 export default function Register() {
@@ -31,92 +31,77 @@ export default function Register() {
     const settingsStatus = useWGSelector(state => state.main.settings.status);
 
     // local state
-    const [username, setUsername] = useState('');
-    const [email, setEmail] = useState('');
-    const [password1, setPassword1] = useState('');
-    const [password2, setPassword2] = useState('');
-    const [touchedFields, setTouchedFields] = useState({
-        username: false,
-        email: false,
-        password1: false,
-        password2: false,
-      });
-    const [formErrors, setFormErrors] = useState<RegisterFormType>({
-        username: null,
-        email: null,
-        password1: null,
-        password2: null,
-        form: null,
-    });
+    const [formErrors, setFormErrors] = useState<{
+        username?: string[];
+        email?: string[];
+        password1?: string[];
+        password2?: string[];
+        form?: string[];
+    }>({});
     const [status, setStatus] = useState('idle');
 
-    const { isFieldInError, getErrorsInField, isFormValid } =
-    useValidation({
-        fieldsRules: {
-          username: { required: true },
-          email: { required: true, email: true },
-          password1: { required: true, minlength: 8 },
-          password2: { required: true, equalPassword: password1 }
-        },
-        state: { username, email, password1, password2 },
+    const { control, handleSubmit, formState: { errors, isValid }, watch } = useForm<RegisterFormType>({
+        mode: 'onChange',
+        defaultValues: {
+            username: '',
+            email: '',
+            password1: '',
+            password2: ''
+        }
     });
 
-    const onBlurHandler = (field: string) =>
-        setTouchedFields((prevFields) => ({ ...prevFields, [field]: true }));
+    const password1 = watch('password1');
 
-    const onRegister = async () => {
+    const onRegister = async (data: RegisterFormType) => {
         setStatus('loading');
-        if (isFormValid)
-        {
-            await dispatch(registerUser({
-                username, email, password1, password2,
-                password: null
-            })).unwrap()
-                .then(async (response) => {
-                    console.log(response);
-                    let password = password1;
-                    await dispatch(loginUser({
-                        username, password,
-                        email: null,
-                        password1: null,
-                        password2: null
-                    }))
-                        .then(() => {
-                            if (settingsStatus !== 'loading') {
-                                dispatch(fetchSettings());
-                            }
-                            setStatus('success');
-                        }).catch((error) => {
-                            console.log(error);
-                            setStatus('error');
-                        });
-                })
-                .catch((error) => {
-                    if (error.message) {
-                        const errors = JSON.parse(error.message);
-                        setFormErrors({
-                            ...formErrors,
-                            username: errors.username || null,
-                            email: errors.email || null,
-                            password1: errors.password1 || null,
-                            password2: errors.password2 || null,
-                            form: errors.detail ? [errors.detail] : null,
-                        });
-                    } else {
-                        setFormErrors({
-                            ...formErrors,
-                            form: [JSON.stringify(error)],
-                        });
-                    }
-                    setStatus('error');
-                });
-        } else {
-            setStatus('error');
-        }
-        setTouchedFields({ username: false, email: false, password1: false, password2: false });
+        await dispatch(registerUser({
+            username: data.username,
+            email: data.email,
+            password1: data.password1,
+            password2: data.password2,
+            password: null
+        })).unwrap()
+            .then(async (response) => {
+                console.log(response);
+                await dispatch(loginUser({
+                    username: data.username,
+                    password: data.password1,
+                    email: null,
+                    password1: null,
+                    password2: null
+                })).unwrap()
+                    .then(() => {
+                        if (settingsStatus !== 'loading') {
+                            dispatch(fetchSettings());
+                        }
+                        setStatus('success');
+                        router.navigate('/(pages)');
+                    })
+                    .catch((loginError) => {
+                        console.log("Login after register failed:", loginError);
+                        setStatus('error');
+                    });
+            })
+            .catch((error) => {
+                if (error.message) {
+                    const errors = JSON.parse(error.message);
+                    setFormErrors({
+                        username: errors.username || undefined,
+                        email: errors.email || undefined,
+                        password1: errors.password1 || undefined,
+                        password2: errors.password2 || undefined,
+                        form: errors.detail ? [errors.detail] : undefined,
+                    });
+                } else {
+                    setFormErrors({
+                        form: [JSON.stringify(error)],
+                    });
+                }
+                setStatus('error');
+            });
     };
 
-    const renderFieldError = ({ item, index, separators }: {item: string, index: number, separators: any}) => {
+    const renderFieldError = ({ item, index }: {item: string, index: number}) => {
         return (<Text key={index} style={styles.formErrorMessage}>{item}</Text>);
     };
 
@@ -131,64 +116,114 @@ export default function Register() {
             <Text style={[styles.logo, {textAlign: 'center'}]}>Wise Grocery</Text>
             <View style={styles.form}>
                 <FlatList data={formErrors?.form} renderItem={renderFieldError} />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Username"
-                    keyboardType="default"
-                    autoCapitalize="none"
-                    onChangeText={text => setUsername(text)}
-                    onBlur={() => onBlurHandler('username')}
-                    value={username}
+                
+                <Controller
+                    control={control}
+                    rules={{
+                        required: 'Username is required',
+                    }}
+                    render={({ field: { onChange, onBlur, value } }) => (
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Username"
+                            keyboardType="default"
+                            autoCapitalize="none"
+                            onChangeText={onChange}
+                            onBlur={onBlur}
+                            value={value}
+                        />
+                    )}
+                    name="username"
                 />
-                {touchedFields.username && isFieldInError('username') && getErrorsInField('username')
-                    .map((errorMessage: string, index: number) => (
-                  <Text key={index} style={styles.formErrorMessage}>{errorMessage}</Text>
-                ))}
+                {errors.username && (
+                    <Text style={styles.formErrorMessage}>{errors.username.message}</Text>
+                )}
                 <FlatList data={formErrors?.username} renderItem={renderFieldError} />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Email address"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    onChangeText={text => setEmail(text)}
-                    onBlur={() => onBlurHandler('email')}
-                    value={email}
+
+                <Controller
+                    control={control}
+                    rules={{
+                        required: 'Email is required',
+                        pattern: {
+                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                            message: 'Invalid email address'
+                        }
+                    }}
+                    render={({ field: { onChange, onBlur, value } }) => (
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Email address"
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                            onChangeText={onChange}
+                            onBlur={onBlur}
+                            value={value}
+                        />
+                    )}
+                    name="email"
                 />
-                {touchedFields.email && isFieldInError('email') && getErrorsInField('email')
-                    .map((errorMessage: string, index: number) => (
-                  <Text key={index} style={styles.formErrorMessage}>{errorMessage}</Text>
-                ))}
+                {errors.email && (
+                    <Text style={styles.formErrorMessage}>{errors.email.message}</Text>
+                )}
                 <FlatList data={formErrors?.email} renderItem={renderFieldError} />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Password"
-                    keyboardType="visible-password"
-                    secureTextEntry
-                    onChangeText={text => setPassword1(text)}
-                    onBlur={() => onBlurHandler('password1')}
-                    value={password1}
+
+                <Controller
+                    control={control}
+                    rules={{
+                        required: 'Password is required',
+                        minLength: {
+                            value: 8,
+                            message: 'Password must be at least 8 characters'
+                        }
+                    }}
+                    render={({ field: { onChange, onBlur, value } }) => (
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Password"
+                            keyboardType="visible-password"
+                            secureTextEntry
+                            onChangeText={onChange}
+                            onBlur={onBlur}
+                            value={value}
+                        />
+                    )}
+                    name="password1"
                 />
-                {touchedFields.password1 && isFieldInError('password1') && getErrorsInField('password1')
-                    .map((errorMessage: string, index: number) => (
-                  <Text key={index} style={styles.formErrorMessage}>{errorMessage}</Text>
-                ))}
+                {errors.password1 && (
+                    <Text style={styles.formErrorMessage}>{errors.password1.message}</Text>
+                )}
                 <FlatList data={formErrors?.password1} renderItem={renderFieldError} />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Confirm password"
-                    keyboardType="visible-password"
-                    secureTextEntry
-                    onChangeText={text => setPassword2(text)}
-                    onBlur={() => onBlurHandler('password2')}
-                    value={password2}
+
+                <Controller
+                    control={control}
+                    rules={{
+                        required: 'Please confirm your password',
+                        validate: value => value === password1 || 'Passwords do not match'
+                    }}
+                    render={({ field: { onChange, onBlur, value } }) => (
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Confirm password"
+                            keyboardType="visible-password"
+                            secureTextEntry
+                            onChangeText={onChange}
+                            onBlur={onBlur}
+                            value={value}
+                            onSubmitEditing={handleSubmit(onRegister)}
+                        />
+                    )}
+                    name="password2"
                 />
-                {touchedFields.password2 && isFieldInError('password2') && getErrorsInField('password2')
-                    .map((errorMessage: string, index: number) => (
-                  <Text key={index} style={styles.formErrorMessage}>{errorMessage}</Text>
-                ))}
+                {errors.password2 && (
+                    <Text style={styles.formErrorMessage}>{errors.password2.message}</Text>
+                )}
                 <FlatList data={formErrors?.password2} renderItem={renderFieldError} />
             </View>
-            <Pressable style={({ pressed }) => [{opacity: pressed ? 75 : 100}, styles.button]} onPress={() => onRegister()}>
+            <Pressable 
+                style={({ pressed }) => [{opacity: pressed ? 75 : 100}, styles.button]} 
+                onPress={handleSubmit(onRegister)}
+                disabled={!isValid}
+            >
                 <Text style={styles.buttonText}>Sign Up</Text>
             </Pressable>
             <View>
@@ -211,11 +246,13 @@ const styles = StyleSheet.create({
     },
     logo: {
         fontSize: 60,
-        margin: '5%',
+        marginVertical: '5%',
+        textAlign: 'center',
     },
     form: {
-        width: '80%',
-        margin: '1%',
+        width: Platform.OS === 'web' ? '25%' : '80%',
+        alignSelf: 'center',
+        marginVertical: '1%',
     },
     input: {
         fontSize: 20,

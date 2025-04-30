@@ -63,7 +63,7 @@ const userSlice = createSlice({
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.user.status = 'failed';
-        state.user.error = action.error;
+        state.user.error = action.error.message ?? 'Registration failed';
         state.user.auth = initialState.user.auth;
       })
       .addCase(loginUser.pending, (state) => {
@@ -78,7 +78,7 @@ const userSlice = createSlice({
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.user.status = 'failed';
-        state.user.error = action.error;
+        state.user.error = action.error.message ?? 'Login failed';
         state.user.auth = initialState.user.auth;
       });
   },
